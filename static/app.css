@@ -1,0 +1,45 @@
+:root {
+	font-family: "Ubuntu", "Roboto", Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', Oxygen, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+	--white: #fff;
+	--hair: #213d44;
+	--body: #65c083;
+	--hooves: #5b8064;
+	--blue: #1b9aaa;
+	--tinted-blue: #b9c6d2;
+	--tinted-green: #abddbc;
+	--green: #1c6825;
+}
+
+::-moz-selection {
+    background-color: var(--tinted-green);
+    color: black;
+}
+
+::selection {
+    background-color: var(--tinted-green);
+    color: black;
+}
+
+body {
+	min-height: 100vh;
+	margin: 0;
+	padding: 0;
+}
+
+.flex {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.row {
+	display: grid;
+	grid-template-columns: 50% 50%;
+}
+
+
+@media (max-width: 700px) {
+	.row {
+		grid-template-columns: auto;
+	}
+}
