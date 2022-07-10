@@ -1,48 +1,103 @@
 <script>
+	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
-	import { Button, Tile, MultiSelect } from "carbon-components-svelte";
-    import Banner from '$lib/components/Banner.svelte';
-	import Menu from '$lib/components/Menu.svelte';
+	import {
+		Button,
+		Tile,
+		MultiSelect,
+		Form,
+		TextInput,
+	} from "carbon-components-svelte";
+	import Banner from "$lib/components/Banner.svelte";
+	import Menu from "$lib/components/Menu.svelte";
 
-	let _user = true;
-	let user = true;
+	let loading = false;
+	let full_name;
+	let email;
+	let discord;
+	let initials;
+
+	const handleSignout = async () => {
+		try {
+			loading = true;
+			let { error } = await supabase.auth.signOut();
+			if (error) throw error;
+		} catch (error) {
+			alert(error.message);
+		} finally {
+			loading = false;
+		}
+	};
+
+	const getProfile = async () => {
+		try {
+			loading = true;
+			const user = supabase.auth.user();
+
+			let { data, error } = await supabase.from("users").select("*");
+
+			if (error) throw error;
+			({ full_name, email, discord, initials } = data);
+		} catch (error) {
+			alert(error.message);
+		} finally {
+			loading = false;
+		}
+	};
+
+	async function updateProfile() {
+		try {
+			loading = true;
+			const user = supabase.auth.user();
+
+			const updates = {
+				id: user.id,
+				full_name,
+				email,
+				discord,
+				intials,
+			};
+
+			let { error } = await supabase.from("users").upsert(updates, {
+				returning: "minimal", // Don't return the value after inserting
+			});
+
+			if (error) throw error;
+		} catch (error) {
+			alert(error.message);
+		} finally {
+			loading = false;
+		}
+	}
+	getProfile();
 </script>
 
-{#if user && _user}
-<Menu />
-{:else}
-<Banner />
-<br />
-<h1 class="header" style="font-weight: 400;">
-    Mustang Math Problem Writer Platform
-</h1>
-<br />
-<p style="text-align: center;">
-    You cannot add problems unless you are logged in.
-</p>
-<br />
-<div class="flex">
-    <Button
-        kind="tertiary"
-        class="button"
-        style="width: 400px; padding: 0;"
-        href="/login"
-    >
-        <p style="margin-left: auto; margin-right: auto;">Login</p>
-    </Button>
-</div>
-<br />
-<div class="flex">
-    <Button
-        kind="tertiary"
-        class="button"
-        style="width: 400px; padding: 0;"
-        href="/signup"
-    >
-        <p style="margin-left: auto; margin-right: auto;">Sign Up</p>
-    </Button>
-</div>
-{/if}
+<Form on:submit={updateProfile}>
+	<TextInput
+		placeholder="Full Name"
+		style="width: 20em;"
+		bind:value={full_name}
+	/> <br />
+	<TextInput placeholder="Email" style="width: 20em;" bind:value={email} />
+	<br />
+	<TextInput placeholder="Discord" style="width: 20em;" bind:value={discord} />
+	<br />
+	<TextInput
+		placeholder="Initials"
+		style="width: 20em;"
+		bind:value={initials}
+	/> <br />
+	<Button type="submit">Submit</Button>
+</Form>
+
+<form class="row flex flex-center" on:submit|preventDefault={handleSignout}>
+	<div class="col-6 form-widget">
+		<h1 class="header">Sign out</h1>
+		<div>
+			<input type="submit" class="button block" />
+		</div>
+	</div>
+</form>
 
 <style>
 	h1 {
@@ -50,23 +105,5 @@
 		text-align: center;
 		margin: 0;
 		padding: 0;
-	}
-
-	div :global(.button),
-	div :global(.button:focus) {
-		border-color: #65c083;
-		background-color: transparent;
-	}
-
-	div :global(.button p) {
-		color: #65c083;
-	}
-
-	div :global(.button:hover) {
-		background-color: #65c083;
-	}
-
-	div :global(.button:hover p) {
-		color: white;
 	}
 </style>

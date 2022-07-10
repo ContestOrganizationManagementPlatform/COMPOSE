@@ -3,8 +3,8 @@
 </script>
 
 <div class="header">
-    <img src="/MMTLogo.png" alt="MMTLogo" width="50" height="50" />
-    <h4>Mustang Math</h4>
+	<img src="/MMTLogo.png" alt="MMTLogo" width="50" height="50" />
+	<h4>Mustang Math</h4>
 </div>
 
 <style>
