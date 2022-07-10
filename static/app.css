@@ -8,6 +8,7 @@
 	--tinted-blue: #b9c6d2;
 	--tinted-green: #abddbc;
 	--green: #1c6825;
+	--light-blue: #f5fffb;
 }
 
 ::-moz-selection {
@@ -24,6 +25,7 @@ body {
 	min-height: 100vh;
 	margin: 0;
 	padding: 0;
+	background-color: var(--light-blue);
 }
 
 .flex {

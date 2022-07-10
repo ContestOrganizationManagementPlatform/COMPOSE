@@ -1,5 +1,11 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
+	import "carbon-components-svelte/css/white.css";
+	import {
+		Form,
+		TextInput,
+		Button
+	} from 'carbon-components-svelte';
 
 	let loading = false;
 	let email;
