@@ -21,13 +21,6 @@
     color: black;
 }
 
-body {
-	min-height: 100vh;
-	margin: 0;
-	padding: 0;
-	background-color: var(--light-blue);
-}
-
 .flex {
 	display: flex;
 	align-items: center;
