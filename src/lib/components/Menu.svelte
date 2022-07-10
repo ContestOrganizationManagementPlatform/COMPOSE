@@ -1,33 +1,23 @@
 <script>
-	let drawer;
-	const openDrawer = () => {
-		drawer.addEventListener("sl-hide", (event) => console.log("hide"));
-		drawer.show();
-	};
+	import Drawer from 'svelte-drawer-component'
+    import Banner from './Banner.svelte'
+	let open = false
 </script>
 
-<button on:click={openDrawer}><i class="ri-menu-unfold-fill"></i></button>
+<Drawer {open} size='30%' placement='left' on:clickAway={() => open=false}>
+    <div class="drawer">
+        <div class="flex">
+            <button class='close' on:click={() => open = false}><i class="ri-menu-fold-line"></i></button>
+            <Banner />
+        </div>
+        <p>Add menu buttons here</p>
+    </div>
+</Drawer>
 
-<sl-drawer placement="start" label="Drawer" class="drawer menu" bind:this={drawer}>
-	<sl-select>
-		<sl-menu-item value="option-1">Option 1</sl-menu-item>
-		<sl-menu-item value="option-2">Option 2</sl-menu-item>
-		<sl-menu-item value="option-3">Option 3</sl-menu-item>
-	</sl-select>
-</sl-drawer>
-
-<svelte:head>
-	<link
-		rel="stylesheet"
-		href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.34/dist/themes/base.css"
-	/>
-	<script
-		type="module"
-		src="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.0.0-beta.34/dist/shoelace.js"></script>
-</svelte:head>
+<button on:click={() => open = true}><i class="ri-menu-unfold-fill"></i></button>
 
 <style>
-    button {
+	 button {
         background-color: #1c6825;
         border: none;
         outline: none;
@@ -39,10 +29,14 @@
         left: 0;
         border-radius: 0 5px 5px 0;
     }
-
-    sl-drawer {
-        display: flex;
+	.close {
+		display: block;
+		margin-left: auto;
+	}
+    .drawer {
+        background-color: #1c6825;
+        width: 100%;
         height: 100%;
-        border: 1px solid red;
+        color: white;
     }
 </style>

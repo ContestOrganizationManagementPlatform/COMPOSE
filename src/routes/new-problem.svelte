@@ -22,7 +22,7 @@
 				{ id: "5", text: "Mixed" },
 			]}
 		/>
-		<TextInput placeholder="Sub-Topic" style="width: 20em; justify-self: start;" />
-		<TextInput type="number" placeholder="Difficulty" style="width: 20em; justify-self: start;" />
+		<TextInput placeholder="Sub-Topic" style="width: 20em;" />
+		<TextInput type="number" placeholder="Difficulty" style="width: 20em;" />
 	</FormGroup>
 </Form>

@@ -9,7 +9,7 @@
 <style>
 	main {
 		padding: 10px;
-		min-height: 85vh;
+		min-height: 100vh;
 		margin: 0;
 		padding: 0;
 		background-color: #f5fffb;
