@@ -29,25 +29,21 @@
 		text-align: center;
 	}
 
-	h1 {
-		color: #061333;
-	}
-
 	.button {
-		border: 2px solid #65c083;
+		border: 2px solid var(--body);
 		width: 30em;
 		padding: 10px;
-		color: #65c083;
+		color: var(--body);
 	}
 
 	.button:hover {
-		background-color: #65c083;
-		color: white;
+		background-color: var(--body);
+		color: var(--white);
 	}
 
 	:global(.link),
 	:global(.link:visited) {
 		text-decoration: none;
-		color: #65c083;
+		color: var(--body);
 	}
 </style>

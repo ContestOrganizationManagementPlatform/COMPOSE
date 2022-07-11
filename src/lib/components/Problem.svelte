@@ -1,7 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	export let problem; // whole object from database
-	export let showMetadata = true;
+	export let showMetadata = false;
 	export let showLatexErrors = false;
 	export let failed = false; // if this problem failed to render (use as bind)
 	let author = "";
@@ -49,14 +49,17 @@
 	{/each}
 {/if}
 
-<h2>Problem</h2>
+<p class="header">Problem</p>
 <p id="problem-render">{@html latexes.problem}</p>
-<h2>Comment</h2>
-<p id="comment-render">{@html latexes.comment}</p>
-<h2>Answer</h2>
+<p class="header">Answer</p>
 <p id="answer-render">{@html latexes.answer}</p>
-<h2>Solution</h2>
+<p class="header">Solution</p>
 <p id="solution-render">{@html latexes.solution}</p>
+<br />
+<p>
+	<span class="header">Comments:</span>
+	<span id="comment-render">{@html latexes.comment}</span>
+</p>
 {#if showMetadata}
 	<h2>Metadata</h2>
 	Author: {author} <br />
@@ -76,3 +79,13 @@
 		Difficulty: {problem.difficulty} <br />
 	{/if}
 {/if}
+
+<style>
+	.header {
+		font-weight: 700;
+	}
+
+	#comment-render {
+		font-style: italic;
+	}
+</style>

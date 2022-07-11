@@ -21,11 +21,7 @@
 		display: block;
 	}
 
-	h1 {
-		color: #061333;
-	}
-
 	:global(.bx--loading__stroke) {
-		stroke: #1c6825 !important;
+		stroke: var(--green) !important;
 	}
 </style>

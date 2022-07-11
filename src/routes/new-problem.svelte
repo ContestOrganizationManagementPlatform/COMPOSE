@@ -12,6 +12,7 @@
 
 	import { displayLatex, checkLatex } from "$lib/latexStuff.js";
 	import Problem from "$lib/components/Problem.svelte";
+	import Menu from "$lib/components/Menu.svelte";
 
 	let topicDropdown;
 	let subTopic;
@@ -63,6 +64,8 @@
 	}
 </script>
 
+<Menu path="new-problem" />
+<br />
 <h1>Create New Problem</h1>
 <Form>
 	<FormGroup style="display: flex; margin: 25px; justify-content: start;">
@@ -127,3 +130,9 @@
 		if (error) alert(error.message);
 	}}>Submit Problem</Button
 >
+
+<style>
+	h1 {
+		font-weight: 700;
+	}
+</style>

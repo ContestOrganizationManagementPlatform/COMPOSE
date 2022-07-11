@@ -15,23 +15,25 @@
 		</div>
 		<br />
 		<div style="display: block;">
-			<Link href="/" class={path == 'home' ? 'active link' : 'link'}>
+			<Link href="/" class={path == "home" ? "active link" : "link"}>
 				<p class="linkPara">Home</p>
 			</Link>
 			<br />
 			<Link
 				href="/new-problem"
-				class={path == 'new-problem' ? 'active link' : 'link'}>
+				class={path == "new-problem" ? "active link" : "link"}
+			>
 				<p class="linkPara">Create New Problem</p>
 			</Link>
 			<br />
 			<Link
 				href="/problems"
-				class={path == 'problems' ? 'active link' : 'link'}>
-				<p class="linkPara">View Problems</p>
+				class={path == "problems" ? "active link" : "link"}
+			>
+				<p class="linkPara">Problem Inventory</p>
 			</Link>
 			<br />
-			<Link href="/tests" class={path == 'tests' ? 'active link' : 'link'}>
+			<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
 				<p class="linkPara">View Tests</p>
 			</Link>
 		</div>
@@ -50,10 +52,10 @@
 
 <style>
 	button {
-		background-color: #1c6825;
+		background-color: var(--green);
 		border: none;
 		outline: none;
-		color: white;
+		color: var(--white);
 		padding: 10px;
 		position: fixed;
 		top: 20px;
@@ -63,19 +65,19 @@
 	}
 
 	.close {
-		background-color: #65c083;
+		background-color: var(--body);
 	}
 
 	:global(.link) {
 		width: 50%;
 		padding: 5px;
-		color: white;
+		color: var(--white);
 		text-decoration: none !important;
 		outline: none !important;
 	}
 
 	.linkPara {
-		color: white;
+		color: var(--white);
 		text-decoration: none;
 		border: none;
 		width: 100%;
@@ -84,12 +86,12 @@
 
 	.linkPara:hover {
 		cursor: pointer;
-		color: #65c083;
+		color: var(--body);
 	}
 
 	:global(.active) {
 		text-decoration: underline !important;
-		color: white !important;
+		color: var(--white) !important;
 	}
 
 	.close {
@@ -97,14 +99,14 @@
 		margin-left: auto;
 	}
 	.drawer {
-		background-color: #1c6825;
+		background-color: var(--green);
 		width: 100%;
 		height: 100%;
-		color: white;
+		color: var(--white);
 	}
 
 	.banner {
-		border-bottom: 2px solid white;
+		border-bottom: 2px solid var(--white);
 		padding-bottom: 15px;
 		width: 50%;
 		position: relative;
@@ -117,7 +119,7 @@
 		left: 0;
 		height: 10px;
 		width: 10px;
-		background: white;
+		background: var(--white);
 		content: "";
 		border-radius: 5px;
 	}
@@ -130,7 +132,7 @@
 	.bottomBanner {
 		position: fixed;
 		bottom: 0;
-		background-color: #65c083;
+		background-color: var(--body);
 		padding: 20px;
 		width: 100%;
 	}

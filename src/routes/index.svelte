@@ -80,6 +80,7 @@
 	getProfile();
 </script>
 
+<Menu path="home" />
 <Form on:submit={updateProfile}>
 	<TextInput
 		placeholder="Full Name"

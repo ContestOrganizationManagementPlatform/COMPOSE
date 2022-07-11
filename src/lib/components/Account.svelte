@@ -116,31 +116,27 @@
 {/if}
 
 <style>
-	h1 {
-		color: #061333;
-	}
-
 	:global(.input) {
 		border-width: 2px;
 	}
 
 	:global(.button),
 	:global(.button:focus) {
-		border-color: #65c083;
+		border-color: var(--body);
 		background-color: transparent;
 	}
 	:global(.button p) {
-		color: #65c083;
+		color: var(--body);
 	}
 	:global(.button:hover) {
-		background-color: #65c083;
+		background-color: var(--body);
 	}
 	:global(.button:hover p) {
-		color: white;
+		color: var(--white);
 	}
 	:global(.button:focus),
 	:global(.input:focus) {
-		border-color: #65c083 !important;
+		border-color: var(--body) !important;
 		outline: none;
 		box-shadow: none;
 	}

@@ -76,12 +76,25 @@
 </main>
 
 <style>
+	:global(:root) {
+		--white: #fff;
+		--black: #000;
+		--hair: #213d44;
+		--body: #65c083;
+		--hooves: #5b8064;
+		--blue: #1b9aaa;
+		--tinted-blue: #b9c6d2;
+		--tinted-green: #abddbc;
+		--green: #1c6825;
+		--light-blue: #f5fffb;
+		--dark-blue: #061333;
+	}
 	main {
 		padding: 10px;
 		min-height: 100vh;
 		margin: 0;
 		padding: 0;
-		background-color: #f5fffb;
+		background-color: var(--light-blue);
 	}
 
 	.loadingPage {
@@ -94,13 +107,13 @@
 		background-color: transparent;
 		outline: none;
 		color: none;
-		color: black;
+		color: var(--black);
 		text-decoration: underline;
 		font-size: 15px;
 	}
 
 	button:hover {
-		color: #1c6825;
+		color: var(--green);
 		cursor: pointer;
 	}
 
