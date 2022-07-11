@@ -12,6 +12,7 @@
 	import Menu from "$lib/components/Menu.svelte";
 
 	let loading = false;
+	let updatedProfile = false;
 	let full_name;
 	let email;
 	let discord;
@@ -34,9 +35,14 @@
 			loading = true;
 			const user = supabase.auth.user();
 
-			let { data, error } = await supabase.from("users").select("*");
+			let { data, error } = await supabase
+				.from("users")
+				.select("*")
+				.limit(1)
+				.single();
 
 			if (error) throw error;
+
 			({ full_name, email, discord, initials } = data);
 		} catch (error) {
 			alert(error.message);
@@ -48,6 +54,7 @@
 	async function updateProfile() {
 		try {
 			loading = true;
+			updatedProfile = false;
 			const user = supabase.auth.user();
 
 			const updates = {
@@ -55,7 +62,7 @@
 				full_name,
 				email,
 				discord,
-				intials,
+				initials,
 			};
 
 			let { error } = await supabase.from("users").upsert(updates, {
@@ -63,6 +70,8 @@
 			});
 
 			if (error) throw error;
+
+			updatedProfile = true;
 		} catch (error) {
 			alert(error.message);
 		} finally {
@@ -89,6 +98,10 @@
 	/> <br />
 	<Button type="submit">Submit</Button>
 </Form>
+
+{#if updatedProfile}
+	<p>Successfully updated profile.</p>
+{/if}
 
 <form class="row flex flex-center" on:submit|preventDefault={handleSignout}>
 	<div class="col-6 form-widget">

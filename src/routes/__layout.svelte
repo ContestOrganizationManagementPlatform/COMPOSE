@@ -6,6 +6,9 @@
 	import { browser } from "$app/env";
 	import { user } from "$lib/sessionStore";
 	import { Button } from "carbon-components-svelte";
+	import { onMount } from "svelte";
+
+	let loaded = false;
 
 	let hasAccount = true;
 	// user.set(browser ? localStorage.getItem("user") : null);
@@ -15,11 +18,17 @@
 		user.set(session?.user);
 	});
 
+	onMount(async () => {
+		loaded = true;
+	});
+
 	// user.subscribe(val => browser ? localStorage.setItem("user", val) : null);
 </script>
 
 <main>
-	{#if !$user && hasAccount}
+	{#if !loaded}
+		<p>Loading...</p>
+	{:else if !$user && hasAccount}
 		<Login />
 		<Button
 			on:click={() => {
