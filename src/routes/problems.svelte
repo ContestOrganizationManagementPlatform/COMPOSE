@@ -12,7 +12,7 @@
 	})();
 </script>
 
-<Menu />
+<Menu path="problems" />
 {#each problems as problem}
 	<Problem {problem} />
 {/each}
