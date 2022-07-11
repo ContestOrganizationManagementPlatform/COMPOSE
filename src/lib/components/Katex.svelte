@@ -1,0 +1,34 @@
+<script>
+	import katex from "katex";
+	export let math;
+	export let displayMode = false;
+
+	const options = {
+		displayMode: displayMode,
+		throwOnError: false,
+	};
+
+	$: katexString = katex.renderToString(math, options);
+</script>
+
+<svelte:head>
+	<link
+		rel="stylesheet"
+		href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css"
+		integrity="sha384-Xi8rHCmBmhbuyyhbI88391ZKP2dmfnOl4rT9ZfRI7mLTdk1wblIUnrIq35nqwEvC"
+		crossorigin="anonymous"
+	/>
+	<script
+		defer
+		src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"
+		integrity="sha384-X/XCfMm41VSsqRNQgDerQczD69XqmjOOOwYQvr/uuC+j4OPoNhVgjdGFwhvN02Ja"
+		crossorigin="anonymous"></script>
+	<script
+		defer
+		src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+		integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR"
+		crossorigin="anonymous"
+		onload="renderMathInElement(document.body);"></script>
+</svelte:head>
+
+{@html katexString}

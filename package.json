@@ -20,6 +20,7 @@
 	"type": "module",
 	"dependencies": {
 		"@supabase/supabase-js": "^1.35.4",
-		"svelte-drawer-component": "^1.2.2"
+		"svelte-drawer-component": "^1.2.2",
+		"svelte-katex": "^0.1.2"
 	}
 }

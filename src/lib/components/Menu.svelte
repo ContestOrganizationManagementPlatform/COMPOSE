@@ -1,6 +1,7 @@
 <script>
 	import Drawer from "svelte-drawer-component";
 	import Banner from "./Banner.svelte";
+	import { Link } from "carbon-components-svelte";
 	let open = false;
 </script>
 
@@ -12,7 +13,16 @@
 			>
 			<Banner />
 		</div>
-		<p>Add menu buttons here</p>
+		<div style="display: block;">
+			<Link href="/" class="link"><p class="linkPara">Home</p></Link><br />
+			<Link href="/new-problem" class="link"
+				><p class="linkPara">Create New Problem</p></Link
+			><br />
+			<Link href="/problems" class="link"
+				><p class="linkPara">View Problems</p></Link
+			><br />
+			<Link href="/tests" class="link"><p class="linkPara">View Tests</p></Link>
+		</div>
 	</div>
 </Drawer>
 
@@ -32,6 +42,21 @@
 		left: 0;
 		border-radius: 0 5px 5px 0;
 	}
+
+	:global(.link) {
+		border: none;
+	}
+
+	.linkPara {
+		color: white;
+		text-decoration: none;
+		border: none;
+	}
+
+	.linkPara:hover {
+		cursor: pointer;
+	}
+
 	.close {
 		display: block;
 		margin-left: auto;

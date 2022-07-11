@@ -14,7 +14,6 @@
 	let loading = false;
 	let updatedProfile = false;
 	let full_name;
-	let email;
 	let discord;
 	let initials;
 
@@ -38,12 +37,13 @@
 			let { data, error } = await supabase
 				.from("users")
 				.select("*")
+				.eq("id", user.id)
 				.limit(1)
 				.single();
 
 			if (error) throw error;
 
-			({ full_name, email, discord, initials } = data);
+			({ full_name, discord, initials } = data);
 		} catch (error) {
 			alert(error.message);
 		} finally {
@@ -60,7 +60,6 @@
 			const updates = {
 				id: user.id,
 				full_name,
-				email,
 				discord,
 				initials,
 			};
@@ -87,8 +86,6 @@
 		style="width: 20em;"
 		bind:value={full_name}
 	/> <br />
-	<TextInput placeholder="Email" style="width: 20em;" bind:value={email} />
-	<br />
 	<TextInput placeholder="Discord" style="width: 20em;" bind:value={discord} />
 	<br />
 	<TextInput

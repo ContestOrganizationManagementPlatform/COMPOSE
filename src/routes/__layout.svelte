@@ -1,8 +1,9 @@
 <script>
 	import "carbon-components-svelte/css/white.css";
 	import { supabase } from "$lib/supabaseClient";
-	import Login from "$lib/components/Login.svelte";
-	import Signup from "$lib/components/Signup.svelte";
+	import Account from "$lib/components/Account.svelte";
+	import Banner from "$lib/components/Banner.svelte";
+	import Loading from "$lib/components/Loading.svelte";
 	import { browser } from "$app/env";
 	import { user } from "$lib/sessionStore";
 	import { Button } from "carbon-components-svelte";
@@ -27,21 +28,48 @@
 
 <main>
 	{#if !loaded}
-		<p>Loading...</p>
+		<Banner />
+		<div class="loadingPage flex">
+			<Loading />
+		</div>
 	{:else if !$user && hasAccount}
-		<Login />
-		<Button
-			on:click={() => {
-				hasAccount = false;
-			}}>Switch to Signup</Button
-		>
+		<Account logIn={true} />
+		<br />
+		<div class="flex">
+			<div style="width: 30em;">
+				<button
+					size="lg"
+					class="link"
+					id="switchScreen"
+					on:click={() => {
+						hasAccount = false;
+					}}>Sign-Up</button
+				>
+				<button size="lg" class="link" id="forgotPassword"
+					>Forgot Password</button
+				>
+			</div>
+		</div>
 	{:else if !$user && !hasAccount}
-		<Signup />
-		<Button
-			on:click={() => {
-				hasAccount = true;
-			}}>Switch to Login</Button
-		>
+		<Account logIn={false} />
+		<br />
+		<div class="flex">
+			<div style="width: 30em;">
+				<button
+					size="lg"
+					class="link"
+					id="switchScreen"
+					on:click={() => {
+						hasAccount = true;
+					}}
+				>
+					Log-In
+				</button>
+				<button size="lg" class="link" id="forgotPassword"
+					>Forgot Password</button
+				>
+			</div>
+		</div>
 	{:else}
 		<slot />
 	{/if}
@@ -54,5 +82,32 @@
 		margin: 0;
 		padding: 0;
 		background-color: #f5fffb;
+	}
+
+	.loadingPage {
+		width: 100vw;
+		height: 80vh;
+	}
+
+	button {
+		border: none;
+		background-color: transparent;
+		outline: none;
+		color: none;
+		color: black;
+		text-decoration: underline;
+		font-size: 15px;
+	}
+
+	button:hover {
+		color: #1c6825;
+		cursor: pointer;
+	}
+
+	#switchScreen {
+		float: left;
+	}
+	#forgotPassword {
+		float: right;
 	}
 </style>
