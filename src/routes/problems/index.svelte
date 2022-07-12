@@ -5,6 +5,7 @@
 	import Problem from "$lib/components/Problem.svelte";
 
 	let problems = [];
+	let loaded = false;
 	(async () => {
 		let { data: newProblems, error } = await supabase
 			.from("problems")
@@ -19,6 +20,7 @@
 		}
 
 		problems = newProblems;
+		loaded = true;
 	})();
 </script>
 
@@ -26,6 +28,9 @@
 <br />
 <h1>Problem Inventory</h1>
 <br />
+{#if !loaded}
+	<p>Loading problems...</p>
+{/if}
 <div class="flex">
 	<DataTable
 		size="short"
@@ -43,7 +48,9 @@
 	>
 		<svelte:fragment slot="cell" let:row let:cell>
 			{#if cell.key === "edit"}
-				<Link class="link"><i class="ri-pencil-fill" /></Link>
+				<Link class="link" href={"/problems/" + row.id}
+					><i class="ri-pencil-fill" /></Link
+				>
 			{:else}
 				{cell.value == null || cell.value == "" ? "None" : cell.value}
 			{/if}

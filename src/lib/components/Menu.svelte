@@ -2,8 +2,23 @@
 	import Drawer from "svelte-drawer-component";
 	import Banner from "./Banner.svelte";
 	import { Link } from "carbon-components-svelte";
+	import { supabase } from "$lib/supabaseClient";
 	let open = false;
 	export let path;
+	let fullname = "";
+	const user = supabase.auth.user();
+
+	(async () => {
+		let { data: users, error } = await supabase
+			.from("users")
+			.select("full_name")
+			.eq("id", user.id)
+			.limit(1)
+			.single();
+		if (error) {
+			fullname = "No Name";
+		} else fullname = users.full_name;
+	})();
 </script>
 
 <Drawer {open} size="30%" placement="left" on:clickAway={() => (open = false)}>
@@ -38,7 +53,7 @@
 			</Link>
 		</div>
 		<div class="bottomBanner">
-			<p style="font-weight: 700;">/Name/</p>
+			<p style="font-weight: 700;">{fullname}</p>
 		</div>
 	</div>
 	<button class="close" on:click={() => (open = false)}>

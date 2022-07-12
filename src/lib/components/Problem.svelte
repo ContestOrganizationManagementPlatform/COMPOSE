@@ -7,11 +7,13 @@
 	let author = "";
 
 	(async () => {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("full_name")
-			.eq("id", problem.author_id);
-		author = users[0].full_name;
+		if ("author_id" in problem) {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("full_name")
+				.eq("id", problem.author_id);
+			author = users[0].full_name;
+		}
 	})();
 
 	import { displayLatex } from "$lib/latexStuff.js";
@@ -36,7 +38,6 @@
 				if (err.sev === "err") failed = true;
 			}
 		}
-		console.log(latexes);
 	}
 </script>
 
