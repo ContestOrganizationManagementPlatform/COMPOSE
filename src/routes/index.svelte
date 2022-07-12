@@ -45,13 +45,21 @@
 
 			({ full_name, discord, initials } = data);
 		} catch (error) {
-			alert(error.message);
+			if (error.code === "PGRST116") {
+				// no user
+				full_name = "";
+				discord = "";
+				initials = "";
+			} else {
+				alert(error.message);
+			}
 		} finally {
 			loading = false;
 		}
 	};
 
-	async function updateProfile() {
+	async function updateProfile(e) {
+		e.preventDefault();
 		try {
 			loading = true;
 			updatedProfile = false;
