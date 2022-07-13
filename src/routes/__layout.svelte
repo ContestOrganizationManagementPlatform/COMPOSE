@@ -36,7 +36,7 @@
 		<Account logIn={true} />
 		<br />
 		<div class="flex">
-			<div style="width: 30em;">
+			<div class="bottomSection">
 				<button
 					size="lg"
 					class="link"
@@ -54,7 +54,7 @@
 		<Account logIn={false} />
 		<br />
 		<div class="flex">
-			<div style="width: 30em;">
+			<div class="bottomSection">
 				<button
 					size="lg"
 					class="link"
@@ -109,6 +109,16 @@
 	}
 	#forgotPassword {
 		float: right;
+	}
+
+	.bottomSection {
+		width: 30em;
+	}
+
+	@media only screen and (max-width: 700px) {
+		.bottomSection {
+			width: 80vw;
+		}
 	}
 
 	/*Global Styles*/

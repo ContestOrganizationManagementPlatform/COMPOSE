@@ -55,7 +55,7 @@
 	margin-top: 20px;
 	align-items: center;"
 >
-	<h1 class="header" style="margin-bottom: 30px;margin-bottom: 20px;">
+	<h1 class="header" style="margin-bottom: 30px;">
 		{#if logIn}
 			Log In
 		{:else}
@@ -103,3 +103,15 @@
 	</p>
 	<br />
 {/if}
+
+<style>
+	@media only screen and (max-width: 700px) {
+		:global(.button) {
+			width: 80vw !important;
+		}
+
+		:global(.input) {
+			width: 80vw !important;
+		}
+	}
+</style>
