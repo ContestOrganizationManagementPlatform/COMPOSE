@@ -20,19 +20,6 @@
 	let discord;
 	let initials;
 
-	const handleSignout = async (e) => {
-		e.preventDefault();
-		try {
-			loading = true;
-			let { error } = await supabase.auth.signOut();
-			if (error) throw error;
-		} catch (error) {
-			alert(error.message);
-		} finally {
-			loading = false;
-		}
-	};
-
 	const getProfile = async () => {
 		try {
 			loading = true;
@@ -136,24 +123,6 @@
 			<br />
 			<p>Successfully updated profile.</p>
 		{/if}
-
-		<br />
-		<h3>Other</h3>
-		<br />
-
-		<Button
-			kind="primary"
-			class="button"
-			size="small"
-			on:click={handleSignout}
-			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-		>
-			<p
-				style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-			>
-				Sign Out
-			</p>
-		</Button>
 	</div>
 </div>
 

@@ -3,9 +3,13 @@
 	import Banner from "./Banner.svelte";
 	import { Link } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
-	let open = false;
+
 	export let path;
+
+	let open = false;
 	let fullname = "";
+	let loading = false;
+
 	const user = supabase.auth.user();
 
 	(async () => {
@@ -19,6 +23,19 @@
 			fullname = "No Name";
 		} else fullname = users.full_name;
 	})();
+
+	const handleSignout = async (e) => {
+		e.preventDefault();
+		try {
+			loading = true;
+			let { error } = await supabase.auth.signOut();
+			if (error) throw error;
+		} catch (error) {
+			alert(error.message);
+		} finally {
+			loading = false;
+		}
+	};
 </script>
 
 <Drawer {open} size="30%" placement="left" on:clickAway={() => (open = false)}>
@@ -50,6 +67,11 @@
 			<br />
 			<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
 				<p class="linkPara">View Tests</p>
+			</Link>
+			<br />
+			<div class="fixedHr" />
+			<Link on:click={handleSignout} class="link">
+				<p class="linkPara">Sign Out</p>
 			</Link>
 		</div>
 		<div class="bottomBanner">
@@ -150,5 +172,15 @@
 		background-color: var(--body);
 		padding: 20px;
 		width: 100%;
+	}
+
+	.fixedHr {
+		width: 50%;
+		border: 1px solid white;
+		background-color: white;
+		margin-left: auto;
+		margin-right: auto;
+		margin-top: 10px;
+		margin-bottom: 5px;
 	}
 </style>
