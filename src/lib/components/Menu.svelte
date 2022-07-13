@@ -9,6 +9,7 @@
 	let open = false;
 	let fullname = "";
 	let loading = false;
+	let width = 0;
 
 	const user = supabase.auth.user();
 
@@ -38,7 +39,14 @@
 	};
 </script>
 
-<Drawer {open} size="30%" placement="left" on:clickAway={() => (open = false)}>
+<svelte:window bind:outerWidth={width} />
+
+<Drawer
+	{open}
+	size={width > 850 ? "30%" : width > 600 ? "50%" : "100%"}
+	placement="left"
+	on:clickAway={() => (open = false)}
+>
 	<div class="drawer">
 		<div class="flex">
 			<div class="banner">

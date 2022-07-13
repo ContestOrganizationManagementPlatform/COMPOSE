@@ -5,6 +5,14 @@
 	import Problem from "$lib/components/Problem.svelte";
 
 	let problems = [];
+	let width = 0;
+	let mobileFriendly = {
+		Algebra: "Alg",
+		Mixed: "Mx",
+		"Number Theory": "NT",
+		Combination: "Comb",
+		Geometry: "Geo",
+	};
 	let loaded = false;
 	(async () => {
 		let { data: newProblems, error } = await supabase
@@ -24,6 +32,8 @@
 	})();
 </script>
 
+<svelte:window bind:outerWidth={width} />
+
 <Menu path="problems" />
 <br />
 <h1>Problem Inventory</h1>
@@ -41,8 +51,8 @@
 			{ key: "front_id", value: "ID" },
 			{ key: "author", value: "Author" },
 			{ key: "topic", value: "Topic" },
-			{ key: "sub_topics", value: "SubTopic" },
-			{ key: "difficulty", value: "Difficulty" },
+			{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
+			{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 		]}
 		rows={problems}
 	>
@@ -51,8 +61,27 @@
 				<Link class="link" href={"/problems/" + row.id}
 					><i class="ri-pencil-fill" /></Link
 				>
+			{:else if cell.key === "topic"}
+				<div style="overflow: hidden;">
+					{cell.value == null || cell.value == ""
+						? "None"
+						: width > 700
+						? cell.value
+						: mobileFriendly[cell.value]}
+				</div>
+			{:else if cell.key === "author"}
+				<div style="overflow: hidden;">
+					{cell.value == null || cell.value == ""
+						? "None"
+						: width > 700
+						? cell.value
+						: cell.value.split(" ")[0].charAt(0) +
+						  cell.value.split(" ")[1].charAt(0)}
+				</div>
 			{:else}
-				{cell.value == null || cell.value == "" ? "None" : cell.value}
+				<div style="overflow: hidden;">
+					{cell.value == null || cell.value == "" ? "None" : cell.value}
+				</div>
 			{/if}
 		</svelte:fragment>
 		<svelte:fragment slot="expanded-row" let:row>
