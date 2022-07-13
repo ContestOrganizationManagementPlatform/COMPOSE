@@ -5,12 +5,7 @@
 
 <Banner />
 <br />
-<h1
-	class="header"
-	style="margin-bottom: 30px;font-weight: 700;margin-bottom: 20px;"
->
-	Error!
-</h1>
+<h1 class="header" style="margin-bottom: 30px;margin-bottom: 20px;">Error!</h1>
 <p>
 	The buttons on our calculator stopped working
 	<i class="ri-emotion-unhappy-line" />

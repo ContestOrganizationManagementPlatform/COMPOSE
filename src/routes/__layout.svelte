@@ -89,6 +89,12 @@
 		--light-blue: #f5fffb;
 		--dark-blue: #061333;
 	}
+
+	:global(.flex) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 	main {
 		padding: 10px;
 		min-height: 100vh;

@@ -55,10 +55,7 @@
 	margin-top: 20px;
 	align-items: center;"
 >
-	<h1
-		class="header"
-		style="margin-bottom: 30px;font-weight: 700;margin-bottom: 20px;"
-	>
+	<h1 class="header" style="margin-bottom: 30px;margin-bottom: 20px;">
 		{#if logIn}
 			Log In
 		{:else}

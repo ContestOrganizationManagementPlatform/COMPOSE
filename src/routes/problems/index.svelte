@@ -62,10 +62,6 @@
 </div>
 
 <style>
-	h1 {
-		font-weight: 700;
-	}
-
 	:global(.datatable) {
 		width: 80%;
 	}

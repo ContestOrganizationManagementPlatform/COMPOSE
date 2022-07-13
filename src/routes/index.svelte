@@ -7,6 +7,9 @@
 		MultiSelect,
 		Form,
 		TextInput,
+		Grid,
+		Row,
+		Column,
 	} from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
@@ -17,7 +20,8 @@
 	let discord;
 	let initials;
 
-	const handleSignout = async () => {
+	const handleSignout = async (e) => {
+		e.preventDefault();
 		try {
 			loading = true;
 			let { error } = await supabase.auth.signOut();
@@ -89,40 +93,95 @@
 </script>
 
 <Menu path="home" />
-<Form on:submit={updateProfile}>
-	<TextInput
-		placeholder="Full Name"
-		style="width: 20em;"
-		bind:value={full_name}
-	/> <br />
-	<TextInput placeholder="Discord" style="width: 20em;" bind:value={discord} />
-	<br />
-	<TextInput
-		placeholder="Initials"
-		style="width: 20em;"
-		bind:value={initials}
-	/> <br />
-	<Button type="submit">Submit</Button>
-</Form>
+<br />
+<h1 style="font-size: 5em;">Welcome /Name/</h1>
+<h4 style="margin-bottom: 30px;">/Daily inspirational quote/</h4>
+<div class="flex profileButtons">
+	<div>
+		<h3>Profile</h3>
+		<br />
 
-{#if updatedProfile}
-	<p>Successfully updated profile.</p>
-{/if}
+		<Form on:submit={updateProfile}>
+			<TextInput
+				placeholder="Full Name"
+				style="width: 100%"
+				bind:value={full_name}
+			/> <br />
+			<TextInput
+				placeholder="Discord"
+				style="width: 100%"
+				bind:value={discord}
+			/>
+			<br />
+			<TextInput
+				placeholder="Initials"
+				style="width: 100%"
+				bind:value={initials}
+			/> <br />
+			<Button
+				kind="primary"
+				class="button"
+				size="small"
+				type="submit"
+				style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+			>
+				<p
+					style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+				>
+					Submit
+				</p>
+			</Button>
+		</Form>
+		{#if updatedProfile}
+			<br />
+			<p>Successfully updated profile.</p>
+		{/if}
 
-<form class="row flex flex-center" on:submit|preventDefault={handleSignout}>
-	<div class="col-6 form-widget">
-		<h1 class="header">Sign out</h1>
-		<div>
-			<input type="submit" class="button block" />
-		</div>
+		<br />
+		<h3>Other</h3>
+		<br />
+
+		<Button
+			kind="primary"
+			class="button"
+			size="small"
+			on:click={handleSignout}
+			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+		>
+			<p
+				style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+			>
+				Sign Out
+			</p>
+		</Button>
 	</div>
-</form>
+</div>
 
 <style>
-	h1 {
-		font-weight: 800;
-		text-align: center;
-		margin: 0;
-		padding: 0;
+	h3 {
+		text-decoration: underline;
+	}
+
+	:global(.profileButtons .button),
+	:global(.profileButtons .button:focus) {
+		border-color: transparent;
+		background-color: var(--green);
+	}
+	:global(.profileButtons .button p) {
+		color: white;
+	}
+	:global(.profileButtons .button:hover) {
+		background-color: transparent;
+		border: 2px solid var(--green) !important;
+	}
+	:global(.profileButtons .button:hover p) {
+		color: var(--green);
+	}
+	:global(.profileButtons .button:focus),
+	:global(.profileButtons .bx--text-input:focus),
+	:global(.profileButtons .bx--text-input:active) {
+		border: 2px solid var(--green);
+		box-shadow: 2px solid var(--green);
+		outline-color: var(--green);
 	}
 </style>

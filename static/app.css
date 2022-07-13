@@ -15,12 +15,6 @@
 	color: black;
 }
 
-.flex {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
-
 .row {
 	display: grid;
 	grid-template-columns: 50% 50%;
@@ -34,4 +28,5 @@
 
 h1 {
 	color: var(--dark-blue);
+	font-weight: 700 !important;
 }

@@ -4,10 +4,7 @@
 </script>
 
 <div class="outerDiv">
-	<h1
-		class="header"
-		style="margin-bottom: 30px;font-weight: 700;margin-bottom: 20px;"
-	>
+	<h1 class="header" style="margin-bottom: 30px;margin-bottom: 20px;">
 		Loading... Hang Tight!
 	</h1>
 	<br />

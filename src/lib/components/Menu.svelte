@@ -38,7 +38,7 @@
 				href="/new-problem"
 				class={path == "new-problem" ? "active link" : "link"}
 			>
-				<p class="linkPara">Create New Problem</p>
+				<p class="linkPara">Write New Problem</p>
 			</Link>
 			<br />
 			<Link
