@@ -1,16 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
-	import {
-		Button,
-		Tile,
-		MultiSelect,
-		Form,
-		TextInput,
-		Grid,
-		Row,
-		Column,
-	} from "carbon-components-svelte";
+	import { Button, Form, TextInput } from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
 
@@ -129,28 +120,5 @@
 <style>
 	h3 {
 		text-decoration: underline;
-	}
-
-	:global(.profileButtons .button),
-	:global(.profileButtons .button:focus) {
-		border-color: transparent;
-		background-color: var(--green);
-	}
-	:global(.profileButtons .button p) {
-		color: white;
-	}
-	:global(.profileButtons .button:hover) {
-		background-color: transparent;
-		border: 2px solid var(--green) !important;
-	}
-	:global(.profileButtons .button:hover p) {
-		color: var(--green);
-	}
-	:global(.profileButtons .button:focus),
-	:global(.profileButtons .bx--text-input:focus),
-	:global(.profileButtons .bx--text-input:active) {
-		border: 2px solid var(--green);
-		box-shadow: 2px solid var(--green);
-		outline-color: var(--green);
 	}
 </style>

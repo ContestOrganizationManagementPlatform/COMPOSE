@@ -8,6 +8,8 @@
 		Select,
 		SelectItem,
 	} from "carbon-components-svelte";
+	import Menu from "$lib/components/Menu.svelte";
+
 	const user = supabase.auth.user();
 	let loaded = false;
 	let isAdmin;
@@ -59,31 +61,52 @@
 	}
 </script>
 
+<Menu />
+<br />
+<h1>Admin Portal</h1>
 {#if !loaded}
 	Loading...
 {:else if !isAdmin}
 	You are not allowed in here!
 {:else}
-	<Form>
-		{#each roles as role}
-			<FormGroup>
-				<p>ID: {role.user_id}</p>
-				<br />
-				<p>Name: {role.name}</p>
-				<br />
-				<Select labelText="Role" bind:selected={role.role}>
-					<SelectItem value="0" text="No role assigned (0)" />
-					<SelectItem value="10" text="No permissions (10)" />
-					<SelectItem value="20" text="Problem Contributor (20)" />
-					<SelectItem value="30" text="Problem Writer (30)" />
-					<SelectItem value="40" text="Administrator (40)" />
-				</Select>
-				<Button
-					on:click={() => {
-						addRoleToUser(role.user_id, role.role);
-					}}>Edit</Button
-				>
-			</FormGroup> <br /> <br />
-		{/each}
-	</Form>
+	<div style="padding: 10px;">
+		<Form>
+			{#each roles as role}
+				<div class="box">
+					<FormGroup>
+						<h3><strong>{role.name}</strong></h3>
+						<p><i>{role.user_id}</i></p>
+						<Select labelText="Role" bind:selected={role.role}>
+							<SelectItem value="0" text="No role assigned (0)" />
+							<SelectItem value="10" text="No permissions (10)" />
+							<SelectItem value="20" text="Problem Contributor (20)" />
+							<SelectItem value="30" text="Problem Writer (30)" />
+							<SelectItem value="40" text="Administrator (40)" />
+						</Select>
+						<br />
+						<Button
+							kind="tertiary"
+							class="button"
+							size="small"
+							on:click={() => {
+								addRoleToUser(role.user_id, role.role);
+							}}
+							style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+						>
+							<p style="font-size: 1.3em;">Update Role</p>
+						</Button>
+					</FormGroup>
+				</div>
+			{/each}
+		</Form>
+	</div>
 {/if}
+
+<style>
+	.box {
+		background-color: var(--white);
+		border: 1px solid var(--green);
+		margin: 10px;
+		padding: 5px 20px;
+	}
+</style>

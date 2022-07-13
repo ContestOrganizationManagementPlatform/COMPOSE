@@ -60,23 +60,3 @@
 		</svelte:fragment>
 	</DataTable>
 </div>
-
-<style>
-	:global(.datatable) {
-		width: 80%;
-	}
-
-	:global(.link),
-	:global(.bx--data-table tr:hover .bx--link) {
-		color: var(--black);
-	}
-
-	:global(.bx--link:hover) {
-		color: var(--green) !important;
-		cursor: pointer;
-	}
-
-	:global(.bx--table-expand__button:focus) {
-		box-shadow: none;
-	}
-</style>

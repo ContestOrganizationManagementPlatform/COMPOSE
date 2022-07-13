@@ -46,7 +46,7 @@
 			</div>
 		</div>
 		<br />
-		<div style="display: block;">
+		<div class="menu" style="display: block;">
 			<Link href="/" class={path == "home" ? "active link" : "link"}>
 				<p class="linkPara">Home</p>
 			</Link>
@@ -105,14 +105,6 @@
 		background-color: var(--body);
 	}
 
-	:global(.link) {
-		width: 50%;
-		padding: 5px;
-		color: var(--white);
-		text-decoration: none !important;
-		outline: none !important;
-	}
-
 	.linkPara {
 		color: var(--white);
 		text-decoration: none;
@@ -124,11 +116,6 @@
 	.linkPara:hover {
 		cursor: pointer;
 		color: var(--body);
-	}
-
-	:global(.active) {
-		text-decoration: underline !important;
-		color: var(--white) !important;
 	}
 
 	.close {

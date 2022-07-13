@@ -35,10 +35,4 @@
 		background-color: var(--body);
 		color: var(--white);
 	}
-
-	:global(.link),
-	:global(.link:visited) {
-		text-decoration: none;
-		color: var(--body);
-	}
 </style>

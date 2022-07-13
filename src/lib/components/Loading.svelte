@@ -17,8 +17,4 @@
 	.outerDiv {
 		display: block;
 	}
-
-	:global(.bx--loading__stroke) {
-		stroke: var(--green) !important;
-	}
 </style>

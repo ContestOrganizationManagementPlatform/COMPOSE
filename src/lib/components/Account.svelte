@@ -83,11 +83,7 @@
 			on:click={handleLogin}
 			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 		>
-			<p
-				style="margin-left: auto; margin-right: auto; font-size: 1.5em;font-weight: 500;padding: 0;"
-			>
-				Enter
-			</p>
+			<p>Enter</p>
 		</Button>
 	{:else}
 		<Button
@@ -97,11 +93,7 @@
 			on:click={handleSignUp}
 			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 		>
-			<p
-				style="margin-left: auto; margin-right: auto; font-size: 1.5em;font-weight: 500;padding: 0;"
-			>
-				Enter
-			</p>
+			<p>Enter</p>
 		</Button>
 	{/if}
 </Form>
@@ -111,30 +103,3 @@
 	</p>
 	<br />
 {/if}
-
-<style>
-	:global(.input) {
-		border-width: 2px;
-	}
-
-	:global(.button),
-	:global(.button:focus) {
-		border-color: var(--body);
-		background-color: transparent;
-	}
-	:global(.button p) {
-		color: var(--body);
-	}
-	:global(.button:hover) {
-		background-color: var(--body);
-	}
-	:global(.button:hover p) {
-		color: var(--white);
-	}
-	:global(.button:focus),
-	:global(.input:focus) {
-		border-color: var(--body) !important;
-		outline: none;
-		box-shadow: none;
-	}
-</style>
