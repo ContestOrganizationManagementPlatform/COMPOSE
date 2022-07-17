@@ -71,9 +71,9 @@
 	}
 </script>
 
-<Form>
-	<FormGroup style="display: flex; margin: 25px; justify-content: start;">
-		<Select style="width: 20em; margin-right: 10px;" bind:selected={topic}>
+<Form class="editorForm">
+	<FormGroup style="display: flex; align-items: end;">
+		<Select style="width: 20em; margin-right: 20px;" bind:selected={topic}>
 			<SelectItem value="Topic" />
 			<SelectItem value="Algebra" />
 			<SelectItem value="Combo" />
@@ -83,20 +83,28 @@
 		</Select>
 		<TextInput
 			bind:value={subTopic}
+			style="margin-right: 20px;"
 			placeholder="Sub-Topic"
-			style="width: 20em;"
+			class="textInput"
 		/>
 		<TextInput
 			bind:value={difficulty}
 			type="number"
 			placeholder="Difficulty"
-			style="width: 20em;"
+			class="textInput"
 		/>
 	</FormGroup>
-	<TextArea labelText="Problem" bind:value={fields.problem} />
-	<TextArea labelText="Comment" bind:value={fields.comment} />
-	<TextInput labelText="Answer" bind:value={fields.answer} />
-	<TextArea labelText="Solution" bind:value={fields.solution} />
+	<TextArea class="textArea" labelText="Problem" bind:value={fields.problem} />
+	<br />
+	<TextArea class="textArea" labelText="Comment" bind:value={fields.comment} />
+	<br />
+	<TextInput class="textInput" labelText="Answer" bind:value={fields.answer} />
+	<br />
+	<TextArea
+		class="textArea"
+		labelText="Solution"
+		bind:value={fields.solution}
+	/>
 </Form>
 
 {#each errorList as err}
@@ -117,6 +125,9 @@
 
 {#if onSubmit}
 	<Button
+		kind="tertiary"
+		class="button"
+		size="small"
 		disabled={isDisabled || problemFailed}
 		on:click={async () => {
 			const payload = [
@@ -133,7 +144,23 @@
 			submittedText = "Submitting problem...";
 			await onSubmit(payload);
 			submittedText = "Problem submitted.";
-		}}>Submit Problem</Button
+		}}
+		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 	>
+		<p>Submit Problem</p>
+	</Button>
+
 	<p>{submittedText}</p>
+	<br />
 {/if}
+
+<style>
+	:global(.editorForm) {
+		padding: 20px;
+	}
+
+	:global(.bx--label) {
+		font-weight: 700;
+		color: var(--green);
+	}
+</style>

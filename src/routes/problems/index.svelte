@@ -17,15 +17,10 @@
 	(async () => {
 		let { data: newProblems, error } = await supabase
 			.from("problems")
-			.select("*");
-
-		for (let problem of newProblems) {
-			let { data: users, error } = await supabase
-				.from("users")
-				.select("full_name")
-				.eq("id", problem.author_id);
-			problem["author"] = users[0].full_name;
-		}
+			.select("*,users(full_name)");
+		newProblems.forEach(
+			(p) => (p.author = p.users?.full_name ?? "Unnamed User")
+		);
 
 		problems = newProblems;
 		loaded = true;
@@ -37,10 +32,26 @@
 <Menu path="problems" />
 <br />
 <h1>Problem Inventory</h1>
-<br />
 {#if !loaded}
 	<p>Loading problems...</p>
 {/if}
+<div style="margin-top: 10px; margin-bottom: 10px">
+	<Button
+		kind="primary"
+		class="button"
+		size="small"
+		href="/new-problem"
+		type="submit"
+		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+	>
+		<p
+			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+		>
+			Add a new problem
+		</p>
+	</Button>
+</div>
+<br />
 <div class="flex">
 	<DataTable
 		size="short"

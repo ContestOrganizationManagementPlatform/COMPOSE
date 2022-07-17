@@ -72,7 +72,7 @@
 
 <Menu path="home" />
 <br />
-<h1 style="font-size: 5em;">Welcome /Name/</h1>
+<h1 style="font-size: 5em;">Welcome, {full_name}</h1>
 <h4 style="margin-bottom: 30px;">/Daily inspirational quote/</h4>
 <div class="flex profileButtons">
 	<div>

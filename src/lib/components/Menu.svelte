@@ -3,17 +3,21 @@
 	import Banner from "./Banner.svelte";
 	import { Link } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
+	import { getThisUserRole } from "$lib/getUserRole.js";
+	import { page } from "$app/stores";
 
-	export let path;
+	$: path = $page.routeId;
 
 	let open = false;
 	let fullname = "";
 	let loading = false;
 	let width = 0;
+	let isAdmin;
 
 	const user = supabase.auth.user();
 
 	(async () => {
+		isAdmin = (await getThisUserRole()) >= 40;
 		let { data: users, error } = await supabase
 			.from("users")
 			.select("full_name")
@@ -55,7 +59,7 @@
 		</div>
 		<br />
 		<div class="menu" style="display: block;">
-			<Link href="/" class={path == "home" ? "active link" : "link"}>
+			<Link href="/" class={path == "" ? "active link" : "link"}>
 				<p class="linkPara">Home</p>
 			</Link>
 			<br />
@@ -76,6 +80,41 @@
 			<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
 				<p class="linkPara">View Tests</p>
 			</Link>
+			{#if isAdmin}
+				<br />
+				<div class="fixedHr" />
+				<Link href="/admin" class={path == "admin" ? "active link" : "link"}>
+					<p class="linkPara">Admin: Home</p>
+				</Link>
+				<br />
+				<Link
+					href="/admin/new-test"
+					class={path == "admin/new-test" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: New Test</p>
+				</Link>
+				<br />
+				<Link
+					href="/admin/roles"
+					class={path == "admin/roles" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: Roles</p>
+				</Link>
+				<br />
+				<Link
+					href="/admin/tests"
+					class={path == "admin/tests" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: Tests</p>
+				</Link>
+				<br />
+				<Link
+					href="/admin/tournaments"
+					class={path == "admin/tournaments" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: Tournaments</p>
+				</Link>
+			{/if}
 			<br />
 			<div class="fixedHr" />
 			<Link on:click={handleSignout} class="link">
@@ -91,7 +130,7 @@
 	</button>
 </Drawer>
 
-<button on:click={() => (open = true)}>
+<button on:click={() => (open = true)} class="unfoldButton">
 	<i class="ri-menu-unfold-fill" />
 </button>
 
@@ -119,6 +158,10 @@
 		border: none;
 		width: 100%;
 		text-align: right;
+	}
+
+	.unfoldButton {
+		z-index: 100 !important;
 	}
 
 	.linkPara:hover {

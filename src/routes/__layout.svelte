@@ -3,6 +3,7 @@
 	import { supabase } from "$lib/supabaseClient";
 	import Account from "$lib/components/Account.svelte";
 	import Banner from "$lib/components/Banner.svelte";
+	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import { browser } from "$app/env";
 	import { user } from "$lib/sessionStore";
@@ -163,10 +164,14 @@
 		box-shadow: 2px solid var(--green);
 		outline-color: var(--green);
 	}
-	:global(.link),
-	:global(.link:visited) {
+	:global(.link) {
 		text-decoration: none;
 		color: var(--body);
+	}
+
+	:global(.link:visited) {
+		text-decoration: none;
+		color: var(--black);
 	}
 
 	:global(.menu .link) {
@@ -238,7 +243,9 @@
 	}
 
 	:global(.bx--select-input:focus),
-	:global(.bx--select-input:active) {
+	:global(.bx--select-input:active),
+	:global(.textInput:focus),
+	:global(.textArea:focus) {
 		border-color: var(--green);
 		outline-color: var(--green);
 	}

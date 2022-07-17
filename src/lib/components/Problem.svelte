@@ -50,36 +50,48 @@
 	{/each}
 {/if}
 
-<p class="header">Problem</p>
-<p id="problem-render">{@html latexes.problem}</p>
-<p class="header">Answer</p>
-<p id="answer-render">{@html latexes.answer}</p>
-<p class="header">Solution</p>
-<p id="solution-render">{@html latexes.solution}</p>
-<br />
-<p>
-	<span class="header">Comments:</span>
-	<span id="comment-render">{@html latexes.comment}</span>
-</p>
 {#if showMetadata}
-	<h2>Metadata</h2>
-	Author: {author} <br />
-	{#if "front_id" in problem}
-		ID: {problem.front_id} <br />
-	{/if}
-	{#if "nickname" in problem}
-		Nickname: {problem.nickname} <br />
-	{/if}
-	{#if "topic" in problem}
-		Topic: {problem.topic} <br />
-	{/if}
-	{#if "sub_topics" in problem}
-		Sub-Topic: {problem.sub_topics} <br />
-	{/if}
-	{#if "difficulty" in problem}
-		Difficulty: {problem.difficulty} <br />
-	{/if}
+	<h2>About</h2>
+	<div class="flex">
+		<div style="border: 2px solid black;width: 70%;margin: 10px;padding: 10px;">
+			<p><span class="header">Author: </span>{author}</p>
+			{#if "front_id" in problem}
+				<p><span class="header">ID: </span>{problem.front_id}</p>
+			{/if}
+			{#if "nickname" in problem}
+				<p><span class="header">Nickname: </span>{problem.nickname}</p>
+			{/if}
+			{#if "topic" in problem}
+				<p><span class="header">Topic: </span>{problem.topic}</p>
+			{/if}
+			{#if "sub_topics" in problem}
+				<p><span class="header">Sub-Topic: </span>{problem.sub_topics}</p>
+			{/if}
+			{#if "difficulty" in problem}
+				<p><span class="header">Difficulty: </span>{problem.difficulty}</p>
+			{/if}
+		</div>
+	</div>
 {/if}
+
+{#if showMetadata}
+	<h2>Information</h2>
+{/if}
+<div class="flex">
+	<div style="border: 2px solid black;width: 70%;margin: 10px;padding: 10px;">
+		<p class="header">Problem</p>
+		<p id="problem-render">{@html latexes.problem}</p>
+		<p class="header">Answer</p>
+		<p id="answer-render">{@html latexes.answer}</p>
+		<p class="header">Solution</p>
+		<p id="solution-render">{@html latexes.solution}</p>
+		<br />
+		<p>
+			<span class="header">Comments:</span>
+			<span id="comment-render">{@html latexes.comment}</span>
+		</p>
+	</div>
+</div>
 
 <style>
 	.header {
