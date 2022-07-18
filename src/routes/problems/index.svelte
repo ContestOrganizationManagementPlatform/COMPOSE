@@ -1,8 +1,8 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import Menu from "$lib/components/Menu.svelte";
 	import { DataTable, Link, Button } from "carbon-components-svelte";
 	import Problem from "$lib/components/Problem.svelte";
+	import { formatDate } from "$lib/formatDate.js";
 
 	let problems = [];
 	let width = 0;
@@ -17,7 +17,8 @@
 	(async () => {
 		let { data: newProblems, error } = await supabase
 			.from("problems")
-			.select("*,users(full_name)");
+			.select("*,users(full_name)")
+			.order("edited_at");
 		newProblems.forEach(
 			(p) => (p.author = p.users?.full_name ?? "Unnamed User")
 		);
@@ -29,7 +30,6 @@
 
 <svelte:window bind:outerWidth={width} />
 
-<Menu path="problems" />
 <br />
 <h1>Problem Inventory</h1>
 {#if !loaded}
@@ -47,7 +47,7 @@
 		<p
 			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
 		>
-			Add a new problem
+			Create a new problem
 		</p>
 	</Button>
 </div>
@@ -56,6 +56,7 @@
 	<DataTable
 		size="short"
 		expandable
+		sortable
 		class="datatable"
 		headers={[
 			{ key: "edit", value: "", width: "20px" },
@@ -64,6 +65,8 @@
 			{ key: "topic", value: "Topic" },
 			{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 			{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
+			{ key: "created_at", value: width > 700 ? "Created at" : "Created" },
+			{ key: "edited_at", value: width > 700 ? "Edited at" : "Edited" },
 		]}
 		rows={problems}
 	>
@@ -88,6 +91,14 @@
 						? cell.value
 						: cell.value.split(" ")[0].charAt(0) +
 						  cell.value.split(" ")[1].charAt(0)}
+				</div>
+			{:else if cell.key === "created_at"}
+				<div style="overflow: hidden;">
+					{formatDate(new Date(cell.value))}
+				</div>
+			{:else if cell.key === "edited_at"}
+				<div style="overflow: hidden;">
+					{formatDate(new Date(cell.value))}
 				</div>
 			{:else}
 				<div style="overflow: hidden;">

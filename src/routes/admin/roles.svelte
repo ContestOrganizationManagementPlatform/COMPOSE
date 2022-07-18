@@ -9,7 +9,6 @@
 		SelectItem,
 		Modal,
 	} from "carbon-components-svelte";
-	import Menu from "$lib/components/Menu.svelte";
 	{
 		/* import Modal from "$lib/components/Modal.svelte"; */
 	}
@@ -23,7 +22,6 @@
 			.select("id,full_name,user_roles(role)")
 			.order("full_name");
 		if (error) alert(error.message);
-		console.log(users);
 		for (let user of users) {
 			const curRole = user.user_roles[0]?.role ?? 0;
 			roles.push({
@@ -55,7 +53,6 @@
 	roleManager();
 </script>
 
-<Menu path="admin/roles" />
 <br />
 <h1>Admin Portal</h1>
 
@@ -75,7 +72,7 @@
 	<Form>
 		{#each roles as role}
 			<div class="box">
-				<FormGroup>
+				<FormGroup disabled={role.user_id === user.id}>
 					<h3><strong>{role.name}</strong></h3>
 					<p><i>{role.user_id}</i></p>
 					<Select labelText="Role" bind:selected={role.role}>

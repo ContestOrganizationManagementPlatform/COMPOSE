@@ -3,7 +3,6 @@
 	import "carbon-components-svelte/css/white.css";
 	import { Button, Form, TextInput } from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
-	import Menu from "$lib/components/Menu.svelte";
 
 	let loading = false;
 	let updatedProfile = false;
@@ -70,7 +69,6 @@
 	getProfile();
 </script>
 
-<Menu path="home" />
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
 <h4 style="margin-bottom: 30px;">/Daily inspirational quote/</h4>

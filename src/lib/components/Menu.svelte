@@ -88,8 +88,8 @@
 				</Link>
 				<br />
 				<Link
-					href="/admin/new-test"
-					class={path == "admin/new-test" ? "active link" : "link"}
+					href="/admin/tests/new"
+					class={path == "admin/tests/new" ? "active link" : "link"}
 				>
 					<p class="linkPara">Admin: New Test</p>
 				</Link>

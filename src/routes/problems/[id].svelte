@@ -4,7 +4,7 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import { Button } from "carbon-components-svelte";
-	import Menu from "$lib/components/Menu.svelte";
+	import Modal from "$lib/components/Modal.svelte";
 
 	let problem;
 	let loaded = false;
@@ -37,7 +37,6 @@
 </script>
 
 <br />
-<Menu />
 {#if loaded}
 	<h1>Problem {problem.id}</h1>
 	<br />
@@ -91,6 +90,13 @@
 				Edit Problem
 			</p>
 		</Button>
+		<br />
+		<br />
+		<Modal
+			onSubmit={() => {
+				console.log("test");
+			}}
+		/>
 		<br />
 		<br />
 		<Problem {problem} showMetadata={true} />

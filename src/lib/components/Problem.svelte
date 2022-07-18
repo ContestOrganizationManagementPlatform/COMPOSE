@@ -3,6 +3,7 @@
 	export let problem; // whole object from database
 	export let showMetadata = false;
 	export let showLatexErrors = false;
+	export let widthPara = 70;
 	export let failed = false; // if this problem failed to render (use as bind)
 	let author = "";
 
@@ -53,7 +54,9 @@
 {#if showMetadata}
 	<h2>About</h2>
 	<div class="flex">
-		<div style="border: 2px solid black;width: 70%;margin: 10px;padding: 10px;">
+		<div
+			style="border: 2px solid black;width: {widthPara}%;margin: 10px;padding: 10px;"
+		>
 			<p><span class="header">Author: </span>{author}</p>
 			{#if "front_id" in problem}
 				<p><span class="header">ID: </span>{problem.front_id}</p>
@@ -78,7 +81,9 @@
 	<h2>Information</h2>
 {/if}
 <div class="flex">
-	<div style="border: 2px solid black;width: 70%;margin: 10px;padding: 10px;">
+	<div
+		style="border: 2px solid black;width: {widthPara}%;margin: 10px;padding: 10px;"
+	>
 		<p class="header">Problem</p>
 		<p id="problem-render">{@html latexes.problem}</p>
 		<p class="header">Answer</p>

@@ -7,7 +7,6 @@
 		TextArea,
 		Button,
 	} from "carbon-components-svelte";
-	import Menu from "$lib/components/Menu.svelte";
 
 	let tournaments = [];
 	let name = "";
@@ -37,7 +36,6 @@
 	getTournaments();
 </script>
 
-<Menu path="admin/new-test" />
 <h1>Add Test</h1>
 
 <form>

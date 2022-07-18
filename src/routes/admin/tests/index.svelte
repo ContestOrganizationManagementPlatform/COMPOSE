@@ -1,6 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient.js";
 	import Menu from "$lib/components/Menu.svelte";
+	import { Button } from "carbon-components-svelte";
 
 	let tournaments = {};
 	let loading = true;
@@ -42,6 +43,7 @@
 				<div>
 					<p>Name: {test.test_name}</p>
 					<p>Description: {test.test_description}</p>
+					<Button href={"/admin/tests/" + test.id}>Edit</Button>
 				</div>
 				<br />
 			{/each}

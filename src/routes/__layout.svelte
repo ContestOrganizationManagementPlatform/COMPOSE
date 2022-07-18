@@ -72,6 +72,7 @@
 			</div>
 		</div>
 	{:else}
+		<Menu />
 		<slot />
 	{/if}
 </main>
