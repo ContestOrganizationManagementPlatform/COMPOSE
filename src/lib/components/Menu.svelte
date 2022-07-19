@@ -150,6 +150,7 @@
 
 	.close {
 		background-color: var(--body);
+		z-index: 101;
 	}
 
 	.linkPara {
@@ -161,7 +162,7 @@
 	}
 
 	.unfoldButton {
-		z-index: 100 !important;
+		z-index: 10;
 	}
 
 	.linkPara:hover {

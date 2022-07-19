@@ -14,6 +14,7 @@
 	let signupSuccess = false;
 	let email;
 	let password;
+	let retypePassword;
 
 	const handleLogin = async () => {
 		try {
@@ -31,18 +32,22 @@
 	};
 
 	const handleSignUp = async () => {
-		try {
-			loading = true;
-			const { user, session, error } = await supabase.auth.signUp({
-				email: email,
-				password: password,
-			});
-			if (error) throw error;
-			signupSuccess = true;
-		} catch (error) {
-			alert(error.error_description || error.message);
-		} finally {
-			loading = false;
+		if (password == retypePassword) {
+			try {
+				loading = true;
+				const { user, session, error } = await supabase.auth.signUp({
+					email: email,
+					password: password,
+				});
+				if (error) throw error;
+				signupSuccess = true;
+			} catch (error) {
+				alert(error.error_description || error.message);
+			} finally {
+				loading = false;
+			}
+		} else {
+			alert("ERROR: Passwords do not match");
 		}
 	};
 </script>
@@ -75,6 +80,14 @@
 		placeholder="password"
 		style="width: 30em;"
 	/> <br />
+	{#if !logIn && password != ""}
+		<PasswordInput
+			bind:value={retypePassword}
+			class="input"
+			placeholder="retype password"
+			style="width: 30em;"
+		/> <br />
+	{/if}
 	{#if logIn}
 		<Button
 			kind="tertiary"

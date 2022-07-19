@@ -93,6 +93,7 @@
 		<br />
 		<br />
 		<Modal
+			runHeader="Delete Problem"
 			onSubmit={() => {
 				console.log("test");
 			}}

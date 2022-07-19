@@ -7,11 +7,8 @@
 		FormGroup,
 		Select,
 		SelectItem,
-		Modal,
 	} from "carbon-components-svelte";
-	{
-		/* import Modal from "$lib/components/Modal.svelte"; */
-	}
+	import Modal from "$lib/components/Modal.svelte";
 
 	const user = supabase.auth.user();
 	let roles = [];
@@ -57,18 +54,6 @@
 <h1>Admin Portal</h1>
 
 <div style="padding: 10px;">
-	<Modal
-		bind:isOpen
-		modalHeading="Create database"
-		primaryButtonText="Confirm"
-		secondaryButtonText="Cancel"
-		on:click:button--secondary={() => (isOpen = false)}
-		on:open
-		on:close
-		on:submit
-	>
-		test
-	</Modal>
 	<Form>
 		{#each roles as role}
 			<div class="box">
@@ -83,18 +68,13 @@
 						<SelectItem value="40" text="Administrator (40)" />
 					</Select>
 					<br />
-					<Button
-						kind="tertiary"
-						class="button"
-						size="small"
-						on:click={() => {
+					<Modal
+						runHeader="Update Role"
+						onSubmit={() => {
 							isOpen = true;
 							addRoleToUser(role.user_id, role.role);
 						}}
-						style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-					>
-						<p style="font-size: 1.3em;">Update Role</p>
-					</Button>
+					/>
 				</FormGroup>
 			</div>
 		{/each}

@@ -9,7 +9,7 @@
 		SelectItem,
 		TextArea,
 	} from "carbon-components-svelte";
-	import TrashCan from "carbon-icons-svelte/lib/TrashCan.svelte";
+	import Modal from "$lib/components/Modal.svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -102,11 +102,10 @@
 	<h3>Current coordinators:</h3>
 	{#each testCoordinators as testCoordinator}
 		<p>{testCoordinator.full_name} ({testCoordinator.id})</p>
-		<Button
-			kind="danger-tertiary"
-			iconDescription="Remove {testCoordinator.full_name}"
-			icon={TrashCan}
-			on:click={() => deleteTestCoordinator(testCoordinator.id)}
+		<Modal
+			runHeader="Remove {testCoordinator.full_name}"
+			del={true}
+			onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
 		/>
 	{/each}
 	<Form>
