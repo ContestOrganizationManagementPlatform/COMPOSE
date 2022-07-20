@@ -1,7 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import {
-		Button,
 		TextInput,
 		Form,
 		FormGroup,
@@ -51,7 +50,7 @@
 </script>
 
 <br />
-<h1>Admin Portal</h1>
+<h1>Admin: Roles</h1>
 
 <div style="padding: 10px;">
 	<Form>

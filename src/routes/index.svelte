@@ -1,8 +1,9 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
-	import { Button, Form, TextInput } from "carbon-components-svelte";
+	import { Form, TextInput } from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let loading = false;
 	let updatedProfile = false;
@@ -94,19 +95,7 @@
 				style="width: 100%"
 				bind:value={initials}
 			/> <br />
-			<Button
-				kind="primary"
-				class="button"
-				size="small"
-				type="submit"
-				style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-			>
-				<p
-					style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-				>
-					Submit
-				</p>
-			</Button>
+			<Button title="Submit" />
 		</Form>
 		{#if updatedProfile}
 			<br />

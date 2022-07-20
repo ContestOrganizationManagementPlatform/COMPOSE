@@ -5,8 +5,8 @@
 		SelectItem,
 		TextInput,
 		TextArea,
-		Button,
 	} from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let tournaments = [];
 	let name = "";
@@ -36,9 +36,10 @@
 	getTournaments();
 </script>
 
-<h1>Add Test</h1>
+<br />
+<h1>Admin: Add Test</h1>
 
-<form>
+<form style="padding: 20px;">
 	<Select bind:ref={selectItem}>
 		{#each tournaments as tournament}
 			<SelectItem
@@ -47,11 +48,20 @@
 			/>
 		{/each}
 	</Select>
-	<TextInput bind:value={name} label="Test Name" placeholder="Test Name" />
+	<br />
+	<TextInput
+		bind:value={name}
+		class="textInput"
+		label="Test Name"
+		placeholder="Test Name"
+	/>
+	<br />
 	<TextArea
 		bind:value={description}
 		label="Test Description"
+		class="textArea"
 		placeholder="Test Description"
 	/>
-	<Button on:click={createTest}>Add Test</Button>
+	<br />
+	<Button on:click={createTest} title="Add Test" />
 </form>

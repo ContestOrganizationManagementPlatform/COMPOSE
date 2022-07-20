@@ -7,7 +7,6 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import { browser } from "$app/env";
 	import { user } from "$lib/sessionStore";
-	import { Button } from "carbon-components-svelte";
 	import { onMount } from "svelte";
 
 	let loaded = false;

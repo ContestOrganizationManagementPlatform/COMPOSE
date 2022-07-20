@@ -1,0 +1,38 @@
+<script>
+	import { Button } from "carbon-components-svelte";
+	export let title;
+	export let action;
+	export let href = null;
+</script>
+
+{#if href}
+	<Button
+		kind="primary"
+		class="button"
+		size="small"
+		{href}
+		type="submit"
+		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+	>
+		<p
+			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+		>
+			{title}
+		</p>
+	</Button>
+{:else}
+	<Button
+		kind="primary"
+		class="button"
+		size="small"
+		on:click={action}
+		type="submit"
+		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+	>
+		<p
+			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+		>
+			{title}
+		</p>
+	</Button>
+{/if}

@@ -1,6 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient.js";
-	import { DataTable, Link, Button } from "carbon-components-svelte";
+	import { DataTable, Link } from "carbon-components-svelte";
 
 	let tests = [];
 	let tournaments = {};
@@ -35,7 +35,7 @@
 			<div class="miniGrid">
 				{#each tournament.tests as test, i}
 					<div class="miniBox">
-						<h5>Test {i}</h5>
+						<h5>Test {i + 1}</h5>
 						<p><strong>Name:</strong> {test.test_name}</p>
 						<p><strong>Description:</strong> {test.test_description}</p>
 					</div>
@@ -64,6 +64,6 @@
 		grid-gap: 5px;
 	}
 	.miniBox {
-		background-color: var(--tinted-green);
+		border: 2px solid var(--green);
 	}
 </style>

@@ -3,12 +3,23 @@
 	import { supabase } from "$lib/supabaseClient";
 	import Problem from "$lib/components/Problem.svelte";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
-	import { Button } from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 
 	let problem;
 	let loaded = false;
 	let editing = false;
+
+	async function fetchTopic(problem_id) {
+		let { data: problem_topics, error } = await supabase
+			.from("problem_topics")
+			.select("topic_id,global_topics(topic)")
+			.eq("problem_id", problem_id);
+		problem.topic = problem_topics.map((x) => x.topic_id);
+		problem.topicArray = problem_topics.map(
+			(x) => x.global_topics?.topic ?? "Unknown Topic"
+		);
+	}
 
 	async function fetchProblem() {
 		let { data: problems, error } = await supabase
@@ -21,17 +32,30 @@
 			alert(error.message);
 		} else {
 			problem = problems;
+			await fetchTopic(problem.id);
 			loaded = true;
 		}
 	}
 	fetchProblem();
 
 	async function submitProblem(payload) {
-		let { error } = await supabase
+		const { topics, ...payloadNoTopics } = payload;
+		let { data, error } = await supabase
 			.from("problems")
-			.update(payload, { returning: "minimal" })
+			.update([payloadNoTopics])
 			.eq("id", $page.params.id);
-		if (error) alert(error);
+		if (error) alert(error.message);
+		console.log(data);
+		let { error2 } = await supabase
+			.from("problem_topics")
+			.delete()
+			.eq("problem_id", data[0].id);
+		let { error3 } = await supabase.from("problem_topics").insert(
+			payload.topics.map((tp) => ({
+				problem_id: data[0].id,
+				topic_id: tp,
+			}))
+		);
 		fetchProblem();
 	}
 </script>
@@ -40,56 +64,23 @@
 {#if loaded}
 	<h1>Problem {problem.id}</h1>
 	<br />
-	<Button
-		kind="primary"
-		class="button"
-		size="small"
-		type="submit"
-		href="/problems"
-		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-	>
-		<p
-			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-		>
-			Back to Problems
-		</p>
-	</Button>
+	<Button href="/problems" title="Back to Problems" />
 	<br /><br />
 	{#if editing}
 		<Button
-			kind="primary"
-			class="button"
-			size="small"
-			type="submit"
-			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-			on:click={() => {
+			action={() => {
 				editing = false;
 			}}
-		>
-			<p
-				style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-			>
-				Return
-			</p>
-		</Button>
+			title="Return"
+		/>
 		<ProblemEditor originalProblem={problem} onSubmit={submitProblem} />
 	{:else}
 		<Button
-			kind="primary"
-			class="button"
-			size="small"
-			type="submit"
-			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-			on:click={() => {
+			action={() => {
 				editing = true;
 			}}
-		>
-			<p
-				style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-			>
-				Edit Problem
-			</p>
-		</Button>
+			title="Edit Problem"
+		/>
 		<br />
 		<br />
 		<Modal

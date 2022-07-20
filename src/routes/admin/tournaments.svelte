@@ -1,6 +1,7 @@
 <script>
-	import { Form, TextInput, Button } from "carbon-components-svelte";
+	import { Form, TextInput } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
+	import Button from "$lib/components/Button.svelte";
 	let tournaments = [];
 	let tournamentName = "";
 	let tournamentDate = "";
@@ -28,7 +29,7 @@
 </script>
 
 <br />
-<h1>View Tournaments</h1>
+<h1>Admin: View Tournaments</h1>
 <br />
 <div class="flex profileButtons">
 	<Form class="tournamentForm">
@@ -50,19 +51,7 @@
 			placeholder="Date"
 		/>
 		<br />
-		<Button
-			kind="primary"
-			class="button"
-			size="small"
-			on:click={createTournament}
-			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-		>
-			<p
-				style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-			>
-				Create New Tournament
-			</p>
-		</Button>
+		<Button action={createTournament} title="Create New Tournament" />
 	</Form>
 </div>
 <div style="padding: 10px;" class="grid">

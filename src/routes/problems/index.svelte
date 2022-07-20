@@ -1,8 +1,9 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { DataTable, Link, Button } from "carbon-components-svelte";
+	import { DataTable, Link } from "carbon-components-svelte";
 	import Problem from "$lib/components/Problem.svelte";
 	import { formatDate } from "$lib/formatDate.js";
+	import Button from "$lib/components/Button.svelte";
 
 	let problems = [];
 	let width = 0;
@@ -36,20 +37,7 @@
 	<p>Loading problems...</p>
 {/if}
 <div style="margin-top: 10px; margin-bottom: 10px">
-	<Button
-		kind="primary"
-		class="button"
-		size="small"
-		href="/new-problem"
-		type="submit"
-		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-	>
-		<p
-			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-		>
-			Create a new problem
-		</p>
-	</Button>
+	<Button title="Create a new problem" href="/problems/new" />
 </div>
 <br />
 <div class="flex">
@@ -65,8 +53,8 @@
 			{ key: "topic", value: "Topic" },
 			{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 			{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
-			{ key: "created_at", value: width > 700 ? "Created at" : "Created" },
-			{ key: "edited_at", value: width > 700 ? "Edited at" : "Edited" },
+			{ key: "created_at", value: width > 700 ? "Created on" : "Created" },
+			{ key: "edited_at", value: width > 700 ? "Edited on" : "Edited" },
 		]}
 		rows={problems}
 	>
@@ -111,3 +99,4 @@
 		</svelte:fragment>
 	</DataTable>
 </div>
+<br />

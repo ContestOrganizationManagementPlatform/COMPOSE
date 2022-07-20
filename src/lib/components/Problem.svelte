@@ -65,7 +65,9 @@
 				<p><span class="header">Nickname: </span>{problem.nickname}</p>
 			{/if}
 			{#if "topic" in problem}
-				<p><span class="header">Topic: </span>{problem.topic}</p>
+				<p>
+					<span class="header">Topic: </span>{problem.topicArray.join(", ")}
+				</p>
 			{/if}
 			{#if "sub_topics" in problem}
 				<p><span class="header">Sub-Topic: </span>{problem.sub_topics}</p>

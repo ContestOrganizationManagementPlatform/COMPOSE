@@ -4,12 +4,12 @@
 	import {
 		Form,
 		TextInput,
-		Button,
 		Select,
 		SelectItem,
 		TextArea,
 	} from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -97,7 +97,7 @@
 	<Form>
 		<TextInput label="Name" bind:value={test.test_name} />
 		<TextArea label="Description" bind:value={test.test_description} />
-		<Button on:click={editTest}>Edit Test</Button>
+		<Button action={editTest} title="Edit Test" />
 	</Form>
 	<h3>Current coordinators:</h3>
 	{#each testCoordinators as testCoordinator}
@@ -114,6 +114,6 @@
 				<SelectItem value={user.id} text="{user.full_name} ({user.id})" />
 			{/each}
 		</Select>
-		<Button on:click={addTestCoordinator}>Add Test Coordinator</Button>
+		<Button action={addTestCoordinator} title="Add Test Coordinator" />
 	</Form>
 {/if}

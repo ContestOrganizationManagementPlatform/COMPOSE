@@ -1,7 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient.js";
 	import Menu from "$lib/components/Menu.svelte";
-	import { Button } from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let tournaments = {};
 	let loading = true;
@@ -33,20 +33,56 @@
 	getTournaments();
 </script>
 
+<br />
+<h1>Admin: View Tests</h1>
+<br />
 {#if loading}
 	Loading up tests...
 {:else}
-	{#each Object.values(tournaments) as tournament}
-		<div>
-			<h3>{tournament[0]}</h3>
-			{#each tournament.slice(1) as test}
-				<div>
-					<p>Name: {test.test_name}</p>
-					<p>Description: {test.test_description}</p>
-					<Button href={"/admin/tests/" + test.id}>Edit</Button>
+	<div style="padding: 10px;" class="grid">
+		{#each Object.values(tournaments) as tournament}
+			{#if tournament.length > 1}
+				<div class="box">
+					<h3 style="margin-bottom: 10px;"><strong>{tournament[0]}</strong></h3>
+					<div class="miniGrid">
+						{#each tournament.slice(1) as test, i}
+							<div class="miniBox">
+								<h5>Test {i + 1}</h5>
+								<p><strong>Name:</strong> {test.test_name}</p>
+								<p><strong>Description:</strong> {test.test_description}</p>
+								<div style="margin: 5px;">
+									<Button href={"/admin/tests/" + test.id} title="Edit" />
+								</div>
+							</div>
+						{/each}
+					</div>
 				</div>
-				<br />
-			{/each}
-		</div>
-	{/each}
+			{:else}
+				<div />
+			{/if}
+		{/each}
+	</div>
 {/if}
+
+<style>
+	.box {
+		background-color: var(--white);
+		border: 1px solid var(--green);
+		margin: 10px;
+		padding: 10px 20px;
+	}
+
+	.grid {
+		display: grid;
+		grid-template-columns: 50% 50%;
+	}
+
+	.miniGrid {
+		display: grid;
+		grid-template-columns: 100%;
+		grid-gap: 5px;
+	}
+	.miniBox {
+		border: 2px solid var(--green);
+	}
+</style>
