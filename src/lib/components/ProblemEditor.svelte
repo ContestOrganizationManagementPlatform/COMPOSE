@@ -181,7 +181,7 @@
 								topics: topics,
 								sub_topics: subTopic,
 								difficulty: parseInt(difficulty),
-								edited_at: new Date().toISOString,
+								edited_at: new Date().toISOString(),
 							};
 							submittedText = "Submitting problem...";
 							await onSubmit(payload);

@@ -1,6 +1,12 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { DataTable, Link } from "carbon-components-svelte";
+	import {
+		DataTable,
+		Link,
+		Toolbar,
+		ToolbarContent,
+		ToolbarSearch,
+	} from "carbon-components-svelte";
 	import Problem from "$lib/components/Problem.svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Button from "$lib/components/Button.svelte";
@@ -18,11 +24,15 @@
 	(async () => {
 		let { data: newProblems, error } = await supabase
 			.from("problems")
-			.select("*,users(full_name)")
+			.select("*,users(full_name),problem_topics(global_topics(topic_short))")
 			.order("edited_at");
-		newProblems.forEach(
-			(p) => (p.author = p.users?.full_name ?? "Unnamed User")
-		);
+		newProblems.forEach((p) => {
+			p.author = p.users?.full_name ?? "Unnamed User";
+			console.log(p.problem_topics);
+			p.topic =
+				p.problem_topics?.map((x) => x.global_topics.topic_short).join(", ") ??
+				"None";
+		});
 
 		problems = newProblems;
 		loaded = true;
@@ -50,7 +60,7 @@
 			{ key: "edit", value: "", width: "20px" },
 			{ key: "front_id", value: "ID" },
 			{ key: "author", value: "Author" },
-			{ key: "topic", value: "Topic" },
+			{ key: "topic", value: "Topics" },
 			{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 			{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 			{ key: "created_at", value: width > 700 ? "Created on" : "Created" },
@@ -58,6 +68,11 @@
 		]}
 		rows={problems}
 	>
+		<Toolbar>
+			<ToolbarContent>
+				<ToolbarSearch persistent shouldFilterRows />
+			</ToolbarContent>
+		</Toolbar>
 		<svelte:fragment slot="cell" let:row let:cell>
 			{#if cell.key === "edit"}
 				<Link class="link" href={"/problems/" + row.id}
@@ -82,11 +97,11 @@
 				</div>
 			{:else if cell.key === "created_at"}
 				<div style="overflow: hidden;">
-					{formatDate(new Date(cell.value))}
+					{cell.value ? formatDate(new Date(cell.value)) : "N/A"}
 				</div>
 			{:else if cell.key === "edited_at"}
 				<div style="overflow: hidden;">
-					{formatDate(new Date(cell.value))}
+					{cell.value ? formatDate(new Date(cell.value)) : "N/A"}
 				</div>
 			{:else}
 				<div style="overflow: hidden;">
