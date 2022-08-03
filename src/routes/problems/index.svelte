@@ -23,16 +23,9 @@
 	let loaded = false;
 	(async () => {
 		let { data: newProblems, error } = await supabase
-			.from("problems")
-			.select("*,users(full_name),problem_topics(global_topics(topic_short))")
-			.order("edited_at");
-		newProblems.forEach((p) => {
-			p.author = p.users?.full_name ?? "Unnamed User";
-			console.log(p.problem_topics);
-			p.topic =
-				p.problem_topics?.map((x) => x.global_topics.topic_short).join(", ") ??
-				"None";
-		});
+			.from("full_problems")
+			.select("*")
+			.order("front_id");
 
 		problems = newProblems;
 		loaded = true;
@@ -59,8 +52,8 @@
 		headers={[
 			{ key: "edit", value: "", width: "20px" },
 			{ key: "front_id", value: "ID" },
-			{ key: "author", value: "Author" },
-			{ key: "topic", value: "Topics" },
+			{ key: "full_name", value: "Author" },
+			{ key: "topics_short", value: "Topics" },
 			{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 			{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 			{ key: "created_at", value: width > 700 ? "Created on" : "Created" },

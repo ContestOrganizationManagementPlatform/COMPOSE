@@ -23,7 +23,7 @@
 
 	async function fetchProblem() {
 		let { data: problems, error } = await supabase
-			.from("problems")
+			.from("full_problems")
 			.select("*")
 			.eq("id", $page.params.id)
 			.limit(1)
@@ -62,7 +62,7 @@
 
 <br />
 {#if loaded}
-	<h1>Problem {problem.id}</h1>
+	<h1>Problem {problem.id} ({problem.front_id})</h1>
 	<br />
 	<Button href="/problems" title="Back to Problems" />
 	<br /><br />

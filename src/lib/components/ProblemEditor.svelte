@@ -21,10 +21,16 @@
 	// if not passed in, submit button is not shown
 	export let onSubmit = null;
 	let loading = true;
-	console.log(originalProblem);
 
 	let topics = originalProblem?.topic ?? []; // This will be a list of integer topic ids
 	let all_topics = []; // [{id: 1, text: "Algebra"}]
+	let topicsStr = "Select a topic...";
+	$: if (topics.length > 0 && all_topics.length > 0) {
+		topicsStr = topics
+			.map((x) => all_topics?.find((at) => at.id === x)?.text_short)
+			.join(", ");
+	}
+
 	let subTopic = originalProblem?.sub_topics;
 	let difficulty = originalProblem?.difficulty;
 	let isDisabled = true;
@@ -83,10 +89,17 @@
 		if (error) alert(error.message);
 		all_topics = [];
 		for (const single_topic of global_topics) {
-			all_topics.push({ id: single_topic.id, text: single_topic.topic });
+			all_topics.push({
+				id: single_topic.id,
+				text: single_topic.topic,
+				text_short: single_topic.topic_short,
+			});
 		}
+		all_topics = all_topics;
+		topics = topics;
 		loading = false;
 	}
+
 	getTopics();
 </script>
 
@@ -98,10 +111,10 @@
 			<Form class="editorForm">
 				<FormGroup style="display: flex; align-items: end;">
 					<MultiSelect
-						filterable
-						style="width: 20em; margin-right: 20px;"
+						style="width: 20em; margin-right: 20px"
 						bind:selectedIds={topics}
-						bind:items={all_topics}
+						items={all_topics}
+						label={topicsStr}
 						required={true}
 					/>
 					<TextInput
@@ -234,5 +247,10 @@
 	:global(.bx--label) {
 		font-weight: 700;
 		color: var(--green);
+	}
+
+	:global(.bx--multi-select__wrapper) {
+		width: 20em;
+		margin-right: 20px;
 	}
 </style>

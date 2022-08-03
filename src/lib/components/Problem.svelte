@@ -8,7 +8,9 @@
 	let author = "";
 
 	(async () => {
-		if ("author_id" in problem) {
+		if ("full_name" in problem) {
+			author = problem.full_name;
+		} else if ("author_id" in problem) {
 			let { data: users, error } = await supabase
 				.from("users")
 				.select("full_name")
@@ -66,7 +68,8 @@
 			{/if}
 			{#if "topic" in problem}
 				<p>
-					<span class="header">Topic: </span>{problem.topicArray.join(", ")}
+					<span class="header">Topic: </span>{problem.topics ??
+						problem.topicArray.join(", ")}
 				</p>
 			{/if}
 			{#if "sub_topics" in problem}
