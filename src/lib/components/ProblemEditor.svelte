@@ -44,6 +44,12 @@
 		answer: originalProblem?.answer_latex ?? "$2$.",
 		solution: originalProblem?.solution_latex ?? "Trivially $\\ans{2}$.",
 	};
+	let fieldrefs = {
+		problem: null,
+		comment: null,
+		answer: null,
+		solution: null,
+	};
 	let latexes = {
 		problem_latex: "",
 		comment_latex: "",
@@ -53,6 +59,17 @@
 	let fieldList = ["problem", "comment", "answer", "solution"];
 	let errorList = [];
 	let doRender = false;
+
+	let activeTextarea = null;
+	function updateActive() {
+		for (const field of fieldList) {
+			if (document.activeElement === fieldrefs[field]) {
+				activeTextarea = field;
+				return;
+			}
+		}
+		activeTextarea = null;
+	}
 
 	$: {
 		errorList = [];
@@ -103,10 +120,12 @@
 	getTopics();
 </script>
 
+<svelte:window on:click={updateActive} />
+
 {#if loading}
 	<p>Loading problem editor...</p>
 {:else}
-	<div class="row" style="grid-template-columns: 70% 30%;">
+	<div class="row editorContainer" style="grid-template-columns: 70% 30%;">
 		<div class="col">
 			<Form class="editorForm">
 				<FormGroup style="display: flex; align-items: end;">
@@ -135,29 +154,53 @@
 					class="textArea"
 					labelText="Problem"
 					bind:value={fields.problem}
+					bind:ref={fieldrefs.problem}
 					required={true}
 				/>
+				{#if activeTextarea === "problem"}
+					<div class="stickyKeyboard">
+						<LatexKeyboard />
+					</div>
+				{/if}
 				<br />
 				<TextArea
 					class="textArea"
 					labelText="Comment"
 					bind:value={fields.comment}
+					bind:ref={fieldrefs.comment}
 					required={true}
 				/>
+				{#if activeTextarea === "comment"}
+					<div class="stickyKeyboard">
+						<LatexKeyboard />
+					</div>
+				{/if}
 				<br />
 				<TextInput
 					class="textInput"
 					labelText="Answer"
 					bind:value={fields.answer}
+					bind:ref={fieldrefs.answer}
 					required={true}
 				/>
+				{#if activeTextarea === "answer"}
+					<div class="stickyKeyboard">
+						<LatexKeyboard />
+					</div>
+				{/if}
 				<br />
 				<TextArea
 					class="textArea"
 					labelText="Solution"
 					bind:value={fields.solution}
+					bind:ref={fieldrefs.solution}
 					required={true}
 				/>
+				{#if activeTextarea === "solution"}
+					<div class="stickyKeyboard">
+						<LatexKeyboard />
+					</div>
+				{/if}
 			</Form>
 		</div>
 
@@ -231,12 +274,6 @@
 			{/if}
 		</div>
 	</div>
-
-	<LatexKeyboard
-		onClick={() => {
-			fields = fields;
-		}}
-	/>
 {/if}
 
 <style>

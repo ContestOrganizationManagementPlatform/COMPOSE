@@ -20,22 +20,45 @@
 			el.selectionStart = sp + beforeText.length;
 			el.selectionEnd = ep + beforeText.length;
 		}
+
+		el.dispatchEvent(new Event("input")); // make it update
 		onClick();
 	}
 </script>
 
-{#each latexLayout as category}
-	<div>
-		<span>{category.name}</span>
-		<div class="profileButtons">
-			{#each category.buttons as button}
-				<KeyboardButton
-					beforeText={button[0]}
-					afterText={button[1]}
-					displayText={button[2]}
-					clickHandler={handleClick}
-				/>
-			{/each}
+<div class="latexKeyboard">
+	{#each latexLayout as category}
+		<div class="keyboardCategory">
+			<div class="profileButtons">
+				<span class="categoryName">{category.name}</span>
+				{#each category.buttons as button}
+					<KeyboardButton
+						beforeText={button[0]}
+						afterText={button[1]}
+						displayText={button[2]}
+						clickHandler={handleClick}
+					/>
+				{/each}
+			</div>
 		</div>
-	</div>
-{/each}
+	{/each}
+</div>
+
+<style>
+	.latexKeyboard {
+		background-color: rgb(219, 248, 229);
+		border: 1px solid #333333;
+		display: block;
+		padding: 10px;
+		overflow-y: auto;
+	}
+
+	.keyboardCategory {
+		width: 100%;
+		margin-bottom: 10px;
+	}
+
+	.categoryName {
+		vertical-align: middle;
+	}
+</style>

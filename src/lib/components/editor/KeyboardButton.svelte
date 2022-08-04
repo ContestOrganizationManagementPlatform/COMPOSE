@@ -20,6 +20,7 @@
 	class="button"
 	size="small"
 	on:click={(e) => {
+		e.preventDefault();
 		clickHandler(beforeText, afterText);
 	}}
 	bind:ref={elemRef}
