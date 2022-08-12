@@ -68,9 +68,11 @@
 		</Toolbar>
 		<svelte:fragment slot="cell" let:row let:cell>
 			{#if cell.key === "edit"}
-				<Link class="link" href={"/problems/" + row.id}
-					><i class="ri-pencil-fill" /></Link
-				>
+				<div class="pencil">
+					<Link class="link" href={"/problems/" + row.id}
+						><i class="ri-pencil-fill" /></Link
+					>
+				</div>
 			{:else if cell.key === "topic"}
 				<div style="overflow: hidden;">
 					{cell.value == null || cell.value == ""
@@ -108,3 +110,14 @@
 	</DataTable>
 </div>
 <br />
+
+<style>
+	:global(.bx--toolbar-content .bx--search .bx--search-input:focus) {
+		outline-color: var(--green);
+	}
+
+	:global(.pencil .link) {
+		border: none;
+		outline: none;
+	}
+</style>

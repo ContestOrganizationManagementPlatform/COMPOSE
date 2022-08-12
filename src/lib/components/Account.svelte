@@ -70,14 +70,14 @@
 	<TextInput
 		class="input"
 		bind:value={email}
-		placeholder="email"
+		placeholder="Email"
 		style="width: 30em;"
 	/>
 	<br />
 	<PasswordInput
 		bind:value={password}
 		class="input"
-		placeholder="password"
+		placeholder="Password"
 		style="width: 30em;"
 	/> <br />
 	{#if !logIn && password != ""}
@@ -118,6 +118,9 @@
 {/if}
 
 <style>
+	:global(.bx--text-input--password__visibility, .bx--btn.bx--text-input--password__visibility__toggle.bx--tooltip__trigger:focus) {
+		outline-color: var(--green);
+	}
 	@media only screen and (max-width: 700px) {
 		:global(.button) {
 			width: 80vw !important;

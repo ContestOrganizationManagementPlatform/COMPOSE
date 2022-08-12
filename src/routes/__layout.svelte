@@ -46,7 +46,8 @@
 					}}>Sign-Up</button
 				>
 				<button size="lg" class="link" id="forgotPassword"
-					>Forgot Password</button
+					><a href="/password-reset" style="color: black;">Forgot Password</a
+					></button
 				>
 			</div>
 		</div>
@@ -66,7 +67,8 @@
 					Log-In
 				</button>
 				<button size="lg" class="link" id="forgotPassword"
-					>Forgot Password</button
+					><a href="/password-reset" style="color: black;">Forgot Password</a
+					></button
 				>
 			</div>
 		</div>
