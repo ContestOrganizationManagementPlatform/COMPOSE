@@ -1,11 +1,14 @@
 <script>
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
+	import ProblemList from "../../../lib/components/ProblemList.svelte";
 
 	let testId = $page.params.id;
 	let test;
 	let testCoordinators = [];
 	let loading = true;
+	let loadingProblems = true;
+	let problems = [];
 
 	async function getTest() {
 		let { data: tests, error } = await supabase
@@ -20,7 +23,22 @@
 		test = tests;
 
 		testCoordinators = test.test_coordinators.map((x) => x.users);
+		console.log(testCoordinators);
 		loading = false;
+		getProblems();
+	}
+
+	async function getProblems() {
+		let { data: problemList, error } = await supabase
+			.from("test_problems")
+			.select("*,full_problems(*)")
+			.eq("test_id", testId)
+			.order("problem_number");
+		problems = problemList.map((pb) => ({
+			problem_number: pb.problem_number,
+			...pb.full_problems,
+		}));
+		loadingProblems = false;
 	}
 
 	getTest();
@@ -31,4 +49,14 @@
 {:else}
 	<h1>Test: {test.test_name}</h1>
 	<p>Description: {test.test_description}</p>
+	<p>
+		Coordinators: {testCoordinators.length === 0
+			? "None"
+			: testCoordinators.map((tc) => tc.full_name).join(", ")}
+	</p>
+	{#if loadingProblems}
+		<p>Loading problems...</p>
+	{:else}
+		<ProblemList {problems} />
+	{/if}
 {/if}
