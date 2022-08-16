@@ -1,7 +1,8 @@
 <script>
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
-	import ProblemList from "../../../lib/components/ProblemList.svelte";
+	import ProblemList from "$lib/components/ProblemList.svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -9,6 +10,7 @@
 	let loading = true;
 	let loadingProblems = true;
 	let problems = [];
+	let userIsTestCoordinator = false;
 
 	async function getTest() {
 		let { data: tests, error } = await supabase
@@ -23,7 +25,9 @@
 		test = tests;
 
 		testCoordinators = test.test_coordinators.map((x) => x.users);
-		console.log(testCoordinators);
+		userIsTestCoordinator = !!testCoordinators.find(
+			(tc) => tc.id === supabase.auth.user().id
+		);
 		loading = false;
 		getProblems();
 	}
@@ -54,6 +58,9 @@
 			? "None"
 			: testCoordinators.map((tc) => tc.full_name).join(", ")}
 	</p>
+	{#if userIsTestCoordinator}
+		<Button href={`/tests/${testId}/edit`} title="Edit problems" />
+	{/if}
 	{#if loadingProblems}
 		<p>Loading problems...</p>
 	{:else}

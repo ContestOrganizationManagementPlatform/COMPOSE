@@ -1,5 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient.js";
+	import Button from "$lib/components/Button.svelte";
 	import { DataTable, Link } from "carbon-components-svelte";
 
 	let tests = [];
@@ -38,6 +39,9 @@
 						<h5>Test {i + 1}</h5>
 						<p><strong>Name:</strong> {test.test_name}</p>
 						<p><strong>Description:</strong> {test.test_description}</p>
+						<div style="margin: 5px;">
+							<Button href={"/tests/" + test.id} title="View" />
+						</div>
 					</div>
 				{/each}
 			</div>

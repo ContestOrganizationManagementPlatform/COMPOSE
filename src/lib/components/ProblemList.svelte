@@ -10,6 +10,10 @@
 	import Problem from "$lib/components/Problem.svelte";
 
 	export let problems = [];
+	export let condensed = false;
+	export let selectable = false;
+	export let selectedItems = [];
+	export let editable = true;
 
 	let width = 0;
 	let mobileFriendly = {
@@ -19,6 +23,28 @@
 		Combination: "Comb",
 		Geometry: "Geo",
 	};
+
+	let headers = [
+		{ key: "edit", value: "", width: "20px" },
+		{ key: "front_id", value: "ID" },
+		{ key: "full_name", value: "Author" },
+		{ key: "topics_short", value: "Topics" },
+		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
+		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
+		{ key: "created_at", value: width > 700 ? "Created on" : "Created" },
+		{ key: "edited_at", value: width > 700 ? "Edited on" : "Edited" },
+	];
+
+	let headersCondensed = [
+		{ key: "edit", value: "", width: "20px" },
+		{ key: "front_id", value: "ID" },
+		{ key: "full_name", value: "Author" },
+		{ key: "topics_short", value: "Topics" },
+		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
+		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
+	];
+
+	let curHeaders = condensed ? headersCondensed : headers;
 </script>
 
 <svelte:window bind:outerWidth={width} />
@@ -28,17 +54,10 @@
 		size="short"
 		expandable
 		sortable
+		{selectable}
+		bind:selectedRowIds={selectedItems}
 		class="datatable"
-		headers={[
-			{ key: "edit", value: "", width: "20px" },
-			{ key: "front_id", value: "ID" },
-			{ key: "full_name", value: "Author" },
-			{ key: "topics_short", value: "Topics" },
-			{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
-			{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
-			{ key: "created_at", value: width > 700 ? "Created on" : "Created" },
-			{ key: "edited_at", value: width > 700 ? "Edited on" : "Edited" },
-		]}
+		headers={editable ? curHeaders : curHeaders.slice(1)}
 		rows={problems}
 	>
 		<Toolbar>

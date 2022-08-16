@@ -13,11 +13,13 @@
 	let loading = false;
 	let width = 0;
 	let isAdmin;
+	let userRole = 0;
 
 	const user = supabase.auth.user();
 
 	(async () => {
-		isAdmin = (await getThisUserRole()) >= 40;
+		userRole = await getThisUserRole();
+		isAdmin = userRole >= 40;
 		let { data: users, error } = await supabase
 			.from("users")
 			.select("full_name")
@@ -77,9 +79,11 @@
 				<p class="linkPara">Problem Inventory</p>
 			</Link>
 			<br />
-			<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
-				<p class="linkPara">View Tests</p>
-			</Link>
+			{#if userRole >= 30}
+				<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
+					<p class="linkPara">View Tests</p>
+				</Link>
+			{/if}
 			{#if isAdmin}
 				<br />
 				<div class="fixedHr" />

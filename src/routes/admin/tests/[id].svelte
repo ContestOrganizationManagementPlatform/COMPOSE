@@ -34,7 +34,7 @@
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
-			.select("*,test_coordinators(users(*))")
+			.select("*")
 			.eq("id", testId)
 			.limit(1)
 			.single();
@@ -43,7 +43,11 @@
 		}
 		test = tests;
 
-		testCoordinators = test.test_coordinators.map((x) => x.users);
+		let { data: queriedCoordinators, error2 } = await supabase
+			.from("test_coordinators")
+			.select("*,users(*)")
+			.eq("test_id", testId);
+		testCoordinators = queriedCoordinators.map((tc) => tc.users);
 		loading = false;
 		await getAllUsers();
 	}
@@ -59,10 +63,11 @@
 		);
 	}
 
-	async function addTestCoordinator() {
+	async function addTestCoordinator(e) {
+		e.preventDefault(); // stop form from submitting
 		const { data, error } = await supabase
 			.from("test_coordinators")
-			.insert([{ coordinator_id: selectRef.value, test_id: testId }]);
+			.insert({ coordinator_id: selectRef.value, test_id: testId });
 		if (error) alert(error.message);
 		getTest();
 	}
