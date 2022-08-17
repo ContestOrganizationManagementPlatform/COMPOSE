@@ -57,9 +57,7 @@
 	}
 
 	let selectedAll = [];
-	let unselectableAll = [];
 	let selectedTest = []; // should store every id of test problems
-	let unselectableTest = [];
 
 	// watch for things getting selected
 	$: if (selectedAll.length > 0) {
@@ -76,7 +74,6 @@
 	}
 
 	$: if (selectedTest.length < testProblems.length) {
-		// be careful to remove from testProblems first to avoid circular calling
 		let selectedProblem = testProblems.find(
 			(pb) => !selectedTest.includes(pb.id)
 		);
@@ -84,9 +81,6 @@
 	}
 
 	async function addProblemToTest(problem) {
-		/*allProblems = allProblems.filter((pb) => pb.id !== problem.id);
-		testProblems = [...testProblems, problem];
-		selectedTest = [...selectedTest, problem.id];*/
 		selectedAll = [];
 		refreshingProblems = true;
 		let { error } = await supabase.rpc("add_test_problem", {
@@ -98,9 +92,6 @@
 	}
 
 	async function removeProblemFromTest(problem) {
-		/*testProblems = testProblems.filter((pb) => pb.id !== problem.id);
-		allProblems = [...allProblems, problem];
-		selectedTest = testProblems.map((pb) => pb.id);*/
 		selectedAll = [];
 		refreshingProblems = true;
 		let { error } = await supabase.rpc("delete_test_problem", {
@@ -112,6 +103,17 @@
 
 	async function refreshProblems() {
 		await getProblems();
+	}
+
+	async function handleReorder(e) {
+		refreshingProblems = true;
+		let { id, to } = e.detail;
+		let { error } = await supabase.rpc("reorder_test_problem", {
+			p_problem_id: id,
+			p_new_number: to + 1,
+		});
+		if (error) alert(error.message);
+		refreshProblems();
 	}
 
 	getTest();
@@ -151,10 +153,15 @@
 					problems={testProblems}
 					condensed
 					selectable
+					draggable
 					editable={false}
 					bind:selectedItems={selectedTest}
 					disableAll={refreshingProblems}
-					customHeaders={[{ key: "problem_number", value: "#" }]}
+					customHeaders={[
+						{ key: "drag", value: "", sort: false },
+						{ key: "problem_number", value: "#" },
+					]}
+					on:reorder={handleReorder}
 				/>
 			</div>
 		</div>
