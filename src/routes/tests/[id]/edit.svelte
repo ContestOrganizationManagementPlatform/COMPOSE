@@ -57,7 +57,9 @@
 	}
 
 	let selectedAll = [];
+	let unselectableAll = [];
 	let selectedTest = []; // should store every id of test problems
+	let unselectableTest = [];
 
 	// watch for things getting selected
 	$: if (selectedAll.length > 0) {
@@ -85,10 +87,11 @@
 		/*allProblems = allProblems.filter((pb) => pb.id !== problem.id);
 		testProblems = [...testProblems, problem];
 		selectedTest = [...selectedTest, problem.id];*/
-		let { error } = await supabase.from("test_problems").insert({
-			problem_id: problem.id,
-			test_id: testId,
-			// TODO: implement problem number
+		selectedAll = [];
+		refreshingProblems = true;
+		let { error } = await supabase.rpc("add_test_problem", {
+			p_problem_id: problem.id,
+			p_test_id: testId,
 		});
 		if (error) alert(error.message);
 		refreshProblems();
@@ -98,17 +101,17 @@
 		/*testProblems = testProblems.filter((pb) => pb.id !== problem.id);
 		allProblems = [...allProblems, problem];
 		selectedTest = testProblems.map((pb) => pb.id);*/
-		let { error } = await supabase
-			.from("test_problems")
-			.delete()
-			.eq("problem_id", problem.id);
+		selectedAll = [];
+		refreshingProblems = true;
+		let { error } = await supabase.rpc("delete_test_problem", {
+			p_problem_id: problem.id,
+		});
 		if (error) alert(error.message);
 		refreshProblems();
 	}
 
 	async function refreshProblems() {
-		refreshingProblems = true;
-		getProblems();
+		await getProblems();
 	}
 
 	getTest();
@@ -139,6 +142,7 @@
 					selectable
 					editable={false}
 					bind:selectedItems={selectedAll}
+					disableAll={refreshingProblems}
 				/>
 			</div>
 			<div class="flex-col">
@@ -149,6 +153,8 @@
 					selectable
 					editable={false}
 					bind:selectedItems={selectedTest}
+					disableAll={refreshingProblems}
+					customHeaders={[{ key: "problem_number", value: "#" }]}
 				/>
 			</div>
 		</div>

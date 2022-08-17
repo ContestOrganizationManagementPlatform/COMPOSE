@@ -1,6 +1,7 @@
 <script>
 	import {
 		DataTable,
+		DataTableSkeleton,
 		Link,
 		Toolbar,
 		ToolbarContent,
@@ -13,7 +14,10 @@
 	export let condensed = false;
 	export let selectable = false;
 	export let selectedItems = [];
+	export let nonselectableItems = [];
 	export let editable = true;
+	export let disableAll = false; // disables everything from being selectable
+	export let customHeaders = [];
 
 	let width = 0;
 	let mobileFriendly = {
@@ -44,7 +48,12 @@
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 	];
 
-	let curHeaders = condensed ? headersCondensed : headers;
+	let headerVersion = condensed ? headersCondensed : headers;
+
+	let curHeaders = [
+		...customHeaders,
+		...(editable ? headerVersion : headerVersion.slice(1)),
+	];
 </script>
 
 <svelte:window bind:outerWidth={width} />
@@ -56,11 +65,14 @@
 		sortable
 		{selectable}
 		bind:selectedRowIds={selectedItems}
+		nonSelectableRowIds={disableAll
+			? problems.map((pb) => pb.id)
+			: nonselectableItems}
 		class="datatable"
-		headers={editable ? curHeaders : curHeaders.slice(1)}
+		headers={curHeaders}
 		rows={problems}
 	>
-		<Toolbar>
+		<Toolbar size="sm">
 			<ToolbarContent>
 				<ToolbarSearch persistent shouldFilterRows />
 			</ToolbarContent>
