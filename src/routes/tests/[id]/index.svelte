@@ -3,6 +3,7 @@
 	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import { getThisUserRole } from "$lib/getUserRole.js";
 
 	let testId = $page.params.id;
 	let test;
@@ -25,9 +26,9 @@
 		test = tests;
 
 		testCoordinators = test.test_coordinators.map((x) => x.users);
-		userIsTestCoordinator = !!testCoordinators.find(
-			(tc) => tc.id === supabase.auth.user().id
-		);
+		userIsTestCoordinator =
+			!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
+			(await getThisUserRole()) >= 40;
 		loading = false;
 		getProblems();
 	}
