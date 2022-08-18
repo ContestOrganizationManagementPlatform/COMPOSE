@@ -110,7 +110,7 @@
 		let { id, to } = e.detail;
 		let { error } = await supabase.rpc("reorder_test_problem", {
 			p_problem_id: id,
-			p_new_number: to + 1,
+			p_new_number: to,
 		});
 		if (error) alert(error.message);
 		refreshProblems();

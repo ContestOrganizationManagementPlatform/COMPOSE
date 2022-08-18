@@ -163,7 +163,7 @@
 					</div>
 				{:else if cell.key === "problem_number"}
 					<div>
-						{cell.value}
+						{cell.value + 1}
 					</div>
 				{:else if cell.key === "topic"}
 					<div style="overflow: hidden;">

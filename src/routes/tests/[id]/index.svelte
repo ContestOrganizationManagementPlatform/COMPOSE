@@ -64,6 +64,9 @@
 	{#if loadingProblems}
 		<p>Loading problems...</p>
 	{:else}
-		<ProblemList {problems} />
+		<ProblemList
+			{problems}
+			customHeaders={[{ key: "problem_number", value: "#" }]}
+		/>
 	{/if}
 {/if}
