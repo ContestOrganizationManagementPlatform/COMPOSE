@@ -15,7 +15,7 @@
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
-			.select("*,test_coordinators(users(*))")
+			.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
 			.eq("id", testId)
 			.limit(1)
 			.single();
@@ -52,6 +52,7 @@
 	<p>Loading...</p>
 {:else}
 	<h1>Test: {test.test_name}</h1>
+	<p>Tournament: {test.tournaments.tournament_name}</p>
 	<p>Description: {test.test_description}</p>
 	<p>
 		Coordinators: {testCoordinators.length === 0
@@ -66,7 +67,7 @@
 	{:else}
 		<ProblemList
 			{problems}
-			customHeaders={[{ key: "problem_number", value: "#" }]}
+			customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
 		/>
 	{/if}
 {/if}

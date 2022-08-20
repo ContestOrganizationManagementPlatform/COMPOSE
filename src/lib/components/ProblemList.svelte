@@ -6,6 +6,7 @@
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
+		Pagination,
 	} from "carbon-components-svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Problem from "$lib/components/Problem.svelte";
@@ -21,6 +22,7 @@
 	export let disableAll = false; // disables everything from being selectable
 	export let customHeaders = [];
 	export let draggable = false;
+	export let pageEnabled = true;
 
 	const dispatch = createEventDispatcher();
 
@@ -33,19 +35,29 @@
 		Geometry: "Geo",
 	};
 
+	let pageSize = 10;
+	let page = 1;
+
+	let editHeader = { key: "edit", value: "", width: "20px" };
+
 	let headers = [
-		{ key: "edit", value: "", width: "20px" },
-		{ key: "front_id", value: "ID" },
+		{ key: "front_id", value: "ID", width: "80px" },
 		{ key: "full_name", value: "Author" },
 		{ key: "topics_short", value: "Topics" },
 		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
-		{ key: "created_at", value: width > 700 ? "Created on" : "Created" },
-		{ key: "edited_at", value: width > 700 ? "Edited on" : "Edited" },
+		{ key: "test_name", value: "Test" },
+		{
+			key: "created_at",
+			value: width > 700 ? "Created on" : "Created",
+		},
+		{
+			key: "edited_at",
+			value: width > 700 ? "Edited on" : "Edited",
+		},
 	];
 
 	let headersCondensed = [
-		{ key: "edit", value: "", width: "20px" },
 		{ key: "front_id", value: "ID" },
 		{ key: "full_name", value: "Author" },
 		{ key: "topics_short", value: "Topics" },
@@ -56,8 +68,9 @@
 	let headerVersion = condensed ? headersCondensed : headers;
 
 	let curHeaders = [
+		...(editable ? [editHeader] : []),
 		...customHeaders,
-		...(editable ? headerVersion : headerVersion.slice(1)),
+		...headerVersion,
 	];
 
 	let tableContainerDiv = null;
@@ -120,7 +133,7 @@
 <svelte:window bind:outerWidth={width} />
 
 <div
-	class="flex"
+	class="flex-dir-col"
 	on:dragover={(e) => e.preventDefault()}
 	bind:this={tableContainerDiv}
 >
@@ -136,6 +149,8 @@
 		class="datatable"
 		headers={curHeaders}
 		rows={problems}
+		pageSize={pageEnabled ? pageSize : undefined}
+		page={pageEnabled ? page : undefined}
 	>
 		<Toolbar size="sm">
 			<ToolbarContent>
@@ -155,9 +170,8 @@
 						draggable={true}
 						on:dragstart={(e) => startDrag(e, row)}
 						on:dragend={(e) => endDrag(e)}
-						style="display: flex; align-items: center; justify-content: center; visibility: {disableAll
-							? 'hidden'
-							: 'visible'}"
+						style="visibility: {disableAll ? 'hidden' : 'visible'}"
+						class="drag-div"
 					>
 						<Switcher />
 					</div>
@@ -201,4 +215,22 @@
 			<Problem problem={row} />
 		</svelte:fragment>
 	</DataTable>
+	{#if pageEnabled}
+		<Pagination
+			class="datatable"
+			bind:pageSize
+			bind:page
+			totalItems={problems.length}
+			pageSizeInputDisabled
+		/>
+	{/if}
 </div>
+
+<style>
+	.drag-div {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: grab;
+	}
+</style>

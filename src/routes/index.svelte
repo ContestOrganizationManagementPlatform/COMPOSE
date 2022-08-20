@@ -1,3 +1,14 @@
+<script context="module">
+	export async function load({ fetch }) {
+		const resp = await fetch("https://zenquotes.io/api/today");
+		const item = await resp.json();
+
+		return {
+			props: { quote: item[0] },
+		};
+	}
+</script>
+
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
@@ -10,6 +21,7 @@
 	let full_name;
 	let discord;
 	let initials;
+	export let quote;
 
 	const getProfile = async () => {
 		try {
@@ -67,12 +79,19 @@
 			loading = false;
 		}
 	}
+
 	getProfile();
 </script>
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
-<h4 style="margin-bottom: 30px;">/Daily inspirational quote/</h4>
+<h4 style="margin-bottom: 30px;">
+	{#if quote}
+		"{quote.q}" -{quote.a}
+	{:else}
+		Loading inspirational quote...
+	{/if}
+</h4>
 <div class="flex profileButtons">
 	<div>
 		<h3>Profile</h3>
