@@ -144,6 +144,13 @@
 		align-items: center;
 		justify-content: center;
 	}
+
+	:global(.flex-dir-col) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-direction: column;
+	}
 	:global(.profileButtons .button),
 	:global(.profileButtons .button:focus) {
 		border-color: transparent;

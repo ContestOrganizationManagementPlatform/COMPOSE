@@ -56,14 +56,15 @@
 </div>
 <div style="padding: 10px;" class="grid">
 	{#each tournaments as tournament}
-		<div class="box">
-			<h3>
-				<strong>{tournament.id}: {tournament.tournament_name}</strong>
-			</h3>
-			<h3 style="margin-bottom: 10px;">
-				{tournament.tournament_date ?? "None"}
-			</h3>
-			<!--<div class="miniGrid">
+		<a href={"/admin/tournaments/" + tournament.id}>
+			<div class="box">
+				<h3>
+					<strong>{tournament.id}: {tournament.tournament_name}</strong>
+				</h3>
+				<h3 style="margin-bottom: 10px;">
+					{tournament.tournament_date ?? "None"}
+				</h3>
+				<!--<div class="miniGrid">
 				{#each tournament.tests as test, i}
 					<div class="miniBox">
 						<h5>Test {i}</h5>
@@ -72,7 +73,8 @@
 					</div>
 				{/each}
 			</div>-->
-		</div>
+			</div>
+		</a>
 	{/each}
 </div>
 

@@ -18,7 +18,7 @@
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
-			.select("*,test_coordinators(users(*))")
+			.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
 			.eq("id", testId)
 			.limit(1)
 			.single();
@@ -111,7 +111,7 @@
 		let { id, to } = e.detail;
 		let { error } = await supabase.rpc("reorder_test_problem", {
 			p_problem_id: id,
-			p_new_number: to + 1,
+			p_new_number: to,
 		});
 		if (error) alert(error.message);
 		refreshProblems();
@@ -124,6 +124,7 @@
 	<p>Loading...</p>
 {:else}
 	<h1>Test: {test.test_name}</h1>
+	<p>Tournament: {test.tournaments.tournament_name}</p>
 	<p>Description: {test.test_description}</p>
 	<p>
 		Coordinators: {testCoordinators.length === 0
@@ -156,6 +157,7 @@
 					selectable
 					draggable
 					editable={false}
+					pageEnabled={false}
 					bind:selectedItems={selectedTest}
 					disableAll={refreshingProblems}
 					customHeaders={[

@@ -10,6 +10,7 @@
 	let full_name;
 	let discord;
 	let initials;
+	let quote;
 
 	const getProfile = async () => {
 		try {
@@ -67,12 +68,27 @@
 			loading = false;
 		}
 	}
+
+	async function getQuote() {
+		console.log("hi!");
+		let resp = await fetch("/api/dailyquote");
+		quote = await resp.json();
+		console.log(quote);
+	}
+
+	getQuote();
 	getProfile();
 </script>
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
-<h4 style="margin-bottom: 30px;">/Daily inspirational quote/</h4>
+<h4 style="margin-bottom: 30px;">
+	{#if quote}
+		"{quote.q}" -{quote.a}
+	{:else}
+		Loading inspirational quote...
+	{/if}
+</h4>
 <div class="flex profileButtons">
 	<div>
 		<h3>Profile</h3>
