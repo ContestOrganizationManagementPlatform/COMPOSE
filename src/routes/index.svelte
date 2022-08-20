@@ -1,14 +1,3 @@
-<script context="module">
-	export async function load({ fetch }) {
-		const resp = await fetch("https://zenquotes.io/api/today");
-		const item = await resp.json();
-
-		return {
-			props: { quote: item[0] },
-		};
-	}
-</script>
-
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
@@ -21,7 +10,7 @@
 	let full_name;
 	let discord;
 	let initials;
-	export let quote;
+	let quote;
 
 	const getProfile = async () => {
 		try {
@@ -80,6 +69,14 @@
 		}
 	}
 
+	async function getQuote() {
+		console.log("hi!");
+		let resp = await fetch("/api/dailyquote");
+		quote = await resp.json();
+		console.log(quote);
+	}
+
+	getQuote();
 	getProfile();
 </script>
 
