@@ -79,6 +79,21 @@
 </main>
 
 <style>
+	:global(:root) {
+		font-family: "Ubuntu", "Roboto", Arial, -apple-system, BlinkMacSystemFont,
+			"Segoe UI", Oxygen, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+		--white: #fff;
+		--black: #000;
+		--hair: #213d44;
+		--body: #65c083;
+		--hooves: #5b8064;
+		--blue: #1b9aaa;
+		--tinted-blue: #b9c6d2;
+		--tinted-green: #abddbc;
+		--green: #1c6825;
+		--light-blue: #f5fffb;
+		--dark-blue: #061333;
+	}
 	main {
 		padding: 10px;
 		min-height: 100vh;
@@ -122,21 +137,6 @@
 		.bottomSection {
 			width: 80vw;
 		}
-	}
-
-	/*Global Styles*/
-	:global(:root) {
-		--white: #fff;
-		--black: #000;
-		--hair: #213d44;
-		--body: #65c083;
-		--hooves: #5b8064;
-		--blue: #1b9aaa;
-		--tinted-blue: #b9c6d2;
-		--tinted-green: #abddbc;
-		--green: #1c6825;
-		--light-blue: #f5fffb;
-		--dark-blue: #061333;
 	}
 
 	:global(.flex) {

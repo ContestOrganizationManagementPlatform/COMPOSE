@@ -38,8 +38,9 @@
 </script>
 
 {#if loading}
-	<p>Loading tournament info...</p>
+	<p>Loading tournaments...</p>
 {:else}
+	<br />
 	<h1>{tournament?.tournament_name}</h1>
 	{#if tests.length == 0}
 		<p>This tournament has no tests.</p>

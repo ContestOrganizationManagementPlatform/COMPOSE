@@ -84,7 +84,7 @@
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
 <h4 style="margin-bottom: 30px;">
 	{#if quote}
-		"{quote.q}" -{quote.a}
+		"{quote.q}" - {quote.a}
 	{:else}
 		Loading inspirational quote...
 	{/if}

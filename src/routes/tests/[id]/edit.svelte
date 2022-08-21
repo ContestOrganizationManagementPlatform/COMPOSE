@@ -4,6 +4,7 @@
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
+	import Loading from "$lib/components/Loading.svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -121,17 +122,21 @@
 </script>
 
 {#if loading}
-	<p>Loading...</p>
+	<Loading />
 {:else}
+	<br />
 	<h1>Test: {test.test_name}</h1>
-	<p>Tournament: {test.tournaments.tournament_name}</p>
-	<p>Description: {test.test_description}</p>
+	<p><strong>Tournament:</strong> {test.tournaments.tournament_name}</p>
+	<p><strong>Description:</strong> {test.test_description}</p>
 	<p>
-		Coordinators: {testCoordinators.length === 0
+		<strong>Coordinators:</strong>
+		{testCoordinators.length === 0
 			? "None"
 			: testCoordinators.map((tc) => tc.full_name).join(", ")}
 	</p>
+	<br />
 	<Button href={`/tests/${testId}`} title="Go back" />
+	<br />
 	{#if !userIsTestCoordinator}
 		<p>You are not a coordinator so you cannot edit the problems!</p>
 	{:else if loadingProblems}
@@ -173,10 +178,17 @@
 
 <style>
 	.flex-row {
-		display: flex;
+		display: grid;
+		grid-template-columns: 50% 50%;
+		width: 100%;
 	}
 
 	.flex-col {
-		flex: 50%;
+		width: 100%;
+		padding: 10px;
+	}
+
+	:global(.bx--table-sort) {
+		outline-color: var(--green) !important;
 	}
 </style>

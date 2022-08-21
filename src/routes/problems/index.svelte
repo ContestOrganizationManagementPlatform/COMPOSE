@@ -24,14 +24,35 @@
 {#if !loaded}
 	<p>Loading problems...</p>
 {/if}
-<div style="margin-top: 10px; margin-bottom: 10px">
+<div style="margin-top: 10px;">
 	<Button title="Create a new problem" href="/problems/new" />
 </div>
 <br />
-<ProblemList {problems} />
-<br />
+<div class="flex">
+	<div class="stats">
+		<h4><u>Stats</u></h4>
+		<p><strong>Number of Problems:</strong> backend</p>
+		<p><strong>Algebra Problems:</strong> backend</p>
+		<p><strong>Geometry Problems:</strong> backend</p>
+		<p><strong>Number Theory Problems:</strong> backend</p>
+		<p><strong>Combinatorics Problems:</strong> backend</p>
+		<p><strong>Mixed Problems:</strong> backend</p>
+	</div>
+</div>
+<div style="width:80%; margin: auto;margin-bottom: 20px;">
+	<ProblemList {problems} />
+</div>
 
 <style>
+	.stats {
+		background-color: white;
+		border: 1px solid var(--green);
+		width: 80%;
+		margin: 10px;
+		text-align: left;
+		padding: 10px;
+	}
+
 	:global(.bx--toolbar-content .bx--search .bx--search-input:focus) {
 		outline-color: var(--green);
 	}

@@ -233,4 +233,9 @@
 		justify-content: center;
 		cursor: grab;
 	}
+
+	:global(.bx--data-table-container),
+	:global(.bx--pagination) {
+		width: 100%;
+	}
 </style>

@@ -4,6 +4,7 @@
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
+	import { Loading } from "carbon-components-svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -50,25 +51,30 @@
 </script>
 
 {#if loading}
-	<p>Loading...</p>
+	<Loading />
 {:else}
+	<br />
 	<h1>Test: {test.test_name}</h1>
-	<p>Tournament: {test.tournaments.tournament_name}</p>
-	<p>Description: {test.test_description}</p>
-	<p>
-		Coordinators: {testCoordinators.length === 0
+	<p><strong>Tournament:</strong> {test.tournaments.tournament_name}</p>
+	<p><strong>Description:</strong> {test.test_description}</p>
+	<p style="margin-bottom: 5px;">
+		<strong>Coordinators:</strong>
+		{testCoordinators.length === 0
 			? "None"
 			: testCoordinators.map((tc) => tc.full_name).join(", ")}
 	</p>
 	{#if userIsTestCoordinator}
 		<Button href={`/tests/${testId}/edit`} title="Edit problems" />
+		<br /><br />
 	{/if}
 	{#if loadingProblems}
 		<p>Loading problems...</p>
 	{:else}
-		<ProblemList
-			{problems}
-			customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
-		/>
+		<div style="width:80%; margin: auto;margin-bottom: 20px;">
+			<ProblemList
+				{problems}
+				customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
+			/>
+		</div>
 	{/if}
 {/if}
