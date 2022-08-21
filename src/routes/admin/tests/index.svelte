@@ -2,8 +2,9 @@
 	import { supabase } from "$lib/supabaseClient.js";
 	import Menu from "$lib/components/Menu.svelte";
 	import Button from "$lib/components/Button.svelte";
-
+	import TestList from "$lib/components/TestList.svelte";
 	let tournaments = {};
+	let tests = [];
 	let loading = true;
 
 	async function getTests() {
@@ -13,6 +14,8 @@
 		if (error) alert(error.message);
 		for (let test of testList) {
 			tournaments[test.tournament_id].push(test);
+			tests.push(test);
+			console.log(tests);
 		}
 		loading = false;
 	}
@@ -40,28 +43,9 @@
 {#if loading}
 	Loading up tests...
 {:else}
-	<div style="padding: 10px;" class="grid">
-		{#each Object.values(tournaments) as tournament}
-			{#if tournament.length > 1}
-				<div class="box">
-					<h3 style="margin-bottom: 10px;"><strong>{tournament[0]}</strong></h3>
-					<div class="miniGrid">
-						{#each tournament.slice(1) as test, i}
-							<div class="miniBox">
-								<h5>Test {i + 1}</h5>
-								<p><strong>Name:</strong> {test.test_name}</p>
-								<p><strong>Description:</strong> {test.test_description}</p>
-								<div style="margin: 5px;">
-									<Button href={"/admin/tests/" + test.id} title="Edit" />
-								</div>
-							</div>
-						{/each}
-					</div>
-				</div>
-			{:else}
-				<div />
-			{/if}
-		{/each}
+	<div style="padding: 10px; margin-left: auto; margin-right: auto;">
+
+		<TestList {tests} />
 	</div>
 {/if}
 
