@@ -50,7 +50,8 @@
 
 		let { data: allProblemList, error2 } = await supabase
 			.from("unused_problems")
-			.select("*");
+			.select("*")
+			.order("front_id");
 		allProblems = allProblemList;
 		selectedAll = [];
 
