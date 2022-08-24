@@ -44,7 +44,7 @@
 	async function updateProfile(e) {
 		e.preventDefault();
 		try {
-			// client side validation... endpoints are too hard :(
+			// client side validation... endpoints are too hard :( :P
 			if (full_name.length > 100) {
 				alert(
 					"Full name is too long (if this is an actual issue, please notify us)"
