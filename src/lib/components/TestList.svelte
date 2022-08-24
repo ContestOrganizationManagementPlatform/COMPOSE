@@ -1,4 +1,5 @@
 <script>
+	import { supabase } from "$lib/supabaseClient";
 	import {
 		DataTable,
 		DataTableSkeleton,
@@ -13,7 +14,7 @@
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
 
-	export let problems = [];
+	export let tests = [];
 	export let condensed = false;
 	export let selectable = false;
 	export let selectedItems = [];
@@ -23,8 +24,10 @@
 	export let customHeaders = [];
 	export let draggable = false;
 	export let pageEnabled = true;
-
+	export let problemCounts = {};
 	const dispatch = createEventDispatcher();
+
+
 
 	let width = 0;
 	let mobileFriendly = {
@@ -37,24 +40,30 @@
 
 	let pageSize = 10;
 	let page = 1;
+	(async () => {
+		// let { data: newProblems, error } = await supabase
+		// 	.from("full_problems")
+		// 	.select("*")
+		// 	.order("front_id");
+		// if (error) alert(error.message);
+		// problems = newProblems;
 
+		let { data: problemCountsData, error2 } = await supabase
+			.from("problem_counts")
+			.select("*");
+		if (error2) alert(error2.message);
+		problemCounts = problemCountsData.sort(
+			(a, b) => b.problem_count - a.problem_count
+		);
+		loaded = true;
+	})();
 	let editHeader = { key: "edit", value: "", width: "20px" };
 
 	let headers = [
-		{ key: "front_id", value: "ID", width: "80px" },
-		{ key: "full_name", value: "Author" },
-		{ key: "topics_short", value: "Topics" },
-		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
-		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
+		{ key: "id", value: "ID", width: "80px" },
+		{ key: "test_coordinator", value: "TC" },
 		{ key: "test_name", value: "Test" },
-		{
-			key: "created_at",
-			value: width > 700 ? "Created on" : "Created",
-		},
-		{
-			key: "edited_at",
-			value: width > 700 ? "Edited on" : "Edited",
-		},
+		{ key: "test_description", value: width > 700 ? "Test Description": "Test Info." }
 	];
 
 	let headersCondensed = [
@@ -82,8 +91,8 @@
 
 	let listeners = {};
 	$: if (draggable && tableContainerDiv && !draggingRow) {
-		for (let i = 0; i < problems.length; i++) {
-			const row = problems[i];
+		for (let i = 0; i < tests.length; i++) {
+			const row = tests[i];
 			let elem = getRowElement(row.id);
 			if (row.id in listeners) {
 				elem?.removeEventListener("dragenter", listeners[row.id]);
@@ -109,11 +118,11 @@
 		if (row === draggedRow) return;
 
 		e.preventDefault();
-		const ind = problems.indexOf(row);
+		const ind = tests.indexOf(row);
 		lastDraggedInd = ind;
-		problems.splice(problems.indexOf(draggedRow), 1);
-		problems.splice(ind, 0, draggedRow);
-		problems = problems;
+		tests.splice(tests.indexOf(draggedRow), 1);
+		tests.splice(ind, 0, draggedRow);
+		tests = tests;
 	}
 
 	function endDrag(e) {
@@ -144,11 +153,11 @@
 		{selectable}
 		bind:selectedRowIds={selectedItems}
 		nonSelectableRowIds={disableAll
-			? problems.map((pb) => pb.id)
+			? tests.map((pb) => pb.id)
 			: nonselectableItems}
 		class="datatable"
 		headers={curHeaders}
-		rows={problems}
+		rows={tests}
 		pageSize={pageEnabled ? pageSize : undefined}
 		page={pageEnabled ? page : undefined}
 	>
@@ -161,7 +170,7 @@
 			<div>
 				{#if cell.key === "edit"}
 					<div class="pencil">
-						<Link class="link" href={"/problems/" + row.id}
+						<Link class="link" href={"/admin/tests/" + row.id}
 							><i class="ri-pencil-fill" /></Link
 						>
 					</div>
@@ -212,7 +221,16 @@
 			</div>
 		</svelte:fragment>
 		<svelte:fragment slot="expanded-row" let:row>
-			<Problem problem={row} />
+		<div class="stats">
+		<h4><u>Stats</u></h4>
+		{#each problemCounts as cat}
+			<p>
+				<!-- prettier-ignore -->
+				<strong>{cat.category === "*" ? "Number of" : cat.category} Problems:</strong>
+				{cat.problem_count}
+			</p>
+		{/each}
+	</div>
 		</svelte:fragment>
 	</DataTable>
 	{#if pageEnabled}
@@ -220,7 +238,7 @@
 			class="datatable"
 			bind:pageSize
 			bind:page
-			totalItems={problems.length}
+			totalItems={tests.length}
 			pageSizeInputDisabled
 		/>
 	{/if}

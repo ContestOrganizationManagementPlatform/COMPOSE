@@ -10,6 +10,7 @@
 	let full_name;
 	let discord;
 	let initials;
+	let quote;
 
 	const getProfile = async () => {
 		try {
@@ -43,36 +44,70 @@
 	async function updateProfile(e) {
 		e.preventDefault();
 		try {
-			loading = true;
-			updatedProfile = false;
-			const user = supabase.auth.user();
+			// client side validation... endpoints are too hard :(
+			if (full_name.length > 100) {
+				alert(
+					"Full name is too long (if this is an actual issue, please notify us)"
+				);
+			} else if (full_name.length <= 0) {
+				alert("You must enter a full name");
+			} else if (discord.length > 50) {
+				alert("Discord is too long");
+			} else if (!/^[^#]+#\d{4}$/.test(discord)) {
+				alert("Discord format is invalid");
+			} else if (initials.length > 5) {
+				alert("Initials are too long");
+			} else if (!/^[A-Z]+$/.test(initials)) {
+				alert("Initials must be all uppercase letters");
+			} else {
+				loading = true;
+				updatedProfile = false;
+				const user = supabase.auth.user();
 
-			const updates = {
-				id: user.id,
-				full_name,
-				discord,
-				initials,
-			};
+				const updates = {
+					id: user.id,
+					full_name,
+					discord,
+					initials,
+				};
 
-			let { error } = await supabase.from("users").upsert(updates, {
-				returning: "minimal", // Don't return the value after inserting
-			});
+				let { error } = await supabase.from("users").upsert(updates, {
+					returning: "minimal", // Don't return the value after inserting
+				});
 
-			if (error) throw error;
+				if (error) throw error;
 
-			updatedProfile = true;
+				updatedProfile = true;
+			}
 		} catch (error) {
-			alert(error.message);
+			if (error.code === "23505") {
+				alert(
+					"You must enter a unique set of initials (try adding another letter)"
+				);
+			} else alert(error.message);
 		} finally {
 			loading = false;
 		}
 	}
+
+	async function getQuote() {
+		let resp = await fetch("/api/dailyquote");
+		quote = await resp.json();
+	}
+
+	getQuote();
 	getProfile();
 </script>
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
-<h4 style="margin-bottom: 30px;">/Daily inspirational quote/</h4>
+<h4 style="margin-bottom: 30px;">
+	{#if quote}
+		"{quote.q}" - {quote.a}
+	{:else}
+		Loading inspirational quote...
+	{/if}
+</h4>
 <div class="flex profileButtons">
 	<div>
 		<h3>Profile</h3>

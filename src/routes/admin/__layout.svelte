@@ -1,6 +1,7 @@
 <script>
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Menu from "$lib/components/Menu.svelte";
+	import Loading from "$lib/components/Loading.svelte";
 
 	let loaded = false;
 	let isAdmin;
@@ -23,7 +24,7 @@
 </script>
 
 {#if !loaded}
-	Loading...
+	<Loading />
 {:else if isAdmin}
 	<slot />
 {:else}

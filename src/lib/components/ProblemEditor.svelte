@@ -290,4 +290,20 @@
 		width: 20em;
 		margin-right: 20px;
 	}
+
+	:global(.bx--text-area),
+	:global(.bx--list-box__field),
+	:global(.bx--checkbox-label-text),
+	:global(.textInput),
+	:global(.bx--modal-header h3),
+	:global(.bx--modal-content),
+	:global(.bx--text-input),
+	:global(.bx--text-input::placeholder) {
+		font-family: "Ubuntu", "Roboto", Arial, -apple-system, BlinkMacSystemFont,
+			"Segoe UI", Oxygen, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+	}
+
+	:global(.bx--list-box__field:focus) {
+		outline-color: var(--green);
+	}
 </style>

@@ -68,6 +68,6 @@
 		grid-gap: 5px;
 	}
 	.miniBox {
-		border: 2px solid var(--green);
+		border-bottom: 2px solid var(--green);
 	}
 </style>

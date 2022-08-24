@@ -95,30 +95,43 @@
 	getTest();
 </script>
 
-{#if loading}
-	Test Loading...
-{:else}
-	<h1>Test {testId}: {test.test_name}</h1>
-	<Form>
-		<TextInput label="Name" bind:value={test.test_name} />
-		<TextArea label="Description" bind:value={test.test_description} />
-		<Button action={editTest} title="Edit Test" />
-	</Form>
-	<h3>Current coordinators:</h3>
-	{#each testCoordinators as testCoordinator}
-		<p>{testCoordinator.full_name} ({testCoordinator.id})</p>
-		<Modal
-			runHeader="Remove {testCoordinator.full_name}"
-			del={true}
-			onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
-		/>
-	{/each}
-	<Form>
-		<Select bind:ref={selectRef}>
-			{#each allUsers as user}
-				<SelectItem value={user.id} text="{user.full_name} ({user.id})" />
+<div style="padding: 10px">
+	{#if loading}
+		<p>Loading...</p>
+	{:else}
+		<h1>Test {testId}: {test.test_name}</h1>
+		<br />
+		<Form>
+			<TextInput label="Name" bind:value={test.test_name} />
+			<br />
+			<TextArea label="Description" bind:value={test.test_description} />
+			<br />
+			<Button action={editTest} title="Edit Test" />
+		</Form>
+		<br />
+		<h3><strong>Current Coordinators:</strong></h3>
+		<div class="grid" style="padding: 5px;">
+			{#each testCoordinators as testCoordinator}
+				<div class="flex">
+					<p style="margin-right: 10px; margin-top: auto; margin-bottom: auto;">
+						{testCoordinator.full_name}
+					</p>
+					<Modal
+						runHeader="Remove {testCoordinator.full_name}"
+						del={true}
+						onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
+					/>
+				</div>
 			{/each}
-		</Select>
-		<Button action={addTestCoordinator} title="Add Test Coordinator" />
-	</Form>
-{/if}
+		</div>
+		<Form>
+			<Select bind:ref={selectRef}>
+				{#each allUsers as user}
+					<SelectItem value={user.id} text="{user.full_name} ({user.id})" />
+				{/each}
+			</Select>
+			<br />
+			<Button action={addTestCoordinator} title="Add Test Coordinator" />
+		</Form>
+	{/if}
+</div>

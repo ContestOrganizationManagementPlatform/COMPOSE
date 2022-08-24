@@ -84,6 +84,13 @@
 		margin: 0;
 		padding: 0;
 	}
+	a {
+		color: black;
+		text-decoration: none;
+	}
+	a:hover div {
+		background-color: var(--tinted-green);
+	}
 	.box {
 		background-color: var(--white);
 		border: 1px solid var(--green);
@@ -99,13 +106,4 @@
 	:global(.tournamentForm) {
 		min-width: 400px;
 	}
-
-	/*.miniGrid {
-		display: grid;
-		grid-template-columns: 100%;
-		grid-gap: 5px;
-	}
-	.miniBox {
-		background-color: var(--tinted-green);
-	}*/
 </style>

@@ -20,8 +20,21 @@
 	grid-template-columns: 50% 50%;
 }
 
+.grid {
+	display: grid;
+	grid-template-columns: 25% 25% 25% 25%;
+}
+
+@media (max-width: 900px) {
+	.grid {
+		grid-template-columns: 50% 50%;
+	}
+}
+
 @media (max-width: 700px) {
-	.row {
+
+	.row,
+	.grid {
 		grid-template-columns: auto;
 	}
 }
