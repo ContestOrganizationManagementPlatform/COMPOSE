@@ -56,6 +56,10 @@
 				topic_id: tp,
 			}))
 		);
+		const res = await fetch("/api/discord", {
+			method: "POST",
+			body: JSON.stringify(payload),
+		});
 		fetchProblem();
 	}
 </script>
