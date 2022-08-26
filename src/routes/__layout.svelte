@@ -153,14 +153,14 @@
 	}
 	:global(.profileButtons .button),
 	:global(.profileButtons .button:focus) {
-		border-color: transparent;
-		background-color: var(--green);
+		border-color: transparent !important;
+		background-color: var(--green) !important;
 	}
 	:global(.profileButtons .button p) {
-		color: white;
+		color: white !important;
 	}
 	:global(.profileButtons .button:hover) {
-		background-color: transparent;
+		background-color: transparent !important;
 		border: 2px solid var(--green) !important;
 	}
 	:global(.profileButtons .button:hover p) {
@@ -169,24 +169,24 @@
 	:global(.profileButtons .button:focus),
 	:global(.profileButtons .bx--text-input:focus),
 	:global(.profileButtons .bx--text-input:active) {
-		border: 2px solid var(--green);
-		box-shadow: 2px solid var(--green);
-		outline-color: var(--green);
+		border: 2px solid var(--green) !important;
+		box-shadow: 2px solid var(--green) !important;
+		outline-color: var(--green) !important;
 	}
 	:global(.link) {
-		text-decoration: none;
-		color: var(--body);
+		text-decoration: none !important;
+		color: var(--body) !important;
 	}
 
 	:global(.link:visited) {
-		text-decoration: none;
-		color: var(--black);
+		text-decoration: none !important;
+		color: var(--black) !important;
 	}
 
 	:global(.menu .link) {
-		width: 50%;
-		padding: 5px;
-		color: var(--white);
+		width: 50% !important;
+		padding: 5px !important;
+		color: var(--white) !important;
 		text-decoration: none !important;
 		outline: none !important;
 	}
@@ -197,21 +197,21 @@
 	}
 
 	:global(.datatable) {
-		width: 80%;
+		width: 80% !important;
 	}
 
 	:global(.link),
 	:global(.bx--data-table tr:hover .bx--link) {
-		color: var(--black);
+		color: var(--black) !important;
 	}
 
 	:global(.bx--link:hover) {
 		color: var(--green) !important;
-		cursor: pointer;
+		cursor: pointer !important;
 	}
 
 	:global(.bx--table-expand__button:focus) {
-		box-shadow: none;
+		box-shadow: none !important;
 	}
 
 	:global(.bx--loading__stroke) {
@@ -219,28 +219,28 @@
 	}
 
 	:global(.input) {
-		border-width: 2px;
+		border-width: 2px !important;
 	}
 
 	:global(.button),
 	:global(.button:focus) {
-		border-color: var(--body);
-		background-color: transparent;
+		border-color: var(--body) !important;
+		background-color: transparent !important;
 	}
 	:global(.button p) {
-		color: var(--body);
+		color: var(--body) !important;
 	}
 	:global(.button:hover) {
-		background-color: var(--body);
+		background-color: var(--body) !important;
 	}
 	:global(.button:hover p) {
-		color: var(--white);
+		color: var(--white) !important;
 	}
 	:global(.button:focus),
 	:global(.input:focus) {
 		border-color: var(--body) !important;
-		outline: none;
-		box-shadow: none;
+		outline: none !important;
+		box-shadow: none !important;
 	}
 
 	:global(.button p) {
@@ -255,7 +255,7 @@
 	:global(.bx--select-input:active),
 	:global(.textInput:focus),
 	:global(.textArea:focus) {
-		border-color: var(--green);
-		outline-color: var(--green);
+		border-color: var(--green) !important;
+		outline-color: var(--green) !important;
 	}
 </style>

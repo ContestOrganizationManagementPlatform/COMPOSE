@@ -27,8 +27,6 @@
 	export let problemCounts = {};
 	const dispatch = createEventDispatcher();
 
-
-
 	let width = 0;
 	let mobileFriendly = {
 		Algebra: "Alg",
@@ -63,7 +61,10 @@
 		{ key: "id", value: "ID", width: "80px" },
 		{ key: "test_coordinator", value: "TC" },
 		{ key: "test_name", value: "Test" },
-		{ key: "test_description", value: width > 700 ? "Test Description": "Test Info." }
+		{
+			key: "test_description",
+			value: width > 700 ? "Test Description" : "Test Info.",
+		},
 	];
 
 	let headersCondensed = [
@@ -221,16 +222,16 @@
 			</div>
 		</svelte:fragment>
 		<svelte:fragment slot="expanded-row" let:row>
-		<div class="stats">
-		<h4><u>Stats</u></h4>
-		{#each problemCounts as cat}
-			<p>
-				<!-- prettier-ignore -->
-				<strong>{cat.category === "*" ? "Number of" : cat.category} Problems:</strong>
-				{cat.problem_count}
-			</p>
-		{/each}
-	</div>
+			<div class="stats">
+				<h4><u>Stats</u></h4>
+				{#each problemCounts as cat}
+					<p>
+						<!-- prettier-ignore -->
+						<strong>{cat.category === "*" ? "Number of" : cat.category} Problems:</strong>
+						{cat.problem_count}
+					</p>
+				{/each}
+			</div>
 		</svelte:fragment>
 	</DataTable>
 	{#if pageEnabled}
@@ -254,6 +255,6 @@
 
 	:global(.bx--data-table-container),
 	:global(.bx--pagination) {
-		width: 100%;
+		width: 100% !important;
 	}
 </style>

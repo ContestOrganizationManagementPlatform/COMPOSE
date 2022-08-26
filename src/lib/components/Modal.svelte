@@ -64,20 +64,20 @@
 
 <style>
 	:global(.bx--modal-container) {
-		width: 40%;
+		width: 40% !important;
 	}
 	:global(.bx--modal-container .bx--modal-close) {
-		outline-color: var(--green);
-		border-color: var(--green);
-		outline: none;
-		border: none;
+		outline-color: var(--green) !important;
+		border-color: var(--green) !important;
+		outline: none !important;
+		border: none !important;
 	}
 	:global(.bx--modal-footer .bx--btn--secondary) {
-		text-align: center;
-		font-weight: 700;
+		text-align: center !important;
+		font-weight: 700 !important;
 	}
 	:global(.bx--modal-container .bx--btn--primary) {
-		background-color: var(--green);
-		font-weight: 700;
+		background-color: var(--green) !important;
+		font-weight: 700 !important;
 	}
 </style>

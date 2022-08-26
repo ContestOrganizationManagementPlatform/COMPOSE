@@ -236,6 +236,6 @@
 
 	:global(.bx--data-table-container),
 	:global(.bx--pagination) {
-		width: 100%;
+		width: 100% !important;
 	}
 </style>
