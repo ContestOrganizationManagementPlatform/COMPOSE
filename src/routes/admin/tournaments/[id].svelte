@@ -2,6 +2,7 @@
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
+	import Modal from "$lib/components/Modal.svelte";
 
 	let tournamentId = $page.params.id;
 	let tournament;
@@ -33,6 +34,15 @@
 		loading = false;
 	}
 
+	async function deleteTournament() {
+		const { data, error } = await supabase
+			.from("tournaments")
+			.delete()
+			.eq("id", tournamentId);
+		if (error) alert(error.message);
+		else window.location.replace("/admin/tournaments");
+	}
+
 	getTournament();
 	getTests();
 </script>
@@ -42,6 +52,8 @@
 {:else}
 	<br />
 	<h1>{tournament?.tournament_name}</h1>
+	<h3>{tournament?.tournament_date}</h3>
+	<br />
 	{#if tests.length == 0}
 		<p>This tournament has no tests.</p>
 	{:else}
@@ -56,4 +68,5 @@
 			</div>
 		{/each}
 	{/if}
+	<br /><Modal runHeader="Delete Tournament" onSubmit={deleteTournament} />
 {/if}

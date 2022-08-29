@@ -44,30 +44,7 @@
 	Loading up tests...
 {:else}
 	<div style="padding: 10px; margin-left: auto; margin-right: auto;">
-
 		<TestList {tests} />
 	</div>
+	<Button href="/admin/tests/new" title="Create New Test" />
 {/if}
-
-<style>
-	.box {
-		background-color: var(--white);
-		border: 1px solid var(--green);
-		margin: 10px;
-		padding: 10px 20px;
-	}
-
-	.grid {
-		display: grid;
-		grid-template-columns: 50% 50%;
-	}
-
-	.miniGrid {
-		display: grid;
-		grid-template-columns: 100%;
-		grid-gap: 5px;
-	}
-	.miniBox {
-		border: 2px solid var(--green);
-	}
-</style>

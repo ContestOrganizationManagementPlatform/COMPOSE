@@ -2,7 +2,6 @@
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import {
-		Form,
 		TextInput,
 		Select,
 		SelectItem,
@@ -92,6 +91,15 @@
 		if (error) alert(error.message);
 	}
 
+	async function deleteTest() {
+		const { data, error } = await supabase
+			.from("tests")
+			.delete()
+			.eq("id", testId);
+		if (error) alert(error.message);
+		else window.location.replace("/admin/tests");
+	}
+
 	getTest();
 </script>
 
@@ -101,30 +109,37 @@
 	{:else}
 		<h1>Test {testId}: {test.test_name}</h1>
 		<br />
-		<Form>
+		<form on:submit|preventDefault>
 			<TextInput label="Name" bind:value={test.test_name} />
 			<br />
 			<TextArea label="Description" bind:value={test.test_description} />
 			<br />
 			<Button action={editTest} title="Edit Test" />
-		</Form>
+		</form>
 		<br />
-		<h3><strong>Current Coordinators:</strong></h3>
-		<div class="grid" style="padding: 5px;">
-			{#each testCoordinators as testCoordinator}
-				<div class="flex">
-					<p style="margin-right: 10px; margin-top: auto; margin-bottom: auto;">
-						{testCoordinator.full_name}
-					</p>
-					<Modal
-						runHeader="Remove {testCoordinator.full_name}"
-						del={true}
-						onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
-					/>
-				</div>
-			{/each}
-		</div>
-		<Form>
+		<h3><strong>Current Test Coordinators</strong></h3>
+		{#if testCoordinators.length === 0}
+			<p>There are no test coordinators</p>
+		{:else}
+			<div class="grid" style="padding: 5px;">
+				{#each testCoordinators as testCoordinator}
+					<div class="flex">
+						<p
+							style="margin-right: 10px; margin-top: auto; margin-bottom: auto;"
+						>
+							{testCoordinator.full_name}
+						</p>
+						<Modal
+							runHeader="Remove {testCoordinator.full_name}"
+							del={true}
+							onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
+						/>
+					</div>
+				{/each}
+			</div>
+		{/if} <br /> <br />
+		<h3><strong>Add Test Coordinators</strong></h3>
+		<form on:submit|preventDefault>
 			<Select bind:ref={selectRef}>
 				{#each allUsers as user}
 					<SelectItem value={user.id} text="{user.full_name} ({user.id})" />
@@ -132,6 +147,10 @@
 			</Select>
 			<br />
 			<Button action={addTestCoordinator} title="Add Test Coordinator" />
-		</Form>
+		</form>
+		<br />
+		<form on:submit|preventDefault>
+			<Modal runHeader="Delete Test" onSubmit={deleteTest} />
+		</form>
 	{/if}
 </div>
