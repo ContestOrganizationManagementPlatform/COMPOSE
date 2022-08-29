@@ -1,5 +1,5 @@
 <script>
-	import { Form, TextInput } from "carbon-components-svelte";
+	import { TextInput } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
 	let tournaments = [];
@@ -32,7 +32,7 @@
 <h1>Admin: View Tournaments</h1>
 <br />
 <div class="flex profileButtons">
-	<Form class="tournamentForm">
+	<form on:submit|preventDefault class="tournamentForm">
 		<TextInput
 			on:keyup={(e) => {
 				if (e.key === "Enter") createTournament();
@@ -52,7 +52,7 @@
 		/>
 		<br />
 		<Button action={createTournament} title="Create New Tournament" />
-	</Form>
+	</form>
 </div>
 <div style="padding: 10px;" class="grid">
 	{#each tournaments as tournament}

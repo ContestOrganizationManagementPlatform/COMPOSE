@@ -23,7 +23,8 @@
 		tournaments = tournamentList;
 	}
 
-	async function createTest() {
+	async function createTest(e) {
+		e.preventDefault();
 		const { data, error } = await supabase.from("tests").insert([
 			{
 				test_name: name,
@@ -31,6 +32,8 @@
 				tournament_id: selectItem.value,
 			},
 		]);
+		if (error) alert(error.message);
+		else window.location.replace("/admin/tests/" + data[0].id);
 	}
 
 	getTournaments();
@@ -39,7 +42,7 @@
 <br />
 <h1>Admin: Add Test</h1>
 
-<form style="padding: 20px;">
+<form on:submit|preventDefault style="padding: 20px;">
 	<Select bind:ref={selectItem}>
 		{#each tournaments as tournament}
 			<SelectItem
@@ -63,5 +66,5 @@
 		placeholder="Test Description"
 	/>
 	<br />
-	<Button on:click={createTest} title="Add Test" />
+	<Button action={createTest} title="Add Test" />
 </form>

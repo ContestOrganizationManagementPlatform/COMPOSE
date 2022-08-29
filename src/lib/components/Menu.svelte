@@ -65,20 +65,31 @@
 				<p class="linkPara">Home</p>
 			</Link>
 			<br />
-			<Link
-				href="/problems/new"
-				class={path == "problems/new" ? "active link" : "link"}
-			>
-				<p class="linkPara">Write New Problem</p>
-			</Link>
-			<br />
-			<Link
-				href="/problems"
-				class={path == "problems" ? "active link" : "link"}
-			>
-				<p class="linkPara">Problem Inventory</p>
-			</Link>
-			<br />
+			{#if userRole}
+				<Link
+					href="/problems/new"
+					class={path == "problems/new" ? "active link" : "link"}
+				>
+					<p class="linkPara">Write New Problem</p>
+				</Link>
+				<br />
+				<Link
+					href="/problems"
+					class={path == "problems" ? "active link" : "link"}
+				>
+					<p class="linkPara">Problem Inventory</p>
+				</Link>
+				<br />
+				<Link
+					href="/problems/import"
+					class={path == "problems/import" ? "active link" : "link"}
+				>
+					<p class="linkPara">Import Problems</p>
+				</Link>
+				<br />
+			{:else}
+				You need to be verified to see other links.
+			{/if}
 			{#if userRole >= 30}
 				<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
 					<p class="linkPara">View Tests</p>
@@ -89,13 +100,6 @@
 				<div class="fixedHr" />
 				<Link href="/admin" class={path == "admin" ? "active link" : "link"}>
 					<p class="linkPara">Admin: Home</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/tests/new"
-					class={path == "admin/tests/new" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: New Test</p>
 				</Link>
 				<br />
 				<Link
@@ -110,6 +114,13 @@
 					class={path == "admin/tests" ? "active link" : "link"}
 				>
 					<p class="linkPara">Admin: Tests</p>
+				</Link>
+				<br />
+				<Link
+					href="/admin/tests/new"
+					class={path == "admin/tests/new" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: New Test</p>
 				</Link>
 				<br />
 				<Link

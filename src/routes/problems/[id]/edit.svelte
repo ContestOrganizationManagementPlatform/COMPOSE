@@ -8,7 +8,6 @@
 
 	let problem;
 	let loaded = false;
-	let editing = false;
 
 	async function fetchTopic(problem_id) {
 		let { data: problem_topics, error } = await supabase
@@ -70,33 +69,8 @@
 	<br />
 	<Button href="/problems" title="Back to Problems" />
 	<br /><br />
-	{#if editing}
-		<Button
-			action={() => {
-				editing = false;
-			}}
-			title="Return"
-		/>
-		<ProblemEditor originalProblem={problem} onSubmit={submitProblem} />
-	{:else}
-		<Button
-			action={() => {
-				editing = true;
-			}}
-			title="Edit Problem"
-		/>
-		<br />
-		<br />
-		<Modal
-			runHeader="Delete Problem"
-			onSubmit={() => {
-				console.log("test");
-			}}
-		/>
-		<br />
-		<br />
-		<Problem {problem} showMetadata={true} />
-	{/if}
+	<Button href={"/problems/" + problem.id} title="Return" />
+	<ProblemEditor originalProblem={problem} onSubmit={submitProblem} />
 {:else}
 	<p>Loading problem...</p>
 {/if}
