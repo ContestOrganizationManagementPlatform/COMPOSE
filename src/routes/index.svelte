@@ -1,7 +1,11 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
-	import { Form, TextInput } from "carbon-components-svelte";
+	import {
+		Form,
+		TextInput,
+		InlineNotification,
+	} from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 
@@ -11,6 +15,9 @@
 	let discord;
 	let initials;
 	let quote;
+
+	let errorTrue = false;
+	let errorMessage = "";
 
 	const getProfile = async () => {
 		try {
@@ -34,7 +41,8 @@
 				discord = "";
 				initials = "";
 			} else {
-				alert(error.message);
+				errorTrue = true;
+				errorMessage = error.message;
 			}
 		} finally {
 			loading = false;
@@ -46,19 +54,24 @@
 		try {
 			// client side validation... endpoints are too hard :( :P
 			if (full_name.length > 100) {
-				alert(
-					"Full name is too long (if this is an actual issue, please notify us)"
-				);
+				errorTrue = true;
+				errorMessage =
+					"Full name is too long (if this is an actual issue, please notify us)";
 			} else if (full_name.length <= 0) {
-				alert("You must enter a full name");
+				errorTrue = true;
+				errorMessage = "You must enter a full name";
 			} else if (discord.length > 50) {
-				alert("Discord is too long");
+				errorTrue = true;
+				errorMessage = "Discord is too long";
 			} else if (!/^[^#]+#\d{4}$/.test(discord)) {
-				alert("Discord format is invalid");
+				errorTrue = true;
+				errorMessage = "Discord format is invalid";
 			} else if (initials.length > 5) {
-				alert("Initials are too long");
+				errorTrue = true;
+				errorMessage = "Initials are too long";
 			} else if (!/^[A-Z]+$/.test(initials)) {
-				alert("Initials must be all uppercase letters");
+				errorTrue = true;
+				errorMessage = "Initials must be all uppercase letters";
 			} else {
 				loading = true;
 				updatedProfile = false;
@@ -81,10 +94,13 @@
 			}
 		} catch (error) {
 			if (error.code === "23505") {
-				alert(
-					"You must enter a unique set of initials (try adding another letter)"
-				);
-			} else alert(error.message);
+				errorTrue = true;
+				errorMessage =
+					"You must enter a unique set of initials (try adding another letter)";
+			} else {
+				errorTrue = true;
+				errorMessage = error.message;
+			}
 		} finally {
 			loading = false;
 		}
@@ -98,6 +114,17 @@
 	getQuote();
 	getProfile();
 </script>
+
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>

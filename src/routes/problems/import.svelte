@@ -1,6 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { TextArea } from "carbon-components-svelte";
+	import { TextArea, InlineNotification } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 
 	const texRegex =
@@ -18,6 +18,9 @@
 	let payloads = [];
 	let success = false;
 	let problemText;
+
+	let errorTrue = false;
+	let errorMessage = "";
 
 	$: if (files) {
 		console.log(files);
@@ -43,7 +46,8 @@
 
 	function manualAdd() {
 		if (!importProblem(problemText)) {
-			alert("Manual import failed due to improper format");
+			errorTrue = true;
+			errorMessage = "Manual import failed due to improper format";
 		} else {
 			problemText = "";
 		}
@@ -84,8 +88,10 @@
 		}
 
 		let { data, error } = await supabase.from("problems").insert(payloadList);
-		if (error) alert(error.message);
-		else {
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else {
 			let topicList = [];
 
 			for (const payload of payloads) {
@@ -114,7 +120,10 @@
 			}
 
 			let { error2 } = await supabase.from("problem_topics").insert(topicList);
-			if (error2) alert(error2.message);
+			if (error2) {
+				errorTrue = true;
+				errorMessage = error2.message;
+			}
 
 			const res = await fetch("/api/discord", {
 				method: "POST",
@@ -129,13 +138,28 @@
 	}
 </script>
 
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
+
 <br />
 <h1>Import Problems</h1>
-<h3>Please only import your own problems!</h3>
+<h4><strong>Please only import your own problems!</strong></h4>
 
 <form on:submit|preventDefault style="padding: 20px;">
-	<p>Upload .tex files for the problems:</p>
-	<input bind:files multiple type="file" id="picker" />
+	<div>
+		<label for="file-upload" class="custom-file-upload">
+			&#8593 Upload .tex files for the problems
+		</label>
+		<input bind:files multiple type="file" id="file-upload" accept=".tex" />
+	</div>
 
 	<p style="margin-top: 20px;">Or manually add:</p>
 	<TextArea
@@ -143,6 +167,7 @@
 		class="textArea"
 		style="margin-left: 10%; margin-right: 10%;"
 	/>
+	<br />
 	<Button action={manualAdd} title="Manually add" />
 
 	<p style="margin-top: 20px;">
@@ -153,7 +178,7 @@
 </form>
 
 {#if success}
-	<p>Successfully imported problems</p>
+	<p><strong>Successfully Imported Problems</strong></p>
 {/if}
 
 {#if errorMessages.length > 0}
@@ -164,3 +189,28 @@
 		{/each}
 	</p>
 {/if}
+
+<style>
+	input[type="file"] {
+		display: none;
+	}
+	.custom-file-upload {
+		border: 2px solid var(--body);
+		color: var(--body);
+		display: inline-block;
+		padding: 6px 12px;
+		cursor: pointer;
+		text-align: center;
+		border-radius: 50px;
+		font-weight: 500;
+	}
+
+	.custom-file-upload:hover {
+		background-color: var(--body);
+		color: var(--white);
+	}
+
+	:global(.bx--text-area:focus, .bx--text-area:active) {
+		outline-color: var(--green) !important;
+	}
+</style>

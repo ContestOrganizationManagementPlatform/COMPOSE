@@ -5,6 +5,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
+	import { InlineNotification } from "carbon-components-svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -16,6 +17,9 @@
 	let allProblems = [];
 	let userIsTestCoordinator = false;
 
+	let errorTrue = false;
+	let errorMessage = "";
+
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
@@ -24,7 +28,8 @@
 			.limit(1)
 			.single();
 		if (error) {
-			alert(error.message);
+			errorTrue = true;
+			errorMessage = error.message;
 		}
 		test = tests;
 
@@ -121,6 +126,17 @@
 
 	getTest();
 </script>
+
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
 
 {#if loading}
 	<Loading />

@@ -5,9 +5,13 @@
 		Form,
 		FormGroup,
 		Select,
+		InlineNotification,
 		SelectItem,
 	} from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";
+
+	let errorTrue = false;
+	let errorMessage = "";
 
 	const user = supabase.auth.user();
 	let roles = [];
@@ -17,7 +21,10 @@
 			.from("users")
 			.select("id,full_name,user_roles(role)")
 			.order("full_name");
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		for (let user of users) {
 			const curRole = user.user_roles[0]?.role ?? 0;
 			roles.push({
@@ -51,6 +58,17 @@
 
 <br />
 <h1>Admin: Roles</h1>
+
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
 
 <div style="padding: 10px;">
 	<Form>

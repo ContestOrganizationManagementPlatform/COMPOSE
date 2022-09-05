@@ -164,7 +164,7 @@
 		border: 2px solid var(--green) !important;
 	}
 	:global(.profileButtons .button:hover p) {
-		color: var(--green);
+		color: var(--green) !important;
 	}
 	:global(.profileButtons .button:focus),
 	:global(.profileButtons .bx--text-input:focus),

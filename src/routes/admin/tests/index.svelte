@@ -1,5 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient.js";
+	import { InlineNotification } from "carbon-components-svelte";
 	import Menu from "$lib/components/Menu.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import TestList from "$lib/components/TestList.svelte";
@@ -7,11 +8,17 @@
 	let tests = [];
 	let loading = true;
 
+	let errorTrue = false;
+	let errorMessage = "";
+
 	async function getTests() {
 		let { data: testList, error } = await supabase
 			.from("tests")
 			.select("*,tournaments(tournament_name)");
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		for (let test of testList) {
 			tournaments[test.tournament_id].push(test);
 			tests.push(test);
@@ -25,7 +32,8 @@
 			.from("tournaments")
 			.select("*");
 		if (error) {
-			alert(error);
+			errorTrue = true;
+			errorMessage = error.message;
 		}
 		for (let tournament of tournamentList) {
 			tournaments[tournament.id] = [tournament.tournament_name];
@@ -39,6 +47,18 @@
 <br />
 <h1>Admin: View Tests</h1>
 <br />
+
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
+
 <h3>For editing test coordinators</h3>
 {#if loading}
 	Loading up tests...

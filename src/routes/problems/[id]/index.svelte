@@ -5,9 +5,13 @@
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
+	import { InlineNotification } from "carbon-components-svelte";
 
 	let problem;
 	let loaded = false;
+
+	let errorTrue = false;
+	let errorMessage = "";
 
 	async function fetchTopic(problem_id) {
 		let { data: problem_topics, error } = await supabase
@@ -28,7 +32,8 @@
 			.limit(1)
 			.single();
 		if (error) {
-			alert(error.message);
+			errorTrue = true;
+			errorMessage = error.message;
 		} else {
 			problem = problems;
 			await fetchTopic(problem.id);
@@ -43,7 +48,10 @@
 			.from("problems")
 			.update([payloadNoTopics])
 			.eq("id", $page.params.id);
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		console.log(data);
 		let { error2 } = await supabase
 			.from("problem_topics")
@@ -67,12 +75,25 @@
 			.from("problems")
 			.delete()
 			.eq("id", problem.id);
-		if (error) alert(error.message);
-		else window.location.replace("/problems");
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else window.location.replace("/problems");
 	}
 </script>
 
 <br />
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
+
 {#if loaded}
 	<h1>Problem {problem.id} ({problem.front_id})</h1>
 	<br />

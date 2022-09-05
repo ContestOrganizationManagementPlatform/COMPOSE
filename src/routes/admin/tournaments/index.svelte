@@ -2,16 +2,22 @@
 	import { TextInput } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
+	import { InlineNotification } from "carbon-components-svelte";
+
 	let tournaments = [];
 	let tournamentName = "";
 	let tournamentDate = "";
+
+	let errorTrue = false;
+	let errorMessage = "";
 
 	async function getTournaments() {
 		let { data: tournamentList, error } = await supabase
 			.from("tournaments")
 			.select("*");
 		if (error) {
-			alert(error);
+			errorTrue = true;
+			errorMessage = error.message;
 		}
 		tournaments = tournamentList;
 	}
@@ -31,6 +37,18 @@
 <br />
 <h1>Admin: View Tournaments</h1>
 <br />
+
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
+
 <div class="flex profileButtons">
 	<form on:submit|preventDefault class="tournamentForm">
 		<TextInput

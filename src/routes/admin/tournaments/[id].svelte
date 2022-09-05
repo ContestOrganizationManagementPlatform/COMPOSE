@@ -3,11 +3,16 @@
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
+	import Loading from "../../../lib/components/Loading.svelte";
+	import { InlineNotification } from "carbon-components-svelte";
 
 	let tournamentId = $page.params.id;
 	let tournament;
 	let tests = [];
 	let loading = false;
+
+	let errorTrue = false;
+	let errorMessage = "";
 
 	async function getTournament() {
 		loading = true;
@@ -17,7 +22,8 @@
 			.eq("id", tournamentId)
 			.single();
 		if (error) {
-			alert(error.message);
+			errorTrue = true;
+			errorMessage = error.message;
 		}
 		tournament = serverTournament;
 		loading = false;
@@ -29,7 +35,10 @@
 			.from("tests")
 			.select("*")
 			.eq("tournament_id", tournamentId);
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		tests = testList;
 		loading = false;
 	}
@@ -39,16 +48,29 @@
 			.from("tournaments")
 			.delete()
 			.eq("id", tournamentId);
-		if (error) alert(error.message);
-		else window.location.replace("/admin/tournaments");
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else window.location.replace("/admin/tournaments");
 	}
 
 	getTournament();
 	getTests();
 </script>
 
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
+
 {#if loading}
-	<p>Loading tournaments...</p>
+	<Loading />
 {:else}
 	<br />
 	<h1>{tournament?.tournament_name}</h1>

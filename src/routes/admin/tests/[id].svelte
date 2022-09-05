@@ -6,6 +6,7 @@
 		Select,
 		SelectItem,
 		TextArea,
+		InlineNotification,
 	} from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Button from "$lib/components/Button.svelte";
@@ -17,6 +18,9 @@
 	let allUsers = [];
 	let selectRef;
 
+	let errorTrue = false;
+	let errorMessage = "";
+
 	async function getOneUser(id) {
 		let { data: user, error } = await supabase
 			.from("users")
@@ -25,7 +29,8 @@
 			.limit(1)
 			.single();
 		if (error) {
-			alert(error.message);
+			errorTrue = true;
+			errorMessage = error.message;
 		}
 		return user;
 	}
@@ -38,7 +43,8 @@
 			.limit(1)
 			.single();
 		if (error) {
-			alert(error.message);
+			errorTrue = true;
+			errorMessage = error.message;
 		}
 		test = tests;
 
@@ -56,7 +62,10 @@
 			.from("users")
 			.select("*,test_coordinators(*)")
 			.order("full_name");
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		allUsers = users.filter(
 			(x) => !testCoordinators.some((tc) => tc.id === x.id)
 		);
@@ -67,7 +76,10 @@
 		const { data, error } = await supabase
 			.from("test_coordinators")
 			.insert({ coordinator_id: selectRef.value, test_id: testId });
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		getTest();
 	}
 
@@ -76,7 +88,10 @@
 			.from("test_coordinators")
 			.delete()
 			.eq("coordinator_id", testCoordinatorId);
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 		getTest();
 	}
 
@@ -88,7 +103,10 @@
 				test_description: test.test_description,
 			})
 			.eq("id", testId);
-		if (error) alert(error.message);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
 	}
 
 	async function deleteTest() {
@@ -96,12 +114,25 @@
 			.from("tests")
 			.delete()
 			.eq("id", testId);
-		if (error) alert(error.message);
-		else window.location.replace("/admin/tests");
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else window.location.replace("/admin/tests");
 	}
 
 	getTest();
 </script>
+
+{#if errorTrue}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="error"
+			title="ERROR:"
+			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
 
 <div style="padding: 10px">
 	{#if loading}
