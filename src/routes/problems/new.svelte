@@ -7,7 +7,7 @@
 	let errorMessage = "";
 
 	async function submitProblem(payload) {
-		const { topics, ...payloadNoTopics } = payload;
+		const { topics, problem_files, ...payloadNoTopics } = payload;
 		let { data, error } = await supabase
 			.from("problems")
 			.insert([payloadNoTopics]);
@@ -16,12 +16,22 @@
 			errorMessage = error.message;
 		}
 		console.log(data);
+
+		let problemId = data[0].id;
+
 		let { error2 } = await supabase.from("problem_topics").insert(
 			payload.topics.map((tp) => ({
-				problem_id: data[0].id,
+				problem_id: problemId,
 				topic_id: tp,
 			}))
 		);
+
+		for (const file of problem_files) {
+			let { error3 } = await supabase.storage
+				.from("problem-images")
+				.upload(`pb${problemId}/problem/${file.name}`, file, { upsert: true });
+		}
+
 		const res = await fetch("/api/discord", {
 			method: "POST",
 			body: JSON.stringify(payload),

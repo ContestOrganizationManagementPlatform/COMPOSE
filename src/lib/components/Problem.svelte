@@ -1,11 +1,23 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
+	import { getProblemImages } from "$lib/getProblemImages";
 	export let problem; // whole object from database
 	export let showMetadata = false;
 	export let showLatexErrors = false;
 	export let widthPara = 70;
 	export let failed = false; // if this problem failed to render (use as bind)
 	let author = "";
+
+	let images = [];
+	export let extraImages = [];
+	export let imageFiles = [];
+
+	let combinedImages;
+	$: combinedImages = [
+		...images,
+		...extraImages,
+		...imageFiles.map((f) => ({ url: URL.createObjectURL(f) })),
+	];
 
 	(async () => {
 		if ("full_name" in problem) {
@@ -16,6 +28,11 @@
 				.select("full_name")
 				.eq("id", problem.author_id);
 			author = users[0].full_name;
+		}
+
+		if (problem.id) {
+			images = await getProblemImages(supabase, problem.id);
+			console.log(images);
 		}
 	})();
 
@@ -91,6 +108,9 @@
 	>
 		<p class="header">Problem</p>
 		<p id="problem-render">{@html latexes.problem}</p>
+		{#each combinedImages as img}
+			<img src={img.url} alt="problem attachment" />
+		{/each}
 		<p class="header">Answer</p>
 		<p id="answer-render">{@html latexes.answer}</p>
 		<p class="header">Solution</p>

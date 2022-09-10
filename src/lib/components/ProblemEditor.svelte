@@ -7,6 +7,8 @@
 		FormGroup,
 		TextArea,
 		Button,
+		FileUploader,
+		FileUploaderItem,
 	} from "carbon-components-svelte";
 
 	import { displayLatex, checkLatex } from "$lib/latexStuff.js";
@@ -16,6 +18,8 @@
 	import KeyboardButton from "$lib/components/editor/KeyboardButton.svelte";
 
 	export let originalProblem = null;
+	export let originalImages = [];
+	// TODO: handle files already uploaded
 
 	// function that has the payload as argument, runs when submit button is pressed.
 	// if not passed in, submit button is not shown
@@ -59,6 +63,10 @@
 	let fieldList = ["problem", "comment", "answer", "solution"];
 	let errorList = [];
 	let doRender = false;
+
+	const fileUploadLimit = 3; // # of files that can be uploaded
+	const fileSizeLimit = 52428800; // 50 mb
+	let problemFiles = [];
 
 	let activeTextarea = null;
 	function updateActive() {
@@ -118,6 +126,55 @@
 	}
 
 	getTopics();
+
+	async function submitPayload() {
+		if (
+			fields.problem &&
+			fields.comment &&
+			fields.answer &&
+			fields.solution &&
+			topics &&
+			difficulty
+		) {
+			if (problemFiles.length > fileUploadLimit) {
+				error = "Too many files uploaded";
+			} else if (problemFiles.some((f) => f.size > fileSizeLimit)) {
+				error = "File too large";
+			} else {
+				error = "";
+				const payload = {
+					problem_latex: fields.problem,
+					comment_latex: fields.comment,
+					answer_latex: fields.answer,
+					solution_latex: fields.solution,
+					topics: topics,
+					sub_topics: subTopic,
+					difficulty: parseInt(difficulty),
+					edited_at: new Date().toISOString(),
+					problem_files: [
+						...problemFiles,
+						...originalImages.map(
+							(img) =>
+								new File([img.blob], img.info.name, {
+									type: img.info.metadata.mimetype,
+								})
+						),
+					],
+				};
+				submittedText = "Submitting problem...";
+				await onSubmit(payload);
+				submittedText = "Problem submitted.";
+				problemFiles = [];
+			}
+		} else {
+			error = "Not all the fields have been filled out";
+		}
+	}
+
+	function deleteImage(e) {
+		const imageName = e.detail;
+		originalImages = originalImages.filter((x) => x.info.name !== imageName);
+	}
 </script>
 
 <svelte:window on:click={updateActive} />
@@ -162,6 +219,25 @@
 						<LatexKeyboard />
 					</div>
 				{/if}
+				<br />
+				<FileUploader
+					multiple
+					labelTitle="Problem Attachments"
+					buttonLabel="Upload files"
+					labelDescription="Accepts png, jpg, jpeg, webp. 3 files max"
+					accept={[".jpg", ".png", ".jpeg", ".webp"]}
+					status="edit"
+					bind:files={problemFiles}
+				/>
+				<br />
+				{#each originalImages as img}
+					<FileUploaderItem
+						id={img.info.name}
+						name={img.info.name}
+						on:delete={deleteImage}
+						status="edit"
+					/>
+				{/each}
 				<br />
 				<TextArea
 					class="textArea"
@@ -214,38 +290,7 @@
 					type="submit"
 					size="small"
 					disabled={isDisabled || problemFailed}
-					on:click={async () => {
-						if (
-							fields.problem != null &&
-							fields.problem != "" &&
-							fields.comment != null &&
-							fields.comment != "" &&
-							fields.answer != null &&
-							fields.answer != "" &&
-							fields.solution != null &&
-							fields.solution != "" &&
-							topics &&
-							difficulty != null &&
-							difficulty != ""
-						) {
-							error = "";
-							const payload = {
-								problem_latex: fields.problem,
-								comment_latex: fields.comment,
-								answer_latex: fields.answer,
-								solution_latex: fields.solution,
-								topics: topics,
-								sub_topics: subTopic,
-								difficulty: parseInt(difficulty),
-								edited_at: new Date().toISOString(),
-							};
-							submittedText = "Submitting problem...";
-							await onSubmit(payload);
-							submittedText = "Problem submitted.";
-						} else {
-							error = "Not all the fields have been filled out";
-						}
-					}}
+					on:click={submitPayload}
 					style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 				>
 					<p>Submit Problem</p>
@@ -269,6 +314,8 @@
 					showMetadata={false}
 					showLatexErrors={true}
 					widthPara={100}
+					extraImages={originalImages}
+					imageFiles={problemFiles}
 					bind:failed={problemFailed}
 				/>
 			{/if}

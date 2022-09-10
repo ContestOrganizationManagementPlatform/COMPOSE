@@ -1,6 +1,7 @@
 <script>
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
+	import { getProblemImages } from "$lib/getProblemImages";
 	import Problem from "$lib/components/Problem.svelte";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import Button from "$lib/components/Button.svelte";
@@ -8,6 +9,7 @@
 	import { InlineNotification } from "carbon-components-svelte";
 
 	let problem;
+	let images = []; // doesn't contain actual images, just metadata
 	let loaded = false;
 
 	let errorTrue = false;
@@ -37,13 +39,14 @@
 		} else {
 			problem = problems;
 			await fetchTopic(problem.id);
+			images = await getProblemImages(supabase, problem.id);
 			loaded = true;
 		}
 	}
 	fetchProblem();
 
 	async function submitProblem(payload) {
-		const { topics, ...payloadNoTopics } = payload;
+		const { topics, problem_files, ...payloadNoTopics } = payload;
 		let { data, error } = await supabase
 			.from("problems")
 			.update([payloadNoTopics])
@@ -64,6 +67,25 @@
 			method: "POST",
 			body: JSON.stringify(payload),
 		});
+
+		// delete all files already in the problem
+		const { data: fileList, error4 } = await supabase.storage
+			.from("problem-images")
+			.list(`pb${problem.id}/problem`);
+		if (error4) alert(error4.message);
+
+		for (const img of fileList) {
+			const { error5 } = await supabase.storage
+				.from("problem-images")
+				.remove(`pb${problem.id}/problem/${img.name}`);
+			if (error5) alert(error5.message);
+		}
+
+		for (const file of problem_files) {
+			let { error3 } = await supabase.storage
+				.from("problem-images")
+				.upload(`pb${problem.id}/problem/${file.name}`, file, { upsert: true });
+		}
 		fetchProblem();
 	}
 </script>
@@ -87,7 +109,11 @@
 	<Button href="/problems" title="Back to Problems" />
 	<br /><br />
 	<Button href={"/problems/" + problem.id} title="Return" />
-	<ProblemEditor originalProblem={problem} onSubmit={submitProblem} />
+	<ProblemEditor
+		originalProblem={problem}
+		originalImages={images}
+		onSubmit={submitProblem}
+	/>
 {:else}
 	<p>Loading problem...</p>
 {/if}
