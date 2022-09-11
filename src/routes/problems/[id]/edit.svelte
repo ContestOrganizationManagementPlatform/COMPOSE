@@ -9,7 +9,7 @@
 	import { InlineNotification } from "carbon-components-svelte";
 
 	let problem;
-	let images = []; // doesn't contain actual images, just metadata
+	let images = [];
 	let loaded = false;
 
 	let errorTrue = false;
@@ -74,12 +74,10 @@
 			.list(`pb${problem.id}/problem`);
 		if (error4) alert(error4.message);
 
-		for (const img of fileList) {
-			const { error5 } = await supabase.storage
-				.from("problem-images")
-				.remove(`pb${problem.id}/problem/${img.name}`);
-			if (error5) alert(error5.message);
-		}
+		const { error5 } = await supabase.storage
+			.from("problem-images")
+			.remove(fileList.map((f) => `pb${problem.id}/problem/${f.name}`));
+		if (error5) alert(error5.message);
 
 		for (const file of problem_files) {
 			let { error3 } = await supabase.storage

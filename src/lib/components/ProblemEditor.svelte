@@ -12,14 +12,12 @@
 	} from "carbon-components-svelte";
 
 	import { displayLatex, checkLatex } from "$lib/latexStuff.js";
+	import { ProblemImage } from "$lib/getProblemImages";
 	import Problem from "$lib/components/Problem.svelte";
-	import Menu from "$lib/components/Menu.svelte";
 	import LatexKeyboard from "$lib/components/editor/LatexKeyboard.svelte";
-	import KeyboardButton from "$lib/components/editor/KeyboardButton.svelte";
 
 	export let originalProblem = null;
 	export let originalImages = [];
-	// TODO: handle files already uploaded
 
 	// function that has the payload as argument, runs when submit button is pressed.
 	// if not passed in, submit button is not shown
@@ -64,9 +62,12 @@
 	let errorList = [];
 	let doRender = false;
 
-	const fileUploadLimit = 3; // # of files that can be uploaded
+	const fileUploadLimit = 5; // # of files that can be uploaded
 	const fileSizeLimit = 52428800; // 50 mb
-	let problemFiles = [];
+	let fileUploader;
+	let problemFiles = originalImages.map((x) => x.toFile());
+	let problemImages = [];
+	$: problemImages = problemFiles.map((x) => ProblemImage.fromFile(x));
 
 	let activeTextarea = null;
 	function updateActive() {
@@ -151,29 +152,29 @@
 					sub_topics: subTopic,
 					difficulty: parseInt(difficulty),
 					edited_at: new Date().toISOString(),
-					problem_files: [
-						...problemFiles,
-						...originalImages.map(
-							(img) =>
-								new File([img.blob], img.info.name, {
-									type: img.info.metadata.mimetype,
-								})
-						),
-					],
+					problem_files: problemFiles,
 				};
 				submittedText = "Submitting problem...";
 				await onSubmit(payload);
 				submittedText = "Problem submitted.";
-				problemFiles = [];
 			}
 		} else {
 			error = "Not all the fields have been filled out";
 		}
 	}
 
+	function addImage(e) {
+		if (e.detail.length + problemFiles.length > fileUploadLimit) {
+			alert("Cannot upload this many files");
+		}
+		problemFiles = [...problemFiles, ...e.detail];
+		fileUploader.clearFiles();
+	}
+
 	function deleteImage(e) {
+		console.log(e.detail);
 		const imageName = e.detail;
-		originalImages = originalImages.filter((x) => x.info.name !== imageName);
+		problemFiles = problemFiles.filter((x) => x.name !== imageName);
 	}
 </script>
 
@@ -220,25 +221,6 @@
 					</div>
 				{/if}
 				<br />
-				<FileUploader
-					multiple
-					labelTitle="Problem Attachments"
-					buttonLabel="Upload files"
-					labelDescription="Accepts png, jpg, jpeg, webp. 3 files max"
-					accept={[".jpg", ".png", ".jpeg", ".webp"]}
-					status="edit"
-					bind:files={problemFiles}
-				/>
-				<br />
-				{#each originalImages as img}
-					<FileUploaderItem
-						id={img.info.name}
-						name={img.info.name}
-						on:delete={deleteImage}
-						status="edit"
-					/>
-				{/each}
-				<br />
 				<TextArea
 					class="textArea"
 					labelText="Comment"
@@ -277,6 +259,26 @@
 						<LatexKeyboard />
 					</div>
 				{/if}
+				<br />
+				<FileUploader
+					multiple
+					labelTitle="Problem Attachments"
+					buttonLabel="Upload files"
+					labelDescription="Accepts png, jpg, jpeg, webp. {fileUploadLimit} files max, 50 mb max each (but please try and use smaller images). To use in the problem, use \image{'{'}<image file name>{'}'}"
+					accept={[".jpg", ".png", ".jpeg", ".webp"]}
+					status="edit"
+					bind:this={fileUploader}
+					on:add={addImage}
+				/>
+				{#each problemFiles as imgFile}
+					<FileUploaderItem
+						id={imgFile.name}
+						name={imgFile.name}
+						status="edit"
+						style="text-align: left;"
+						on:delete={deleteImage}
+					/>
+				{/each}
 			</Form>
 		</div>
 
@@ -314,8 +316,7 @@
 					showMetadata={false}
 					showLatexErrors={true}
 					widthPara={100}
-					extraImages={originalImages}
-					imageFiles={problemFiles}
+					images={problemImages}
 					bind:failed={problemFailed}
 				/>
 			{/if}

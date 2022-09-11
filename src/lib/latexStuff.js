@@ -1,5 +1,13 @@
 import katex from "katex";
 
+const allowedControls = [
+	"\\image",
+	"\\textbf",
+	"\\underline",
+	"\\textit",
+	"\\emph",
+];
+
 // needs to open with c1 and close with c2
 // returns 0 if no mismatch, 1 if left open, -1 if premature close
 function checkMismatch(str, c1, c2, ignoreBackslash) {
@@ -156,10 +164,12 @@ export function checkLatex(str, field) {
 		if (!inDollars) {
 			const controlMatch = istr.match(/\\\w+/g) || [];
 			for (const cc of controlMatch) {
-				errorList.push({
-					error: `Control sequence ${cc} is outside of $$. Make sure this is intentional!`,
-					sev: "info",
-				});
+				if (!allowedControls.includes(cc)) {
+					errorList.push({
+						error: `Control sequence ${cc} is outside of $$. Make sure this is intentional!`,
+						sev: "info",
+					});
+				}
 			}
 		}
 
@@ -185,7 +195,7 @@ const macros = {
 
 // display the math mode parts of latex, rest as plaintext
 // returns { out: output, errorList: [errors] }
-export function displayLatex(str) {
+export function displayLatex(str, images) {
 	let i = 0;
 	let out = "";
 	let curToken = "";
@@ -309,6 +319,26 @@ export function displayLatex(str) {
 			curToken += "\\underline{";
 			dispStack.push("</u>");
 			i += 11;
+		} else if (nxt(7) === "\\image{" && !esc) {
+			// look for next }
+			i += 7;
+			for (let j = i; j < str.length; j++) {
+				if (str[j] === "}") {
+					let imageName = str.substring(i, j);
+					console.log(imageName);
+					let image = images.find((img) => img.name === imageName);
+					if (!image) {
+						errorList.push({
+							error: "No image named " + imageName,
+							sev: "warn",
+						});
+					} else {
+						out += `<img src='${image.url}' alt='${imageName}'/>`;
+					}
+					i = j + 1;
+					break;
+				}
+			}
 		} else if (
 			str[i] === "\\" &&
 			i < str.length - 1 &&

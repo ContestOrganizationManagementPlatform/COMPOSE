@@ -1,23 +1,19 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import { getProblemImages } from "$lib/getProblemImages";
+
+	import { displayLatex } from "$lib/latexStuff.js";
 	export let problem; // whole object from database
 	export let showMetadata = false;
 	export let showLatexErrors = false;
 	export let widthPara = 70;
 	export let failed = false; // if this problem failed to render (use as bind)
+
+	let loaded = false;
+
 	let author = "";
 
-	let images = [];
-	export let extraImages = [];
-	export let imageFiles = [];
-
-	let combinedImages;
-	$: combinedImages = [
-		...images,
-		...extraImages,
-		...imageFiles.map((f) => ({ url: URL.createObjectURL(f) })),
-	];
+	export let images = [];
 
 	(async () => {
 		if ("full_name" in problem) {
@@ -34,9 +30,9 @@
 			images = await getProblemImages(supabase, problem.id);
 			console.log(images);
 		}
-	})();
 
-	import { displayLatex } from "$lib/latexStuff.js";
+		loaded = true;
+	})();
 
 	let latexes = {
 		problem: "",
@@ -47,10 +43,11 @@
 	let fieldList = ["problem", "comment", "answer", "solution"];
 	let errorList = [];
 
-	$: {
+	$: if (loaded) {
 		failed = false;
+		errorList = [];
 		for (const field of fieldList) {
-			const displayed = displayLatex(problem[field + "_latex"]);
+			const displayed = displayLatex(problem[field + "_latex"], images);
 			displayed.errorList.forEach((x) => (x.field = field)); // add context to errors
 			errorList.push(...displayed.errorList);
 			latexes[field] = displayed.out;
@@ -61,67 +58,68 @@
 	}
 </script>
 
-{#if showLatexErrors}
-	{#each errorList as err}
-		<div style="border: 1px solid black;">
-			<p>Error (in {err.field}): {err.error}</p>
-			<p>Severity: {err.sev}</p>
-		</div>
-	{/each}
-{/if}
+{#if loaded}
+	{#if showLatexErrors}
+		{#each errorList as err}
+			<div style="border: 1px solid black;">
+				<p>Error (in {err.field}): {err.error}</p>
+				<p>Severity: {err.sev}</p>
+			</div>
+		{/each}
+	{/if}
 
-{#if showMetadata}
-	<h2>About</h2>
+	{#if showMetadata}
+		<h2>About</h2>
+		<div class="flex">
+			<div
+				style="border: 2px solid black;width: {widthPara}%;margin: 10px;padding: 10px;"
+			>
+				<p><span class="header">Author: </span>{author}</p>
+				{#if "front_id" in problem}
+					<p><span class="header">ID: </span>{problem.front_id}</p>
+				{/if}
+				{#if "nickname" in problem}
+					<p><span class="header">Nickname: </span>{problem.nickname}</p>
+				{/if}
+				{#if "topic" in problem}
+					<p>
+						<span class="header">Topic: </span>{problem.topics ??
+							problem.topicArray.join(", ")}
+					</p>
+				{/if}
+				{#if "sub_topics" in problem}
+					<p><span class="header">Sub-Topic: </span>{problem.sub_topics}</p>
+				{/if}
+				{#if "difficulty" in problem}
+					<p><span class="header">Difficulty: </span>{problem.difficulty}</p>
+				{/if}
+			</div>
+		</div>
+	{/if}
+
+	{#if showMetadata}
+		<h2>Information</h2>
+	{/if}
 	<div class="flex">
 		<div
 			style="border: 2px solid black;width: {widthPara}%;margin: 10px;padding: 10px;"
 		>
-			<p><span class="header">Author: </span>{author}</p>
-			{#if "front_id" in problem}
-				<p><span class="header">ID: </span>{problem.front_id}</p>
-			{/if}
-			{#if "nickname" in problem}
-				<p><span class="header">Nickname: </span>{problem.nickname}</p>
-			{/if}
-			{#if "topic" in problem}
-				<p>
-					<span class="header">Topic: </span>{problem.topics ??
-						problem.topicArray.join(", ")}
-				</p>
-			{/if}
-			{#if "sub_topics" in problem}
-				<p><span class="header">Sub-Topic: </span>{problem.sub_topics}</p>
-			{/if}
-			{#if "difficulty" in problem}
-				<p><span class="header">Difficulty: </span>{problem.difficulty}</p>
-			{/if}
+			<p class="header">Problem</p>
+			<p id="problem-render">{@html latexes.problem}</p>
+			<p class="header">Answer</p>
+			<p id="answer-render">{@html latexes.answer}</p>
+			<p class="header">Solution</p>
+			<p id="solution-render">{@html latexes.solution}</p>
+			<br />
+			<p>
+				<span class="header">Comments:</span>
+				<span id="comment-render">{@html latexes.comment}</span>
+			</p>
 		</div>
 	</div>
+{:else}
+	<p>Loading problem...</p>
 {/if}
-
-{#if showMetadata}
-	<h2>Information</h2>
-{/if}
-<div class="flex">
-	<div
-		style="border: 2px solid black;width: {widthPara}%;margin: 10px;padding: 10px;"
-	>
-		<p class="header">Problem</p>
-		<p id="problem-render">{@html latexes.problem}</p>
-		{#each combinedImages as img}
-			<img src={img.url} alt="problem attachment" />
-		{/each}
-		<p class="header">Answer</p>
-		<p id="answer-render">{@html latexes.answer}</p>
-		<p class="header">Solution</p>
-		<p id="solution-render">{@html latexes.solution}</p>
-		<br />
-		<p>
-			<span class="header">Comments:</span>
-			<span id="comment-render">{@html latexes.comment}</span>
-		</p>
-	</div>
-</div>
 
 <style>
 	.header {
