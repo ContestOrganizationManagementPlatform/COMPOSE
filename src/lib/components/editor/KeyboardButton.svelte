@@ -25,7 +25,7 @@
 	}}
 	bind:ref={elemRef}
 	type="submit"
-	style="margin-left: 5px; margin-right: 5px;"
+	style="margin-left: 5px; margin-right: 5px; margin-bottom: 3px;"
 >
 	<p
 		style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"

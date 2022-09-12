@@ -80,7 +80,7 @@
 		activeTextarea = null;
 	}
 
-	$: {
+	function updateFields() {
 		errorList = [];
 		let failed = false;
 		doRender = false;
@@ -106,6 +106,7 @@
 			isDisabled = false;
 		}
 	}
+	updateFields();
 
 	async function getTopics() {
 		loading = true;
@@ -125,7 +126,6 @@
 		topics = topics;
 		loading = false;
 	}
-
 	getTopics();
 
 	async function submitPayload() {
@@ -172,7 +172,6 @@
 	}
 
 	function deleteImage(e) {
-		console.log(e.detail);
 		const imageName = e.detail;
 		problemFiles = problemFiles.filter((x) => x.name !== imageName);
 	}
@@ -213,6 +212,7 @@
 					labelText="Problem"
 					bind:value={fields.problem}
 					bind:ref={fieldrefs.problem}
+					on:input={updateFields}
 					required={true}
 				/>
 				{#if activeTextarea === "problem"}
@@ -226,6 +226,7 @@
 					labelText="Comment"
 					bind:value={fields.comment}
 					bind:ref={fieldrefs.comment}
+					on:input={updateFields}
 					required={true}
 				/>
 				{#if activeTextarea === "comment"}
@@ -239,6 +240,7 @@
 					labelText="Answer"
 					bind:value={fields.answer}
 					bind:ref={fieldrefs.answer}
+					on:input={updateFields}
 					required={true}
 				/>
 				{#if activeTextarea === "answer"}
@@ -252,6 +254,7 @@
 					labelText="Solution"
 					bind:value={fields.solution}
 					bind:ref={fieldrefs.solution}
+					on:input={updateFields}
 					required={true}
 				/>
 				{#if activeTextarea === "solution"}

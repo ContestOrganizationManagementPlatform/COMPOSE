@@ -36,6 +36,8 @@
 			method: "POST",
 			body: JSON.stringify(payload),
 		});
+
+		window.location.replace(`/problems/${problemId}`);
 	}
 </script>
 

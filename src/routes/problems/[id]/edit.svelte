@@ -74,10 +74,12 @@
 			.list(`pb${problem.id}/problem`);
 		if (error4) alert(error4.message);
 
-		const { error5 } = await supabase.storage
-			.from("problem-images")
-			.remove(fileList.map((f) => `pb${problem.id}/problem/${f.name}`));
-		if (error5) alert(error5.message);
+		if (fileList.length > 0) {
+			const { error5 } = await supabase.storage
+				.from("problem-images")
+				.remove(fileList.map((f) => `pb${problem.id}/problem/${f.name}`));
+			if (error5) alert(error5.message);
+		}
 
 		for (const file of problem_files) {
 			let { error3 } = await supabase.storage

@@ -325,7 +325,6 @@ export function displayLatex(str, images) {
 			for (let j = i; j < str.length; j++) {
 				if (str[j] === "}") {
 					let imageName = str.substring(i, j);
-					console.log(imageName);
 					let image = images.find((img) => img.name === imageName);
 					if (!image) {
 						errorList.push({

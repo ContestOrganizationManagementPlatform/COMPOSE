@@ -23,7 +23,6 @@
 	let errorMessage = "";
 
 	$: if (files) {
-		console.log(files);
 		checkFiles();
 	}
 
@@ -79,7 +78,6 @@
 	}
 
 	async function submitProblems() {
-		console.log(payloads);
 		success = false;
 		let payloadList = [];
 		for (const payload of payloads) {

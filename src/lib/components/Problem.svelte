@@ -28,7 +28,6 @@
 
 		if (problem.id) {
 			images = await getProblemImages(supabase, problem.id);
-			console.log(images);
 		}
 
 		loaded = true;
