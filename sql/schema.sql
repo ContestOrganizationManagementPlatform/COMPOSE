@@ -1,17 +1,17 @@
 
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name text,
     discord text,
     initials text
 );
 
-CREATE TABLE user_roles (
+CREATE TABLE IF NOT EXISTS user_roles (
     user_id uuid PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
     role int4
 );
 
-CREATE TABLE problems (
+CREATE TABLE IF NOT EXISTS problems (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     created_at timestamptz DEFAULT now(),
     author_id uuid REFERENCES public.users(id) ON DELETE CASCADE NOT NULL DEFAULT uid(),
@@ -25,42 +25,64 @@ CREATE TABLE problems (
     edited_at timestamptz
 );
 
-CREATE TABLE tournaments (
+CREATE TABLE IF NOT EXISTS tournaments (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     tournament_name text NOT NULL,
     tournament_date date
 );
 
-CREATE TABLE tests (
+CREATE TABLE IF NOT EXISTS tests (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     test_name text NOT NULL,
     test_description text,
     tournament_id int8 REFERENCES public.tournaments(id) ON DELETE CASCADE
 );
 
-CREATE TABLE test_problems (
+CREATE TABLE IF NOT EXISTS test_problems (
     relation_id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     problem_id int8 REFERENCES public.problems(id) ON DELETE CASCADE,
     test_id int8 REFERENCES public.tests(id) ON DELETE CASCADE NOT NULL,
     problem_number int4
 );
 
-CREATE TABLE test_coordinators (
+CREATE TABLE IF NOT EXISTS test_coordinators (
     relation_id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     coordinator_id uuid REFERENCES public.users(id) ON DELETE CASCADE,
     test_id int8 REFERENCES public.tests(id) ON DELETE CASCADE
 );
 
-CREATE TABLE global_topics (
+CREATE TABLE IF NOT EXISTS global_topics (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     topic text,
     topic_short text
 );
 
-CREATE TABLE problem_topics (
+CREATE TABLE IF NOT EXISTS problem_topics (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     problem_id int8 REFERENCES public.problems(id) ON DELETE CASCADE,
     topic_id int8 REFERENCES public.global_topics(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS testsolvers (
+    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    test_id int8 REFERENCES public.tests(id) ON DELETE CASCADE NOT NULL,
+    solver_id uuid REFERENCES public.users(id) ON DELETE CASCADE NOT NULL
+);
 
+CREATE TABLE IF NOT EXISTS testsolves (
+    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    test_id int8 REFERENCES public.tests(id) ON DELETE CASCADE NOT NULL,
+    solver_id uuid REFERENCES public.users(id) ON DELETE SET NULL,
+    start_time timestamptz,
+    end_time timestamptz,
+    feedback text
+);
+
+CREATE TABLE IF NOT EXISTS testsolve_answers (
+    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    testsolve_id int8 REFERENCES public.testsolves(id) ON DELETE CASCADE NOT NULL,
+    problem_id int8 REFERENCES public.problems(id) ON DELETE SET NULL,
+    answer text,
+    feedback text,
+    correct bool
+);

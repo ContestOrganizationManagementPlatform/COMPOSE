@@ -153,7 +153,7 @@
 	</p>
 	<br />
 	<Button href={`/tests/${testId}`} title="Go back" />
-	<br />
+	<br /><br />
 	{#if !userIsTestCoordinator}
 		<p>You are not a coordinator so you cannot edit the problems!</p>
 	{:else if loadingProblems}
