@@ -106,7 +106,7 @@
 							{/each}
 						</div>
 					{/if}
-					<div style="margin-top: 5px">
+					<div style="margin-top: 10px">
 						<Button
 							href="/tests/{testsolve.id}/testsolve/solve"
 							title="Begin solve"
@@ -137,7 +137,7 @@
 		grid-gap: 5px;
 	}
 	.miniBox {
-		padding-bottom: 5px;
+		padding: 10px;
 		border-bottom: 2px solid var(--green);
 	}
 </style>
