@@ -110,12 +110,12 @@
 		<h1>Test {testId}: {test.test_name}</h1>
 		<br />
 		<Button href={`/tests/${testId}/testsolve`} title="Go back" />
-		<br />
+		<br /><br />
 		<h3><strong>Current Testsolvers</strong></h3>
 		{#if testsolvers.length === 0}
 			<p>There are no testsolvers</p>
 		{:else}
-			<div class="grid" style="padding: 5px;">
+			<div class="grid" style="padding: 5px;row-gap: 10px;">
 				{#each testsolvers as testsolver}
 					<div class="flex">
 						<p
