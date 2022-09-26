@@ -18,7 +18,7 @@
 
 	async function permissionCheck() {
 		// check permission
-		if (getThisUserRole() === 40) {
+		if ((await getThisUserRole()) >= 40) {
 			disallowed = false;
 		} else {
 			let { data, error, count } = await supabase

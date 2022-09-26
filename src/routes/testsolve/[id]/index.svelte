@@ -33,7 +33,7 @@
 		} else {
 			testsolve = data[0];
 			if (
-				getThisUserRole() === 40 ||
+				(await getThisUserRole()) === 40 ||
 				testsolve.solver_id === supabase.auth.user().id
 			) {
 				disallowed = false;

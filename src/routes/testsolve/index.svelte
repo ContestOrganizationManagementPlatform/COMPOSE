@@ -9,11 +9,13 @@
 	let errorMessage = "";
 
 	let loading = true;
+	let isAdmin = false;
 
 	let availableTestsolves = [];
 
 	async function getTestsolves() {
-		if (getThisUserRole() >= 40) {
+		if ((await getThisUserRole()) >= 40) {
+			isAdmin = true;
 			// admin can testsolve anything
 			let { data: tests, error } = await supabase
 				.from("tests")
@@ -25,6 +27,7 @@
 				availableTestsolves = tests.map((x) => ({
 					name: x.test_name,
 					id: x.id,
+					solves: [],
 				}));
 			}
 		} else {
@@ -48,22 +51,34 @@
 	}
 
 	async function getFinishedSolves() {
-		let { data: finishedSolves, error } = await supabase
-			.from("testsolves")
-			.select("*")
-			.eq("solver_id", supabase.auth.user().id);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			for (const solve of finishedSolves) {
-				let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
-				if (test) {
-					test.solves.push(solve);
-				}
+		let finishedSolves;
+		if (isAdmin) {
+			let { data, error } = await supabase
+				.from("testsolves")
+				.select("*,users(full_name)");
+			if (error) {
+				errorTrue = true;
+				errorMessage = error.message;
 			}
-			availableTestsolves = availableTestsolves;
+			finishedSolves = data;
+		} else {
+			let { data, error } = await supabase
+				.from("testsolves")
+				.select("*,users(full_name)")
+				.eq("solver_id", supabase.auth.user().id);
+			if (error) {
+				errorTrue = true;
+				errorMessage = error.message;
+			}
+			finishedSolves = data;
 		}
+		for (const solve of finishedSolves) {
+			let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
+			if (test) {
+				test.solves.push(solve);
+			}
+		}
+		availableTestsolves = availableTestsolves;
 
 		loading = false;
 	}
@@ -100,7 +115,10 @@
 						<div class="miniGrid">
 							{#each testsolve.solves as solve}
 								<div class="miniBox">
-									<h5>Solve {formatDate(new Date(solve.end_time))}</h5>
+									<h5>
+										Solve {formatDate(new Date(solve.end_time))} by {solve.users
+											.full_name}
+									</h5>
 									<Button href="/testsolve/{solve.id}" title="View" />
 								</div>
 							{/each}
