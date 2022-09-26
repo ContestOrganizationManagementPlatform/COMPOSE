@@ -28,7 +28,21 @@
 			.order("problem_number");
 
 		problems = testProblems;
-		answers = problems.map((pb) => new TestsolveAnswer(pb.problem_id));
+		if (answers.length > 0) {
+			for (const ans of answers) {
+				answerTexts[ans.problem_id] = ans.answer;
+				feedbackTexts[ans.problem_id] = ans.feedback;
+				isCorrect[ans.problem_id] = ans.correct;
+			}
+			answers.sort(
+				(a, b) =>
+					problems.findIndex((pb) => pb.problem_id === a.problem_id) -
+					problems.findIndex((pb) => pb.problem_id === b.problem_id)
+			);
+			answers = answers;
+		} else {
+			answers = problems.map((pb) => new TestsolveAnswer(pb.problem_id));
+		}
 		loading = false;
 	}
 
@@ -91,6 +105,13 @@
 								on:change={() => changeChecked(problem.problem_id)}
 							/>
 						</div>
+						<div style="margin-top: 10px;">
+							Solution:
+							<Latex
+								style="font-size: 16px"
+								value={problem.full_problems.solution_latex}
+							/>
+						</div>
 						<div style="margin-top: 10px">
 							<TextArea
 								labelText="Feedback"
@@ -120,6 +141,7 @@
 	.test-div {
 		display: flex;
 		justify-content: center;
+		padding-bottom: 20px;
 	}
 
 	.inner-div {
