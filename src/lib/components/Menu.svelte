@@ -87,6 +87,13 @@
 					<p class="linkPara">Import Problems</p>
 				</Link>
 				<br />
+				<Link
+					href="/testsolve"
+					class={path == "testsolve" ? "active link" : "link"}
+				>
+					<p class="linkPara">View Testsolves</p>
+				</Link>
+				<br />
 			{:else}
 				You need to be verified to see other links.
 			{/if}
