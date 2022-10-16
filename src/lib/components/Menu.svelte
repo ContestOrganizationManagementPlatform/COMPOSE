@@ -16,6 +16,7 @@
 	let userRole = 0;
 
 	const user = supabase.auth.user();
+	$: console.log(userRole);
 
 	(async () => {
 		userRole = await getThisUserRole();
@@ -60,33 +61,35 @@
 			</div>
 		</div>
 		<br />
-		<div class="menu" style="display: block;">
+		<div class="menu">
 			<Link href="/" class={path == "" ? "active link" : "link"}>
 				<p class="linkPara">Home</p>
 			</Link>
 			<br />
 			{#if userRole}
-				<Link
-					href="/problems/new"
-					class={path == "problems/new" ? "active link" : "link"}
-				>
-					<p class="linkPara">Write New Problem</p>
-				</Link>
-				<br />
-				<Link
-					href="/problems"
-					class={path == "problems" ? "active link" : "link"}
-				>
-					<p class="linkPara">Problem Inventory</p>
-				</Link>
-				<br />
-				<Link
-					href="/problems/import"
-					class={path == "problems/import" ? "active link" : "link"}
-				>
-					<p class="linkPara">Import Problems</p>
-				</Link>
-				<br />
+				{#if userRole >= 20}
+					<Link
+						href="/problems/new"
+						class={path == "problems/new" ? "active link" : "link"}
+					>
+						<p class="linkPara">Write New Problem</p>
+					</Link>
+					<br />
+					<Link
+						href="/problems"
+						class={path == "problems" ? "active link" : "link"}
+					>
+						<p class="linkPara">Problem Inventory</p>
+					</Link>
+					<br />
+					<Link
+						href="/problems/import"
+						class={path == "problems/import" ? "active link" : "link"}
+					>
+						<p class="linkPara">Import Problems</p>
+					</Link>
+					<br />
+				{/if}
 				<Link
 					href="/testsolve"
 					class={path == "testsolve" ? "active link" : "link"}
@@ -110,10 +113,10 @@
 				</Link>
 				<br />
 				<Link
-					href="/admin/roles"
-					class={path == "admin/roles" ? "active link" : "link"}
+					href="/admin/users"
+					class={path == "admin/users" ? "active link" : "link"}
 				>
-					<p class="linkPara">Admin: Roles</p>
+					<p class="linkPara">Admin: Users</p>
 				</Link>
 				<br />
 				<Link
@@ -180,6 +183,7 @@
 		text-decoration: none;
 		border: none;
 		width: 100%;
+		height: 5px;
 		text-align: right;
 	}
 
@@ -205,7 +209,7 @@
 
 	.banner {
 		border-bottom: 2px solid var(--white);
-		padding-bottom: 15px;
+		padding-bottom: 5px;
 		width: 50%;
 		position: relative;
 	}

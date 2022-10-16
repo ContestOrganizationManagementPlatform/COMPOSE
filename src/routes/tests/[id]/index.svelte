@@ -52,6 +52,24 @@
 		loadingProblems = false;
 	}
 
+	function getTestLink() {
+		let link =
+			"https://latexonline.cc/compile?text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath, amsfonts, amssymb}\\title{" +
+			test.test_name +
+			"}\\author{" +
+			test.tournaments.tournament_name +
+			"}\\date{Mustang Math}\\begin{document}\\maketitle";
+		for (const problem of problems) {
+			link +=
+				"\\section{Problem " +
+				(problem.problem_number + 1) +
+				"}" +
+				problem.problem_latex +
+				"";
+		}
+		return link + "\\end{document}";
+	}
+
 	getTest();
 </script>
 
@@ -88,11 +106,28 @@
 	{#if loadingProblems}
 		<p>Loading problems...</p>
 	{:else}
-		<div style="width:80%; margin: auto;margin-bottom: 20px;">
-			<ProblemList
-				{problems}
-				customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
-			/>
+		<div class="row" style="grid-template-columns: 70% 30%;">
+			<div class="col" style="margin: auto;margin-bottom: 20px;padding: 10px;">
+				<ProblemList
+					{problems}
+					customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
+				/>
+			</div>
+			<div class="col" style="margin: auto;padding: 10px;">
+				<a class="download" href={getTestLink()}
+					><i class="fa fa-download" style="margin-right: 2px;" />Download Test
+					PDF</a
+				>
+			</div>
 		</div>
 	{/if}
 {/if}
+
+<style>
+	.download {
+		text-decoration: none;
+		color: black;
+		border: 3px solid var(--green);
+		padding: 10px;
+	}
+</style>

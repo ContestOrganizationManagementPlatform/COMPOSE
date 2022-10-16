@@ -1,6 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
+	import { sortIDs } from "$lib/sortIDs";
 	import Button from "$lib/components/Button.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
 
@@ -22,6 +23,7 @@
 			errorMessage = error.message;
 		}
 		problems = newProblems;
+		problems.sort((a, b) => sortIDs(a.front_id, b.front_id));
 
 		let { data: problemCountsData, error2 } = await supabase
 			.from("problem_counts")

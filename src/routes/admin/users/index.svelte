@@ -57,7 +57,7 @@
 </script>
 
 <br />
-<h1>Admin: Roles</h1>
+<h1>Admin: Users</h1>
 
 {#if errorTrue}
 	<div style="position: fixed; bottom: 10px; left: 10px;">
@@ -75,7 +75,9 @@
 		{#each roles as role}
 			<div class="box">
 				<FormGroup disabled={role.user_id === user.id}>
-					<h3><strong>{role.name}</strong></h3>
+					<a href={"/admin/users/" + role.user_id}
+						><h3><strong>{role.name}</strong></h3></a
+					>
 					<p><i>{role.user_id}</i></p>
 					<Select labelText="Role" bind:selected={role.role}>
 						<SelectItem value="0" text="No role assigned (0)" />
@@ -99,6 +101,11 @@
 </div>
 
 <style>
+	a {
+		text-decoration: none;
+		color: black;
+	}
+
 	.box {
 		background-color: var(--white);
 		border: 1px solid var(--green);

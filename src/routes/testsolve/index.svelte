@@ -1,9 +1,16 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { TextArea, InlineNotification } from "carbon-components-svelte";
+	import {
+		TextArea,
+		InlineNotification,
+		DataTable,
+		Link,
+	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { formatDate } from "$lib/formatDate";
+	import Loading from "$lib/components/Loading.svelte";
+	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -12,6 +19,7 @@
 	let isAdmin = false;
 
 	let availableTestsolves = [];
+	let tableData = [];
 
 	async function getTestsolves() {
 		if ((await getThisUserRole()) >= 40) {
@@ -80,6 +88,20 @@
 		}
 		availableTestsolves = availableTestsolves;
 
+		for (var solve of finishedSolves) {
+			tableData.push({
+				id: solve.id,
+				date: solve.end_time
+					? formatDate(new Date(solve.end_time)).split(",")[0]
+					: "N/A",
+				time: solve.end_time
+					? formatDate(new Date(solve.end_time)).split(",")[1]
+					: "N/A",
+				person: solve.users.full_name,
+				test: availableTestsolves.find((ts) => ts.id === solve.test_id).name,
+				status: solve.end_time ? "Completed" : "Not started",
+			});
+		}
 		loading = false;
 	}
 
@@ -101,29 +123,16 @@
 <h1>Testsolving</h1>
 <br />
 <div>
-	<h4>Available testsolves:</h4>
 	{#if loading}
-		<p>Loading...</p>
+		<Loading />
 	{:else if availableTestsolves.length === 0}
 		<p>No available testsolves!</p>
 	{:else}
+		<h4><strong>Open testsolves:</strong></h4>
 		<div class="grid">
 			{#each availableTestsolves as testsolve}
 				<div class="box">
 					<h3><strong>{testsolve.name}</strong></h3>
-					{#if testsolve.solves.length > 0}
-						<div class="miniGrid">
-							{#each testsolve.solves as solve}
-								<div class="miniBox">
-									<h5>
-										Solve {formatDate(new Date(solve.end_time))} by {solve.users
-											.full_name}
-									</h5>
-									<Button href="/testsolve/{solve.id}" title="View" />
-								</div>
-							{/each}
-						</div>
-					{/if}
 					<div style="margin-top: 10px">
 						<Button
 							href="/tests/{testsolve.id}/testsolve/solve"
@@ -132,6 +141,35 @@
 					</div>
 				</div>
 			{/each}
+		</div>
+		<br />
+		<h4><strong>Past testsolves:</strong></h4>
+		<div style="padding: 10px">
+			<DataTable
+				sortable
+				size="compact"
+				pageSize={10}
+				headers={[
+					{ key: "id", value: "ID" },
+					{ key: "date", value: "Date" },
+					{ key: "time", value: "Time" },
+					{ key: "person", value: "Person" },
+					{ key: "test", value: "Test" },
+					{ key: "status", value: "Status" },
+				]}
+				rows={tableData}
+			>
+				<svelte:fragment slot="cell" let:row let:cell>
+					{#if cell.key === "id"}
+						<Link icon={Launch} href="/testsolve/{cell.value}" target="_blank"
+							>{cell.value}</Link
+						>
+					{:else}
+						{cell.value}
+					{/if}
+				</svelte:fragment>
+			</DataTable>
+			<br />
 		</div>
 	{/if}
 </div>
@@ -149,13 +187,14 @@
 		padding: 10px 20px;
 	}
 
-	.miniGrid {
-		display: grid;
-		grid-template-columns: 100%;
-		grid-gap: 5px;
+	:global(.bx--link) {
+		color: var(--green) !important;
+		outline: none !important;
+		border: none !important;
 	}
-	.miniBox {
-		padding: 10px;
-		border-bottom: 2px solid var(--green);
+
+	:global(.bx--link:focus) {
+		outline: none !important;
+		border: none !important;
 	}
 </style>

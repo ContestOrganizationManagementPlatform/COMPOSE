@@ -25,11 +25,9 @@
 	}}
 	bind:ref={elemRef}
 	type="submit"
-	style="margin-left: 5px; margin-right: 5px; margin-bottom: 3px;"
+	style="margin-left: 5px; margin-right: 5px; margin-bottom: 3px;width: 1px;"
 >
-	<p
-		style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
-	>
+	<p style="font-size: 14px;">
 		{displayText}
 	</p>
 </Button>

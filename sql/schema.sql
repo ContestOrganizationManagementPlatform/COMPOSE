@@ -86,3 +86,9 @@ CREATE TABLE IF NOT EXISTS testsolve_answers (
     feedback text,
     correct bool
 );
+
+-- add resolved, difficulty
+ALTER TABLE testsolve_answers
+    ADD COLUMN IF NOT EXISTS difficulty int4,
+    ADD COLUMN IF NOT EXISTS resolved bool
+    

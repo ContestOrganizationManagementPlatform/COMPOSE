@@ -221,20 +221,7 @@
 					</div>
 				{/if}
 				<br />
-				<TextArea
-					class="textArea"
-					labelText="Comment"
-					bind:value={fields.comment}
-					bind:ref={fieldrefs.comment}
-					on:input={updateFields}
-					required={true}
-				/>
-				{#if activeTextarea === "comment"}
-					<div class="stickyKeyboard">
-						<LatexKeyboard />
-					</div>
-				{/if}
-				<br />
+
 				<TextInput
 					class="textInput"
 					labelText="Answer"
@@ -263,16 +250,33 @@
 					</div>
 				{/if}
 				<br />
-				<FileUploader
-					multiple
-					labelTitle="Problem Attachments"
-					buttonLabel="Upload files"
-					labelDescription="Accepts png, jpg, jpeg, webp. {fileUploadLimit} files max, 50 mb max each (but please try and use smaller images). To use in the problem, use \image{'{'}<image file name>{'}'}"
-					accept={[".jpg", ".png", ".jpeg", ".webp"]}
-					status="edit"
-					bind:this={fileUploader}
-					on:add={addImage}
+				<TextArea
+					class="textArea"
+					labelText="Comments"
+					bind:value={fields.comment}
+					bind:ref={fieldrefs.comment}
+					on:input={updateFields}
+					required={true}
 				/>
+				{#if activeTextarea === "comment"}
+					<div class="stickyKeyboard">
+						<LatexKeyboard />
+					</div>
+				{/if}
+
+				<br />
+				<div id="button">
+					<FileUploader
+						multiple
+						labelTitle="Problem Attachments"
+						buttonLabel="Upload files"
+						labelDescription="Accepts png, jpg, jpeg, webp. {fileUploadLimit} files max, 50 mb max each (but please try and use smaller images). To use in the problem, use \image{'{'}<image file name>{'}'}"
+						accept={[".jpg", ".png", ".jpeg", ".webp"]}
+						status="edit"
+						bind:this={fileUploader}
+						on:add={addImage}
+					/>
+				</div>
 				{#each problemFiles as imgFile}
 					<FileUploaderItem
 						id={imgFile.name}
@@ -356,5 +360,33 @@
 
 	:global(.bx--list-box__field:focus) {
 		outline-color: var(--green);
+	}
+
+	:global(#button .bx--btn--primary),
+	:global(#button .bx--btn--primary:focus) {
+		border-color: transparent !important;
+		background-color: var(--green) !important;
+	}
+	:global(#button .bx--btn--primary p) {
+		color: var(--body) !important;
+	}
+	:global(#button .bx--btn--primary:hover) {
+		background-color: var(--body) !important;
+	}
+	:global(#button .bx--btn--primary:hover p) {
+		color: var(--white) !important;
+	}
+	:global(#button .bx--btn--primary:focus) {
+		border-color: var(--body) !important;
+		outline: none !important;
+		box-shadow: none !important;
+	}
+
+	:global(#button .bx--btn--primary span) {
+		margin-left: 50px;
+		width: 100%;
+		margin-right: auto;
+		font-size: 15px;
+		padding: 0;
 	}
 </style>
