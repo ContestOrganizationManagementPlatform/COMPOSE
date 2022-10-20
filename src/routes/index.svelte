@@ -15,6 +15,8 @@
 	let discord;
 	let initials;
 	let quote;
+	let mathComp;
+	let amcScore;
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -156,6 +158,16 @@
 				placeholder="Initials"
 				style="width: 100%"
 				bind:value={initials}
+			/> <br />
+			<TextInput
+				placeholder="Math Competition Background"
+				style="width: 100%"
+				bind:value={mathComp}
+			/> <br />
+			<TextInput
+				placeholder="Best AMC 10/12 score (optional)"
+				style="width: 100%"
+				bind:value={amcScore}
 			/> <br />
 			<Button title="Submit" />
 		</Form>

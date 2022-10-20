@@ -1,28 +1,34 @@
 <script>
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
-	import ProblemList from "$lib/components/ProblemList.svelte";
+	import {
+		Select,
+		SelectItem,
+		InlineNotification,
+		DataTable,
+		Link,
+	} from "carbon-components-svelte";
+	import Loading from "$lib/components/Loading.svelte";
+	import Modal from "$lib/components/Modal.svelte";
+	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole.js";
-	import { Loading } from "carbon-components-svelte";
-	import { InlineNotification } from "carbon-components-svelte";
 
 	let testId = $page.params.id;
-	let test;
-	let testCoordinators = [];
-	let testSolvers = [];
 	let loading = true;
-	let userIsTestCoordinator = false;
+	let selectRef;
+	let testsolvers;
+	let test;
+	let allUsers = [];
 
 	let errorTrue = false;
-	let errorMessage = "";
+	let errorMessage;
+
+	let tableData = [];
 
 	async function getTest() {
-		let { data: tests, error } = await supabase
+		let { data, error } = await supabase
 			.from("tests")
-			.select(
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolvers(users(*))"
-			)
+			.select("test_name")
 			.eq("id", testId)
 			.limit(1)
 			.single();
@@ -30,17 +36,77 @@
 			errorTrue = true;
 			errorMessage = error.message;
 		}
-		test = tests;
+		test = data;
 
-		testCoordinators = test.test_coordinators.map((x) => x.users);
-		testSolvers = test.testsolvers.map((x) => x.users);
-		userIsTestCoordinator =
-			!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
-			(await getThisUserRole()) >= 40;
+		getTestsolvers();
+	}
+
+	async function getTestsolvers() {
+		let { data, error } = await supabase
+			.from("testsolvers")
+			.select("solver_id,users(full_name)")
+			.eq("test_id", testId);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
+
+		testsolvers = data;
+
+		testsolvers.forEach((user) => {
+			tableData.push({
+				id: user.solver_id,
+				testsolver: user.users.full_name,
+				status: "x",
+				testsolve: "x",
+				delete: user.solver_id,
+			});
+		});
+
+		getAllUsers();
+	}
+
+	async function getAllUsers() {
+		let { data: users, error } = await supabase
+			.from("users")
+			.select("*,test_coordinators(*)")
+			.order("full_name");
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
+		allUsers = users.filter(
+			(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
+		);
 		loading = false;
 	}
 
 	getTest();
+
+	async function addTestsolver() {
+		let { error } = await supabase
+			.from("testsolvers")
+			.insert([{ test_id: testId, solver_id: selectRef.value }], {
+				returning: "minimal",
+			});
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
+		getTestsolvers();
+	}
+
+	async function deleteTestsolver(id) {
+		const { error } = await supabase
+			.from("testsolvers")
+			.delete({ returning: "minimal" })
+			.eq("solver_id", id);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		}
+		getTestsolvers();
+	}
 </script>
 
 {#if errorTrue}
@@ -54,23 +120,65 @@
 	</div>
 {/if}
 
-{#if loading}
-	<Loading />
-{:else if !userIsTestCoordinator}
-	<p>You are not a test coordinator!</p>
-{:else}
-	<br />
-	<h1>Test: {test.test_name}</h1>
-	<p style="margin-bottom: 5px;">
-		<strong>Solvers:</strong>
-		{testSolvers.length === 0
-			? "None"
-			: testSolvers.map((ts) => ts.full_name).join(", ")}
-	</p>
-	<Button href={`/tests/${testId}`} title="Go back" />
-	<br /> <br />
-	<Button
-		href={`/tests/${testId}/testsolve/manage`}
-		title="Manage testsolvers"
-	/>
-{/if}
+<div style="padding: 10px">
+	{#if loading}
+		<Loading />
+	{:else}
+		<h1>Test {testId}: {test.test_name}</h1>
+		<br />
+		<Button href={`/tests/${testId}`} title="Go back" />
+		<br /><br />
+		<h3><strong>Add Testsolvers</strong></h3>
+		<div class="flex">
+			<form on:submit|preventDefault style="width: 50%">
+				<Select bind:ref={selectRef}>
+					{#each allUsers as user}
+						<SelectItem value={user.id} text={user.full_name} />
+					{/each}
+				</Select>
+				<br />
+				<Button action={addTestsolver} title="Add Testsolver" />
+			</form>
+		</div>
+		<br /> <br />
+		<h3><strong>Current Testsolvers</strong></h3>
+		{#if testsolvers.length === 0}
+			<p>There are no testsolvers</p>
+		{:else}
+			<DataTable
+				sortable
+				size="compact"
+				pageSize={10}
+				headers={[
+					{ key: "testsolver", value: "Testsolver" },
+					{ key: "status", value: "Status" },
+					{ key: "testsolve", value: "Testsolve" },
+					{ key: "delete", value: "Delete" },
+				]}
+				rows={tableData}
+			>
+				<svelte:fragment slot="cell" let:row let:cell>
+					{#if cell.key === "testsolve"}
+						<Link icon={Launch} href="/testsolve/{cell.value}" target="_blank"
+							>{cell.value}</Link
+						>
+					{:else if cell.key === "delete"}
+						<Modal
+							runHeader="Remove testsolver"
+							del={true}
+							onSubmit={() => deleteTestsolver(cell.value)}
+						/>
+					{:else}
+						{cell.value}
+					{/if}
+				</svelte:fragment>
+			</DataTable>
+		{/if}
+	{/if}
+</div>
+
+<style>
+	:global(.bx--table-sort:focus) {
+		outline: none;
+	}
+</style>

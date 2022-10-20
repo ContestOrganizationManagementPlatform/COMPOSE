@@ -197,4 +197,8 @@
 		outline: none !important;
 		border: none !important;
 	}
+
+	:global(.bx--table-sort:focus) {
+		outline: none;
+	}
 </style>
