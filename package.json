@@ -21,6 +21,8 @@
 	"dependencies": {
 		"@supabase/supabase-js": "^1.35.4",
 		"carbon-components-svelte": "^0.70.1",
+		"chart.js": "^3.9.1",
+		"svelte-chartjs": "^3.0.1",
 		"svelte-drawer-component": "^1.2.2",
 		"svelte-katex": "^0.1.2"
 	}

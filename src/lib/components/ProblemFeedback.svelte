@@ -1,9 +1,12 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
+	import PieChart from "./PieChart.svelte";
 
 	export let problemID;
 	let feedbackList;
 	let answerList;
+	let allAnswers = [];
+	let noRepeatAnswers = [];
 	let loaded = false;
 
 	async function loadFeedback() {
@@ -34,6 +37,8 @@
 		}
 		answerList = Array.from(answerMap.entries()).map((x) => {
 			let str = JSON.parse(x[0]);
+			allAnswers.push(x[1]);
+			noRepeatAnswers.push(str.answer);
 			return {
 				answer: str.answer,
 				correct: str.correct,
@@ -67,19 +72,10 @@
 			{#if answerList.length === 0}
 				<p>No answers to this problem</p>
 			{:else}
-				<div class="answer-list">
-					{#each answerList as answer}
-						<div
-							class="answer-box"
-							class:correct={answer.correct}
-							class:incorrect={!answer.correct}
-						>
-							<p>
-								{answer.answer} - {answer.count}
-								{maybePluralize("time", answer.count)}
-							</p>
-						</div>
-					{/each}
+				<div class="flex">
+					<div style="height: 300px;">
+						<PieChart labels={noRepeatAnswers} dataSet={allAnswers} />
+					</div>
 				</div>
 			{/if}
 		{/if}
@@ -92,49 +88,55 @@
 			{#if feedbackList.length == 0}
 				<p>No feedback for this problem</p>
 			{:else}
-				{#each feedbackList as feedback}
-					<div class="feedback-box">
-						<p><strong>From:</strong> {feedback.testsolves.users.full_name}</p>
-						<p><strong>Their answer:</strong> {feedback.answer ?? "n/a"}</p>
-						<p><strong>Feedback:</strong> {feedback.feedback}</p>
-					</div>
-				{/each}
+				<div class="row" style="column-gap: 5px;">
+					{#each feedbackList as feedback}
+						<div class="feedback-box">
+							<div
+								class="row"
+								style="width: calc(100% - 5px); column-gap: 5px; margin-bottom: 5px;"
+							>
+								<div class="sender">
+									<p>
+										<strong>From:</strong>
+										{feedback.testsolves.users.full_name}
+									</p>
+								</div>
+								<div class="sender">
+									<p>
+										<strong>Their answer:</strong>
+										{feedback.answer ?? "n/a"}
+									</p>
+								</div>
+							</div>
+							<div class="sender">
+								<p><strong>Feedback:</strong> {feedback.feedback}</p>
+							</div>
+						</div>
+					{/each}
+				</div>
 			{/if}
 		{/if}
 	</div>
 </div>
+<br />
 
 <style>
+	.sender {
+		background-color: rgb(234, 234, 234);
+		border-radius: 5px;
+		padding: 3px 10px;
+		width: 100%;
+	}
+
 	.feedback-container,
 	.answer-container {
 		width: 70%;
 		margin-bottom: 10px;
 	}
-
-	.answer-list {
-		display: flex;
-		justify-content: center;
-	}
-
 	.feedback-box {
 		text-align: left;
 		border: 2px solid black;
 		margin-top: 5px;
 		padding: 5px;
-	}
-
-	.correct {
-		background-color: #73ee73;
-	}
-
-	.incorrect {
-		background-color: #ec8585;
-	}
-
-	.answer-box {
-		text-align: left;
-		border: 1px solid black;
-		margin: 5px;
-		padding: 3px;
 	}
 </style>
