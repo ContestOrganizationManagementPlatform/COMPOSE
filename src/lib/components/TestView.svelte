@@ -74,52 +74,58 @@
 			<p>Loading...</p>
 		{:else}
 			{#each problems as problem}
-				<div class="problem-div">
-					<h3>{problem.problem_number + 1}.</h3>
-					<Latex
-						style="font-size: 16px"
-						value={problem.full_problems.problem_latex}
-					/>
-					{#if answerable}
-						<div style="margin-top: 10px;">
-							<TextInput
-								labelText={reviewing ? "Your answer" : "Answer"}
-								disabled={reviewing}
-								bind:value={answerTexts[problem.problem_id]}
-								on:input={(e) => changeAnswer(problem.problem_id)}
-							/>
-						</div>
-					{/if}
-					{#if reviewing}
-						<div style="margin-top: 10px;">
-							Answer:
-							<Latex
-								style="font-size: 16px"
-								value={problem.full_problems.answer_latex}
-							/>
-						</div>
-						<div style="margin-top: 3px;">
-							<Checkbox
-								labelText="Correct?"
-								bind:checked={isCorrect[problem.problem_id]}
-								on:change={() => changeChecked(problem.problem_id)}
-							/>
-						</div>
-						<div style="margin-top: 10px;">
-							Solution:
-							<Latex
-								style="font-size: 16px"
-								value={problem.full_problems.solution_latex}
-							/>
-						</div>
-						<div style="margin-top: 10px">
+				<div class="problem-container">
+					<div class="problem-div">
+						<h3>{problem.problem_number + 1}.</h3>
+						<Latex
+							style="font-size: 16px"
+							value={problem.full_problems.problem_latex}
+						/>
+						{#if reviewing}
+							<div style="margin-top: 10px;">
+								Answer:
+								<Latex
+									style="font-size: 16px"
+									value={problem.full_problems.answer_latex}
+								/>
+							</div>
+							<div style="margin-top: 10px;">
+								Solution:
+								<Latex
+									style="font-size: 16px"
+									value={problem.full_problems.solution_latex}
+								/>
+							</div>
+						{/if}
+					</div>
+					<div class="feedback-div">
+						{#if answerable}
+							<div style="margin-top: 10px;">
+								<TextInput
+									labelText={reviewing ? "Your answer" : "Answer"}
+									disabled={reviewing}
+									bind:value={answerTexts[problem.problem_id]}
+									on:input={(e) => changeAnswer(problem.problem_id)}
+								/>
+							</div>
+						{/if}
+						{#if reviewing}
+							<div style="margin-top: 3px;">
+								<Checkbox
+									labelText="Correct?"
+									bind:checked={isCorrect[problem.problem_id]}
+									on:change={() => changeChecked(problem.problem_id)}
+								/>
+							</div>
+						{/if}
+						<div>
 							<TextArea
 								labelText="Feedback"
 								bind:value={feedbackTexts[problem.problem_id]}
 								on:input={(e) => changeFeedback(problem.problem_id)}
 							/>
 						</div>
-					{/if}
+					</div>
 				</div>
 			{/each}
 		{/if}
@@ -130,12 +136,22 @@
 </div>
 
 <style>
-	.problem-div {
+	.problem-container {
+		display: flex;
+	}
+
+	.problem-div,
+	.feedback-div {
 		background-color: var(--white);
 		border: 2px solid black;
 		margin: 10px;
 		padding: 20px;
 		text-align: left;
+		flex-grow: 1;
+	}
+
+	.problem-div {
+		width: 60%;
 	}
 
 	.test-div {
@@ -145,7 +161,7 @@
 	}
 
 	.inner-div {
-		width: 60%;
+		width: 80%;
 		min-width: 400px;
 	}
 </style>

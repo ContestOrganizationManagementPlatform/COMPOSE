@@ -10,6 +10,7 @@
 	} from "carbon-components-svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Problem from "$lib/components/Problem.svelte";
+	import { sortIDs } from "$lib/sortIDs";
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
 
@@ -41,12 +42,20 @@
 	let editHeader = { key: "edit", value: "", width: "20px" };
 
 	let headers = [
-		{ key: "front_id", value: "ID", width: "80px" },
+		{ key: "front_id", value: "ID", width: "100px", sort: sortIDs },
 		{ key: "full_name", value: "Author" },
+		{ key: "unresolved_count", value: "Unresolved Feedback" },
 		{ key: "topics_short", value: "Topics" },
-		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
-		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
-		{ key: "test_name", value: "Test" },
+		{
+			key: "sub_topics",
+			value: width > 700 ? "SubTopic" : "SubTop",
+		},
+		{
+			key: "difficulty",
+			width: "70px",
+			value: width > 700 ? "Difficulty" : "Diff.",
+		},
+		{ key: "test_name", width: "100px", value: "Test" },
 		{
 			key: "created_at",
 			value: width > 700 ? "Created on" : "Created",
@@ -58,8 +67,9 @@
 	];
 
 	let headersCondensed = [
-		{ key: "front_id", value: "ID" },
+		{ key: "front_id", value: "ID", sort: sortIDs },
 		{ key: "full_name", value: "Author" },
+		{ key: "unresolved_count", value: "Unresolved" },
 		{ key: "topics_short", value: "Topics" },
 		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
@@ -138,7 +148,7 @@
 	bind:this={tableContainerDiv}
 >
 	<DataTable
-		size="short"
+		size="compact"
 		expandable
 		sortable
 		{selectable}
@@ -173,7 +183,7 @@
 						style="visibility: {disableAll ? 'hidden' : 'visible'}"
 						class="drag-div"
 					>
-						<Switcher />
+						<div style="margin-left: 10px;"><Switcher /></div>
 					</div>
 				{:else if cell.key === "problem_number"}
 					<div>
@@ -203,6 +213,10 @@
 				{:else if cell.key === "edited_at"}
 					<div style="overflow: hidden;">
 						{cell.value ? formatDate(new Date(cell.value)) : "N/A"}
+					</div>
+				{:else if cell.key === "unresolved_count"}
+					<div style="overflow: hidden;">
+						{cell.value ?? 0}
 					</div>
 				{:else}
 					<div style="overflow: hidden;">
@@ -237,5 +251,10 @@
 	:global(.bx--data-table-container),
 	:global(.bx--pagination) {
 		width: 100% !important;
+	}
+
+	:global(.bx--table-expand__button) {
+		width: 30px;
+		height: 50px;
 	}
 </style>

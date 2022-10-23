@@ -5,6 +5,8 @@
 		Form,
 		TextInput,
 		InlineNotification,
+		NumberInput,
+		TextArea,
 	} from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
@@ -15,6 +17,8 @@
 	let discord;
 	let initials;
 	let quote;
+	let math_comp_background;
+	let amc_score;
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -33,13 +37,16 @@
 
 			if (error) throw error;
 
-			({ full_name, discord, initials } = data);
+			({ full_name, discord, initials, math_comp_background, amc_score } =
+				data);
 		} catch (error) {
 			if (error.code === "PGRST116") {
 				// no user
 				full_name = "";
 				discord = "";
 				initials = "";
+				amc_score = 0;
+				math_comp_background = "";
 			} else {
 				errorTrue = true;
 				errorMessage = error.message;
@@ -72,6 +79,12 @@
 			} else if (!/^[A-Z]+$/.test(initials)) {
 				errorTrue = true;
 				errorMessage = "Initials must be all uppercase letters";
+			} else if (amc_score < 0 || amc_score > 150) {
+				errorTrue = true;
+				errorMessage = "AMC Score needs to be valid";
+			} else if (math_comp_background.length <= 0) {
+				errorTrue = true;
+				errorMessage = "Math competition background cannot be empty";
 			} else {
 				loading = true;
 				updatedProfile = false;
@@ -82,6 +95,8 @@
 					full_name,
 					discord,
 					initials,
+					math_comp_background,
+					amc_score,
 				};
 
 				let { error } = await supabase.from("users").upsert(updates, {
@@ -126,6 +141,17 @@
 	</div>
 {/if}
 
+{#if updatedProfile}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="success"
+			title="SUCCESS:"
+			subtitle="Successfully updated profile!"
+		/>
+	</div>
+{/if}
+
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
 <h4 style="margin-bottom: 30px;">
@@ -157,17 +183,45 @@
 				style="width: 100%"
 				bind:value={initials}
 			/> <br />
+			<NumberInput
+				placeholder="Best AMC 10/12 score (optional)"
+				style="width: 100%"
+				min={0}
+				max={150}
+				bind:value={amc_score}
+			/> <br />
+			<TextArea
+				placeholder="Math Competition Background"
+				style="width: 100%"
+				bind:value={math_comp_background}
+			/> <br />
 			<Button title="Submit" />
 		</Form>
-		{#if updatedProfile}
-			<br />
-			<p>Successfully updated profile.</p>
-		{/if}
+		<br />
 	</div>
 </div>
 
 <style>
 	h3 {
 		text-decoration: underline;
+	}
+
+	:global(.bx--number input[type="number"]) {
+		border: none !important;
+		border-bottom: 1px solid gray !important;
+		outline: none !important;
+	}
+
+	:global(.bx--text-area) {
+		min-height: 100px;
+	}
+
+	:global(.bx--text-area:focus, .bx--text-area:active) {
+		outline-color: var(--green) !important;
+	}
+
+	:global(.bx--number__control-btn:focus) {
+		border: none !important;
+		outline: none !important;
 	}
 </style>

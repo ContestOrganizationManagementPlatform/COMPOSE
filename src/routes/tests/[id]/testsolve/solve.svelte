@@ -3,7 +3,9 @@
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
 	import { InlineNotification } from "carbon-components-svelte";
+	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
+	import { onDestroy } from "svelte";
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -77,6 +79,16 @@
 			}
 		}
 	}
+
+	let timeElapsed = 0; // in ms
+
+	function updateTimer() {
+		timeElapsed = new Date().getTime() - startTime.getTime();
+	}
+
+	let timerInterval = setInterval(updateTimer, 1000);
+
+	onDestroy(() => clearInterval(timerInterval));
 </script>
 
 {#if errorTrue}
@@ -102,5 +114,19 @@
 		submittable
 		on:submit={submitTestsolve}
 	/>
-	<!-- TODO: show test -->
+	<div class="timer">
+		<p>Time elapsed: {formatTime(timeElapsed, { hideHours: true })}</p>
+	</div>
 {/if}
+
+<style>
+	.timer {
+		position: absolute;
+		right: 0;
+		top: 0;
+		margin: 10px;
+		padding: 10px;
+		background-color: var(--white);
+		border: 1px solid black;
+	}
+</style>

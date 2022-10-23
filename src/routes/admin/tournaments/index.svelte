@@ -106,6 +106,9 @@
 		color: black;
 		text-decoration: none;
 	}
+	a div {
+		transition: 0.4s ease-in-out;
+	}
 	a:hover div {
 		background-color: var(--tinted-green);
 	}

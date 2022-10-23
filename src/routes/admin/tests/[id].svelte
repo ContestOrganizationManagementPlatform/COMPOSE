@@ -152,30 +152,42 @@
 		{#if testCoordinators.length === 0}
 			<p>There are no test coordinators</p>
 		{:else}
-			<div class="grid" style="padding: 5px;">
-				{#each testCoordinators as testCoordinator}
-					<div class="flex">
-						<p
-							style="margin-right: 10px; margin-top: auto; margin-bottom: auto;"
-						>
-							{testCoordinator.full_name}
-						</p>
-						<Modal
-							runHeader="Remove {testCoordinator.full_name}"
-							del={true}
-							onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
-						/>
-					</div>
-				{/each}
+			<div class="flex" style="width: 99%">
+				<div
+					class="grid"
+					style="padding: 5px;column-gap: 10px;row-gap: 10px;width: 95%;"
+				>
+					{#each testCoordinators as testCoordinator}
+						<div class="flex">
+							<p
+								style="margin-right: 10px; margin-top: auto; margin-bottom: auto;text-align: left;"
+							>
+								{testCoordinator.full_name}
+							</p>
+							<Modal
+								runHeader="Remove {testCoordinator.full_name}"
+								del={true}
+								onSubmit={() => deleteTestCoordinator(testCoordinator.id)}
+							/>
+						</div>
+					{/each}
+				</div>
 			</div>
 		{/if} <br /> <br />
 		<h3><strong>Add Test Coordinators</strong></h3>
 		<form on:submit|preventDefault>
-			<Select bind:ref={selectRef}>
-				{#each allUsers as user}
-					<SelectItem value={user.id} text="{user.full_name} ({user.id})" />
-				{/each}
-			</Select>
+			<div class="flex">
+				<div style="width: 60%">
+					<Select bind:ref={selectRef}>
+						{#each allUsers as user}
+							<SelectItem
+								value={user.id}
+								text="{user.full_name} ({user.initials})"
+							/>
+						{/each}
+					</Select>
+				</div>
+			</div>
 			<br />
 			<Button action={addTestCoordinator} title="Add Test Coordinator" />
 		</form>

@@ -6,6 +6,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
+	import ProblemFeedback from "../../../lib/components/ProblemFeedback.svelte";
 
 	let problem;
 	let loaded = false;
@@ -106,6 +107,9 @@
 	<br />
 	<br />
 	<Problem {problem} showMetadata={true} />
+	<br />
+	<br />
+	<ProblemFeedback problemID={$page.params.id} />
 {:else}
 	<p>Loading problem...</p>
 {/if}

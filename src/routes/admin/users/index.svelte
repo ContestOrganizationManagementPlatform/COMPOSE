@@ -19,18 +19,20 @@
 	async function roleManager() {
 		let { data: users, error } = await supabase
 			.from("users")
-			.select("id,full_name,user_roles(role)")
+			.select("id,full_name,initials,user_roles(role)")
 			.order("full_name");
 		if (error) {
 			errorTrue = true;
 			errorMessage = error.message;
 		}
+		roles = [];
 		for (let user of users) {
 			const curRole = user.user_roles[0]?.role ?? 0;
 			roles.push({
 				user_id: user.id,
 				role: curRole + "",
 				name: user.full_name,
+				initials: user.initials,
 			});
 		}
 		roles = roles;
@@ -57,7 +59,7 @@
 </script>
 
 <br />
-<h1>Admin: Roles</h1>
+<h1>Admin: Users</h1>
 
 {#if errorTrue}
 	<div style="position: fixed; bottom: 10px; left: 10px;">
@@ -72,33 +74,42 @@
 
 <div style="padding: 10px;">
 	<Form>
-		{#each roles as role}
-			<div class="box">
-				<FormGroup disabled={role.user_id === user.id}>
-					<h3><strong>{role.name}</strong></h3>
-					<p><i>{role.user_id}</i></p>
-					<Select labelText="Role" bind:selected={role.role}>
-						<SelectItem value="0" text="No role assigned (0)" />
-						<SelectItem value="10" text="No permissions (10)" />
-						<SelectItem value="20" text="Problem Contributor (20)" />
-						<SelectItem value="30" text="Problem Writer (30)" />
-						<SelectItem value="40" text="Administrator (40)" />
-					</Select>
-					<br />
-					<Modal
-						runHeader="Update Role"
-						onSubmit={() => {
-							isOpen = true;
-							addRoleToUser(role.user_id, role.role);
-						}}
-					/>
-				</FormGroup>
-			</div>
-		{/each}
+		<div class="row">
+			{#each roles as role}
+				<div class="box">
+					<FormGroup disabled={role.user_id === user.id}>
+						<a href={"/admin/users/" + role.user_id}
+							><h3><strong>{role.name} ({role.initials})</strong></h3></a
+						>
+						<p><i>{role.user_id}</i></p>
+						<Select labelText="Role" bind:selected={role.role}>
+							<SelectItem value="0" text="No role assigned (0)" />
+							<SelectItem value="10" text="No permissions (10)" />
+							<SelectItem value="20" text="Problem Contributor (20)" />
+							<SelectItem value="30" text="Problem Writer (30)" />
+							<SelectItem value="40" text="Administrator (40)" />
+						</Select>
+						<br />
+						<Modal
+							runHeader="Update Role"
+							onSubmit={() => {
+								isOpen = true;
+								addRoleToUser(role.user_id, role.role);
+							}}
+						/>
+					</FormGroup>
+				</div>
+			{/each}
+		</div>
 	</Form>
 </div>
 
 <style>
+	a {
+		text-decoration: none;
+		color: black;
+	}
+
 	.box {
 		background-color: var(--white);
 		border: 1px solid var(--green);

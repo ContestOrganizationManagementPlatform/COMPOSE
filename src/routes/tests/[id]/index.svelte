@@ -18,6 +18,8 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
+	let link = "";
+
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
@@ -35,8 +37,8 @@
 		userIsTestCoordinator =
 			!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
 			(await getThisUserRole()) >= 40;
-		loading = false;
 		getProblems();
+		loading = false;
 	}
 
 	async function getProblems() {
@@ -49,7 +51,26 @@
 			problem_number: pb.problem_number,
 			...pb.full_problems,
 		}));
+		getTestLink();
 		loadingProblems = false;
+	}
+
+	function getTestLink() {
+		let l =
+			"https://latexonline.cc/compile?text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath, amsfonts, amssymb}\\title{" +
+			test.test_name +
+			"}\\author{" +
+			test.tournaments.tournament_name +
+			"}\\date{Mustang Math}\\begin{document}\\maketitle";
+		for (const problem of problems) {
+			l +=
+				"\\section{Problem " +
+				(problem.problem_number + 1) +
+				"}" +
+				problem.problem_latex +
+				"";
+		}
+		link = l + "\\end{document}";
 	}
 
 	getTest();
@@ -88,11 +109,59 @@
 	{#if loadingProblems}
 		<p>Loading problems...</p>
 	{:else}
-		<div style="width:80%; margin: auto;margin-bottom: 20px;">
-			<ProblemList
-				{problems}
-				customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
-			/>
+		<div class="row" style="grid-template-columns: 70% 30%;">
+			<div class="col" style="margin: auto;margin-bottom: 20px;padding: 10px;">
+				<ProblemList
+					{problems}
+					customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
+				/>
+			</div>
+			<div class="col" style="margin: auto;padding: 10px;">
+				<a href={link} target="_blank"
+					><i class="fa-solid fa-up-right-from-square" /> Open in New Page</a
+				>
+				<br /><br />
+				<div class="wrap">
+					<iframe
+						scrolling="yes"
+						width="100%"
+						allowfullscreen={true}
+						allow={true}
+						height="100%"
+						src={link}
+						title="Test Preview"
+					/>
+				</div>
+			</div>
 		</div>
 	{/if}
 {/if}
+<br />
+
+<style>
+	a {
+		margin-bottom: 10px;
+		border: 2px solid var(--green);
+		padding: 5px 10px;
+		font-weight: 600;
+		text-decoration: none;
+		color: black;
+	}
+
+	a:hover {
+		cursor: pointer;
+	}
+
+	.wrap {
+		width: 100%;
+		height: 300px;
+		padding: 0;
+		overflow: hidden;
+	}
+
+	iframe {
+		width: 100%;
+		height: 100%;
+		border: 0px;
+	}
+</style>

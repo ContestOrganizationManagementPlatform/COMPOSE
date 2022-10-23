@@ -3,6 +3,7 @@
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
 	import { InlineNotification } from "carbon-components-svelte";
+	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 
 	let errorTrue = false;
@@ -17,6 +18,10 @@
 	let endTime = null;
 
 	let testsolve = null;
+	let timeElapsed;
+	$: timeElapsed =
+		new Date(testsolve?.end_time).getTime() -
+		new Date(testsolve?.start_time).getTime();
 
 	async function permissionCheck() {
 		// check permission
@@ -148,5 +153,19 @@
 		submittable
 		on:submit={submitTestsolve}
 	/>
-	<!-- TODO: show test -->
+	<div class="timer">
+		<p>Time taken: {formatTime(timeElapsed, { hideHours: true })}</p>
+	</div>
 {/if}
+
+<style>
+	.timer {
+		position: absolute;
+		right: 0;
+		top: 0;
+		margin: 10px;
+		padding: 10px;
+		background-color: var(--white);
+		border: 1px solid black;
+	}
+</style>

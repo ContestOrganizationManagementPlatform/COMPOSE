@@ -30,7 +30,7 @@
 	{#each latexLayout as category}
 		<div class="keyboardCategory">
 			<div class="profileButtons">
-				<span class="categoryName">{category.name}</span>
+				<span class="categoryName"><strong>{category.name}</strong></span>
 				{#each category.buttons as button}
 					<KeyboardButton
 						beforeText={button[0]}
@@ -45,6 +45,11 @@
 </div>
 
 <style>
+	.profileButtons {
+		display: flex;
+		align-items: center;
+	}
+
 	.latexKeyboard {
 		background-color: rgb(219, 248, 229);
 		border: 1px solid #333333;
