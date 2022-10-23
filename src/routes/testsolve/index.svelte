@@ -63,7 +63,7 @@
 		if (isAdmin) {
 			let { data, error } = await supabase
 				.from("testsolves")
-				.select("*,users(full_name)");
+				.select("*,users(full_name,initials)");
 			if (error) {
 				errorTrue = true;
 				errorMessage = error.message;
@@ -72,7 +72,7 @@
 		} else {
 			let { data, error } = await supabase
 				.from("testsolves")
-				.select("*,users(full_name)")
+				.select("*,users(full_name,initials)")
 				.eq("solver_id", supabase.auth.user().id);
 			if (error) {
 				errorTrue = true;
@@ -89,6 +89,7 @@
 		availableTestsolves = availableTestsolves;
 
 		for (var solve of finishedSolves) {
+			console.log(solve.users);
 			tableData.push({
 				id: solve.id,
 				date: solve.end_time
@@ -97,9 +98,13 @@
 				time: solve.end_time
 					? formatDate(new Date(solve.end_time)).split(",")[1]
 					: "N/A",
-				person: solve.users.full_name,
+				person: solve.users.full_name + " (" + solve.users.initials + ")",
 				test: availableTestsolves.find((ts) => ts.id === solve.test_id).name,
-				status: solve.end_time ? "Completed" : "Not started",
+				status: solve.start_time
+					? solve.end_time
+						? "Completed"
+						: "Started"
+					: "Not started",
 			});
 		}
 		loading = false;
@@ -151,8 +156,8 @@
 				pageSize={10}
 				headers={[
 					{ key: "id", value: "ID" },
-					{ key: "date", value: "Date" },
-					{ key: "time", value: "Time" },
+					{ key: "date", value: "End Date" },
+					{ key: "time", value: "End Time" },
 					{ key: "person", value: "Person" },
 					{ key: "test", value: "Test" },
 					{ key: "status", value: "Status" },

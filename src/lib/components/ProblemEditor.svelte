@@ -31,6 +31,8 @@
 		topicsStr = topics
 			.map((x) => all_topics?.find((at) => at.id === x)?.text_short)
 			.join(", ");
+	} else {
+		topicsStr = "Select a topic...";
 	}
 
 	let subTopic = originalProblem?.sub_topics;
@@ -358,8 +360,17 @@
 			"Segoe UI", Oxygen, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 	}
 
+	:global(.bx--file--label) {
+		color: var(--green) !important;
+	}
+
 	:global(.bx--list-box__field:focus) {
-		outline-color: var(--green);
+		outline-color: var(--green) !important;
+	}
+
+	:global(.bx--text-area:focus) {
+		border-color: var(--green) !important;
+		outline-color: var(--green) !important;
 	}
 
 	:global(#button .bx--btn--primary),

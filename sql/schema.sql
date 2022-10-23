@@ -3,7 +3,9 @@ CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name text,
     discord text,
-    initials text
+    initials text,
+    math_comp_background text,
+    amc_score int2
 );
 
 CREATE TABLE IF NOT EXISTS user_roles (
@@ -84,7 +86,8 @@ CREATE TABLE IF NOT EXISTS testsolve_answers (
     problem_id int8 REFERENCES public.problems(id) ON DELETE SET NULL,
     answer text,
     feedback text,
-    correct bool
+    correct bool,
+    resolved bool NOT NULL DEFAULT false
 );
 
 -- add resolved, difficulty

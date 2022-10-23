@@ -44,10 +44,10 @@
 	let headers = [
 		{ key: "front_id", value: "ID", width: "100px", sort: sortIDs },
 		{ key: "full_name", value: "Author" },
+		{ key: "unresolved_count", value: "Unresolved Feedback" },
 		{ key: "topics_short", value: "Topics" },
 		{
 			key: "sub_topics",
-			width: "70px",
 			value: width > 700 ? "SubTopic" : "SubTop",
 		},
 		{
@@ -69,6 +69,7 @@
 	let headersCondensed = [
 		{ key: "front_id", value: "ID", sort: sortIDs },
 		{ key: "full_name", value: "Author" },
+		{ key: "unresolved_count", value: "Unresolved" },
 		{ key: "topics_short", value: "Topics" },
 		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
@@ -212,6 +213,10 @@
 				{:else if cell.key === "edited_at"}
 					<div style="overflow: hidden;">
 						{cell.value ? formatDate(new Date(cell.value)) : "N/A"}
+					</div>
+				{:else if cell.key === "unresolved_count"}
+					<div style="overflow: hidden;">
+						{cell.value ?? 0}
 					</div>
 				{:else}
 					<div style="overflow: hidden;">

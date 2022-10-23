@@ -1,6 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import PieChart from "./PieChart.svelte";
+	import { Checkbox } from "carbon-components-svelte";
 
 	export let problemID;
 	let feedbackList;
@@ -15,7 +16,6 @@
 			.select("*,testsolves(users(*))")
 			.eq("problem_id", problemID);
 
-		console.log(data);
 		// filter empty feedback
 		feedbackList = data.filter((fd) => !!fd.feedback);
 		answerList = data
@@ -54,12 +54,26 @@
 				return a.answer.localeCompare(b.answer);
 			}
 		});
-		console.log(answerList);
 	}
 
 	// only works on time+s
 	function maybePluralize(word, num) {
 		return num !== 1 ? word + "s" : word;
+	}
+
+	// resolve or unresolve an answer
+	async function changeResolve(e, feedback) {
+		console.log(e.detail);
+		let newFeedback = {
+			resolved: e.detail,
+		};
+
+		let { error } = await supabase
+			.from("testsolve_answers")
+			.update(newFeedback)
+			.eq("id", feedback.id);
+
+		if (error) alert(error.message);
 	}
 
 	loadFeedback();
@@ -108,8 +122,18 @@
 									</p>
 								</div>
 							</div>
-							<div class="sender">
+							<div class="sender" style="margin-bottom: 5px;">
 								<p><strong>Feedback:</strong> {feedback.feedback}</p>
+							</div>
+							<div class="sender">
+								<p>
+									<strong>Resolved:</strong>
+									<Checkbox
+										bind:checked={feedback.resolved}
+										style="flex-basis: 0"
+										on:check={(e) => changeResolve(e, feedback)}
+									/>
+								</p>
 							</div>
 						</div>
 					{/each}

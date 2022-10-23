@@ -134,6 +134,13 @@
 				</Link>
 				<br />
 				<Link
+					href="/admin/testsolves/upcoming"
+					class={path == "admin/testsolves/upcoming" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: Testsolves</p>
+				</Link>
+				<br />
+				<Link
 					href="/admin/tournaments"
 					class={path == "admin/tournaments" ? "active link" : "link"}
 				>

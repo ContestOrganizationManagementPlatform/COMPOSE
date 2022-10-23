@@ -89,7 +89,7 @@
 		--hooves: #5b8064;
 		--blue: #1b9aaa;
 		--tinted-blue: #b9c6d2;
-		--tinted-green: #abddbc;
+		--tinted-green: #d9f5e2;
 		--green: #1c6825;
 		--light-blue: #f5fffb;
 		--dark-blue: #061333;
@@ -131,6 +131,14 @@
 
 	.bottomSection {
 		width: 30em;
+	}
+
+	:global(::placeholder),
+	:global(.bx--text-area::placeholder) {
+		font-family: "Ubuntu", "Roboto", Arial, -apple-system, BlinkMacSystemFont,
+			"Segoe UI", Oxygen, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+		font-size: 13px;
+		font-weight: 300;
 	}
 
 	@media only screen and (max-width: 700px) {
@@ -196,6 +204,11 @@
 		color: var(--white) !important;
 	}
 
+	:global(.bx--select-input:focus) {
+		border-color: var(--green) !important;
+		outline-color: var(--green) !important;
+	}
+
 	:global(.datatable) {
 		width: 80% !important;
 	}
@@ -236,12 +249,6 @@
 	:global(.button:hover p) {
 		color: var(--white) !important;
 	}
-	:global(.button:focus),
-	:global(.input:focus) {
-		border-color: var(--body) !important;
-		outline: none !important;
-		box-shadow: none !important;
-	}
 
 	:global(.button p) {
 		margin-left: auto;
@@ -253,9 +260,18 @@
 
 	:global(.bx--select-input:focus),
 	:global(.bx--select-input:active),
-	:global(.textInput:focus),
-	:global(.textArea:focus) {
+	:global(.input:focus),
+	:global(.textArea:focus),
+	:global(.bx--text-input:focus),
+	:global(.bx--text-input:active),
+	:global(.bx--number input[type="number"]:focus),
+	:global(.bx--text-area:focus) {
 		border-color: var(--green) !important;
 		outline-color: var(--green) !important;
+	}
+
+	:global(.bx--table-sort:focus) {
+		border: none !important;
+		outline: none !important;
 	}
 </style>

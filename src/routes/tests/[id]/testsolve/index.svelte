@@ -44,7 +44,7 @@
 	async function getTestsolvers() {
 		let { data, error } = await supabase
 			.from("testsolvers")
-			.select("solver_id,users(full_name)")
+			.select("solver_id,users(full_name,initials)")
 			.eq("test_id", testId);
 		if (error) {
 			errorTrue = true;
@@ -56,7 +56,7 @@
 		testsolvers.forEach((user) => {
 			tableData.push({
 				id: user.solver_id,
-				testsolver: user.users.full_name,
+				testsolver: user.users.full_name + " (" + user.users.initials + ")",
 				status: "x",
 				testsolve: "x",
 				delete: user.solver_id,
@@ -78,6 +78,7 @@
 		allUsers = users.filter(
 			(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
 		);
+		console.log(allUsers);
 		loading = false;
 	}
 
@@ -133,7 +134,10 @@
 			<form on:submit|preventDefault style="width: 50%">
 				<Select bind:ref={selectRef}>
 					{#each allUsers as user}
-						<SelectItem value={user.id} text={user.full_name} />
+						<SelectItem
+							value={user.id}
+							text={user.full_name + " (" + user.initials + ")"}
+						/>
 					{/each}
 				</Select>
 				<br />
@@ -180,5 +184,14 @@
 <style>
 	:global(.bx--table-sort:focus) {
 		outline: none;
+	}
+
+	:global(.bx--select-input:focus) {
+		border-color: var(--green) !important;
+		outline-color: var(--green) !important;
+	}
+
+	:global(.bx--link:visited) {
+		color: var(--green) !important;
 	}
 </style>
