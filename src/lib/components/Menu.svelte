@@ -127,13 +127,6 @@
 				</Link>
 				<br />
 				<Link
-					href="/admin/tests/new"
-					class={path == "admin/tests/new" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: New Test</p>
-				</Link>
-				<br />
-				<Link
 					href="/admin/testsolves/upcoming"
 					class={path == "admin/testsolves/upcoming" ? "active link" : "link"}
 				>

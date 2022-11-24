@@ -66,9 +66,12 @@
 			l +=
 				"\\section{Problem " +
 				(problem.problem_number + 1) +
-				"}" +
+				"}\\textbf{Problem:} " +
 				problem.problem_latex +
-				"";
+				"\\\\\\textbf{Answer:} " +
+				problem.answer_latex; // +
+			//"\\\\\\textbf{Solution:} " +
+			//problem.solution_latex;
 		}
 		link = l + "\\end{document}";
 	}
@@ -90,51 +93,55 @@
 {#if loading}
 	<Loading />
 {:else}
-	<br />
-	<h1>Test: {test.test_name}</h1>
-	<p><strong>Tournament:</strong> {test.tournaments.tournament_name}</p>
-	<p><strong>Description:</strong> {test.test_description}</p>
-	<p style="margin-bottom: 5px;">
-		<strong>Coordinators:</strong>
-		{testCoordinators.length === 0
-			? "None"
-			: testCoordinators.map((tc) => tc.full_name).join(", ")}
-	</p>
-	{#if userIsTestCoordinator}
-		<Button href={`/tests/${testId}/edit`} title="Edit problems" />
-		<br /><br />
-		<Button href={`/tests/${testId}/testsolve`} title="Manage testsolves" />
-		<br /><br />
-	{/if}
-	{#if loadingProblems}
-		<p>Loading problems...</p>
-	{:else}
-		<div class="row" style="grid-template-columns: 70% 30%;">
-			<div class="col" style="margin: auto;margin-bottom: 20px;padding: 10px;">
+	<div class="row" style="grid-template-columns: 70% 30%;">
+		<div class="col" style="margin: auto;margin-bottom: 20px;padding: 10px;">
+			<h1>Test: {test.test_name}</h1>
+			<p><strong>Tournament:</strong> {test.tournaments.tournament_name}</p>
+			<p><strong>Description:</strong> {test.test_description}</p>
+			<p style="margin-bottom: 5px;">
+				<strong>Coordinators:</strong>
+			</p>
+			<div class="flex">
+				<ul style="text-align: left;">
+					{#each testCoordinators as coordinator}
+						<li>- {coordinator.full_name}</li>
+					{/each}
+				</ul>
+			</div>
+			<br />
+			{#if userIsTestCoordinator}
+				<Button href={`/tests/${testId}/edit`} title="Edit problems" />
+				<br /><br />
+				<Button href={`/tests/${testId}/testsolve`} title="Manage testsolves" />
+				<br /><br />
+			{/if}
+			{#if loadingProblems}
+				<p>Loading problems...</p>
+			{:else}
 				<ProblemList
 					{problems}
 					customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
 				/>
-			</div>
-			<div class="col" style="margin: auto;padding: 10px;">
-				<a href={link} target="_blank"
-					><i class="fa-solid fa-up-right-from-square" /> Open in New Page</a
-				>
-				<br /><br />
-				<div class="wrap">
-					<iframe
-						scrolling="yes"
-						width="100%"
-						allowfullscreen={true}
-						allow={true}
-						height="100%"
-						src={link}
-						title="Test Preview"
-					/>
-				</div>
+			{/if}
+		</div>
+		<div class="col" style="margin: auto;padding: 10px;">
+			<a href={link} target="_blank"
+				><i class="fa-solid fa-up-right-from-square" /> Open in New Page</a
+			>
+			<br /><br />
+			<div class="wrap">
+				<iframe
+					scrolling="yes"
+					width="100%"
+					allowfullscreen={true}
+					allow={true}
+					height="100%"
+					src={link}
+					title="Test Preview"
+				/>
 			</div>
 		</div>
-	{/if}
+	</div>
 {/if}
 <br />
 
@@ -154,7 +161,7 @@
 
 	.wrap {
 		width: 100%;
-		height: 300px;
+		height: 500px;
 		padding: 0;
 		overflow: hidden;
 	}
