@@ -45,7 +45,7 @@
 				full_name = "";
 				discord = "";
 				initials = "";
-				amc_score = 0;
+				amc_score = "";
 				math_comp_background = "";
 			} else {
 				errorTrue = true;

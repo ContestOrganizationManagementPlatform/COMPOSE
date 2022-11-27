@@ -16,12 +16,21 @@
 	let problems = [];
 	let userIsTestCoordinator = false;
 
+	let feedback = [];
+
 	let errorTrue = false;
 	let errorMessage = "";
 
 	let link = "";
 	let openModal = false;
-	let values = ["Problems", "Answers", "Solutions", "Comments", "Feedback"];
+	let values = [
+		"Problems",
+		"Problem ID",
+		"Answers",
+		"Solutions",
+		"Comments",
+		"Feedback",
+	];
 	let group = values.slice(0, 1);
 
 	async function getTest() {
@@ -53,12 +62,30 @@
 			.select("*,full_problems(*)")
 			.eq("test_id", testId)
 			.order("problem_number");
+
+		let { data: feedbackList, error2 } = await supabase
+			.from("testsolve_answers")
+			.select("*")
+			.order("problem_id");
+
+		feedback = feedbackList;
+
 		problems = problemList.map((pb) => ({
 			problem_number: pb.problem_number,
 			...pb.full_problems,
 		}));
 		getTestLink();
 		loadingProblems = false;
+	}
+
+	function getProblemFeedback(id) {
+		var returning = [];
+		for (var prob of feedback) {
+			if (prob.problem_id == id) {
+				returning.push(prob);
+			}
+		}
+		return returning;
 	}
 
 	function getTestLink() {
@@ -70,7 +97,7 @@
 			"}\\date{Mustang Math}\\begin{document}\\maketitle";
 
 		if (group.includes("Feedback")) {
-			l += "\\section{Test Feedback}";
+			l += "\\section*{Test Feedback}";
 			for (var feedback of test.testsolves) {
 				if (feedback.feedback != null && feedback.feedback != "") {
 					l +=
@@ -80,10 +107,16 @@
 		}
 
 		for (const problem of problems) {
-			l += "\\section{Problem " + (problem.problem_number + 1);
+			l += group.includes("Problem ID")
+				? "\\section*{Problem " +
+				  (problem.problem_number + 1) +
+				  " (" +
+				  problem.front_id +
+				  ")}"
+				: "\\section*{Problem " + (problem.problem_number + 1) + "}";
 			if (group.includes("Problems")) {
 				l +=
-					"}\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
+					"\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
 			}
 
 			if (group.includes("Answers") && problem.answer_latex != "") {
@@ -102,6 +135,22 @@
 					"\\textbf{Comment:} " +
 					problem.comment_latex.replace("\\ans{", "\\boxed{") +
 					"\\newline\\newline";
+			}
+
+			if (group.includes("Feedback")) {
+				var feed = getProblemFeedback(problem.problem_number);
+
+				if (feed.length > 0) {
+					l += "\\textbf{Feedback:} ";
+
+					for (var f of feed) {
+						if (f.feedback != "") {
+							l += "\\\\\\textbf{" + f.testsolve_id + ":} " + f.feedback;
+						}
+					}
+
+					l += "\\newline\\newline";
+				}
 			}
 		}
 		link = l + "\\end{document}";
