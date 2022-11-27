@@ -7,12 +7,14 @@
 		ToolbarContent,
 		ToolbarSearch,
 		Pagination,
+		MultiSelect,
 	} from "carbon-components-svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Problem from "$lib/components/Problem.svelte";
 	import { sortIDs } from "$lib/sortIDs";
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
+	import { Filter } from "carbon-icons-svelte";
 
 	export let problems = [];
 	export let condensed = false;
@@ -24,6 +26,19 @@
 	export let customHeaders = [];
 	export let draggable = false;
 	export let pageEnabled = true;
+
+	let showList = [
+		"front_id",
+		"full_name",
+		"unresolved_count",
+		"topics_short",
+		"sub_topics",
+		"difficulty",
+		"test_name",
+		"unresolved_count",
+		"created_at",
+		"edited_at",
+	];
 
 	const dispatch = createEventDispatcher();
 
@@ -42,10 +57,20 @@
 	let editHeader = { key: "edit", value: "", width: "20px" };
 
 	let headers = [
-		{ key: "front_id", value: "ID", width: "100px", sort: sortIDs },
-		{ key: "full_name", value: "Author" },
-		{ key: "unresolved_count", value: "Unresolved Feedback" },
-		{ key: "topics_short", value: "Topics" },
+		{
+			key: "front_id",
+			value: "ID",
+			width: "100px",
+			sort: sortIDs,
+		},
+		{
+			key: "full_name",
+			value: "Author",
+		},
+		{
+			key: "topics_short",
+			value: "Topics",
+		},
 		{
 			key: "sub_topics",
 			value: width > 700 ? "SubTopic" : "SubTop",
@@ -55,7 +80,15 @@
 			width: "70px",
 			value: width > 700 ? "Difficulty" : "Diff.",
 		},
-		{ key: "test_name", width: "100px", value: "Test" },
+		{
+			key: "test_name",
+			width: "100px",
+			value: "Test",
+		},
+		{
+			key: "unresolved_count",
+			value: "Unresolved Feedback",
+		},
 		{
 			key: "created_at",
 			value: width > 700 ? "Created on" : "Created",
@@ -75,12 +108,15 @@
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 	];
 
-	let headerVersion = condensed ? headersCondensed : headers;
-
-	let curHeaders = [
+	$: headersF = headers.filter((row) => showList.includes(row.key));
+	$: headersCondensedF = headersCondensed.filter((row) =>
+		showList.includes(row.key)
+	);
+	$: headerVersion = condensed ? headersCondensedF : headersF;
+	$: curHeaders = [
 		...(editable ? [editHeader] : []),
-		...customHeaders,
 		...headerVersion,
+		...customHeaders,
 	];
 
 	let tableContainerDiv = null;
@@ -141,6 +177,52 @@
 </script>
 
 <svelte:window bind:outerWidth={width} />
+<div class="align-items: right; display: flex;">
+	<MultiSelect
+		bind:selectedIds={showList}
+		direction="top"
+		size="sm"
+		label="Filter visible columns"
+		items={[
+			{
+				id: "front_id",
+				text: "ID",
+			},
+			{
+				id: "full_name",
+				text: "Author",
+			},
+			{
+				id: "topics_short",
+				text: "Topics",
+			},
+			{
+				id: "sub_topics",
+				text: "SubTopic",
+			},
+			{
+				id: "difficulty",
+				text: "Difficulty",
+			},
+			{
+				id: "test_name",
+				text: "Test Name",
+			},
+			{
+				id: "unresolved_count",
+				text: "Unresolved Feedback",
+			},
+			{
+				id: "created_at",
+				text: "Created on",
+			},
+			{
+				id: "edited_at",
+				text: "Edited on",
+			},
+		]}
+	/>
+</div>
 
 <div
 	class="flex-dir-col"
@@ -167,7 +249,7 @@
 				<ToolbarSearch persistent shouldFilterRows />
 			</ToolbarContent>
 		</Toolbar>
-		<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
+		<svelte:fragment slot="cell" let:row let:header let:cell>
 			<div>
 				{#if cell.key === "edit"}
 					<div class="pencil">
@@ -256,5 +338,9 @@
 	:global(.bx--table-expand__button) {
 		width: 30px;
 		height: 50px;
+	}
+
+	:global(.bx--list-box__field:focus) {
+		outline-color: var(--green);
 	}
 </style>

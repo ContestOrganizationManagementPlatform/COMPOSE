@@ -46,6 +46,7 @@
 
 <br />
 <h1>Admin: View Tests</h1>
+<p><i>For editing test coordinators</i></p>
 <br />
 
 {#if errorTrue}
@@ -59,12 +60,11 @@
 	</div>
 {/if}
 
-<h3>For editing test coordinators</h3>
 {#if loading}
 	Loading up tests...
 {:else}
+	<Button href="/admin/tests/new" title="Create New Test" />
 	<div style="padding: 10px; margin-left: auto; margin-right: auto;">
 		<TestList {tests} />
 	</div>
-	<Button href="/admin/tests/new" title="Create New Test" />
 {/if}

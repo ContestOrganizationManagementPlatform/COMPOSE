@@ -32,6 +32,7 @@
 
 	let email = "";
 	let password = "";
+	let newPassword = "";
 
 	const user = supabase.auth.user();
 
@@ -73,19 +74,31 @@
 	async function updateUser(payload) {
 		clearInterval();
 		if (validatePassword(password)) {
-			showPasswordReset = true;
+			if (password == newPassword) {
+				showPasswordReset = true;
 
-			setInterval(() => {
-				showPasswordReset = false;
-			}, 5000);
+				setInterval(() => {
+					showPasswordReset = false;
+				}, 5000);
 
-			const { error, data } = await supabase.auth.api.updateUser(accessToken, {
-				password,
-			});
-			if (error) {
-				throw error.message;
+				const { error, data } = await supabase.auth.api.updateUser(
+					accessToken,
+					{
+						password,
+					}
+				);
+				if (error) {
+					throw error.message;
+				}
+				window.location.href = "/";
+			} else {
+				error = true;
+				errorMessage = "Your passwords should match.";
+
+				setInterval(() => {
+					error = false;
+				}, 5000);
 			}
-			window.location.href = "/";
 		} else {
 			error = true;
 			errorMessage =
@@ -119,6 +132,16 @@
 					bind:value={password}
 					class="input"
 					placeholder="New password"
+				/>
+			</div>
+		</div>
+		<br />
+		<div class="flex" style="width: 100%; margin-bottom: 0.75rem;">
+			<div style="width: 30em;">
+				<PasswordInput
+					bind:value={newPassword}
+					class="input"
+					placeholder="Confirm new password"
 				/>
 			</div>
 		</div>

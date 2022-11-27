@@ -8,6 +8,7 @@
 		InlineNotification,
 		SelectItem,
 	} from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 
 	let errorTrue = false;
@@ -74,29 +75,16 @@
 
 <div style="padding: 10px;">
 	<Form>
-		<div class="row">
+		<div class="grid-thirds">
 			{#each roles as role}
-				<div class="box">
+				<div class="box" style="padding-bottom: 0 !important;">
 					<FormGroup disabled={role.user_id === user.id}>
 						<a href={"/admin/users/" + role.user_id}
 							><h3><strong>{role.name} ({role.initials})</strong></h3></a
 						>
 						<p><i>{role.user_id}</i></p>
-						<Select labelText="Role" bind:selected={role.role}>
-							<SelectItem value="0" text="No role assigned (0)" />
-							<SelectItem value="10" text="No permissions (10)" />
-							<SelectItem value="20" text="Problem Contributor (20)" />
-							<SelectItem value="30" text="Problem Writer (30)" />
-							<SelectItem value="40" text="Administrator (40)" />
-						</Select>
 						<br />
-						<Modal
-							runHeader="Update Role"
-							onSubmit={() => {
-								isOpen = true;
-								addRoleToUser(role.user_id, role.role);
-							}}
-						/>
+						<Button title="Update" href={"/admin/users/" + role.user_id} />
 					</FormGroup>
 				</div>
 			{/each}

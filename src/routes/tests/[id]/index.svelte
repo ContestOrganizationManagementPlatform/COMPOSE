@@ -4,8 +4,9 @@
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
-	import { Loading } from "carbon-components-svelte";
+	import { Loading, Checkbox } from "carbon-components-svelte";
 	import { InlineNotification } from "carbon-components-svelte";
+	import { displayLatex } from "$lib/latexStuff.js";
 
 	let testId = $page.params.id;
 	let test;
@@ -19,11 +20,16 @@
 	let errorMessage = "";
 
 	let link = "";
+	let openModal = false;
+	let values = ["Problems", "Answers", "Solutions", "Comments", "Feedback"];
+	let group = values.slice(0, 1);
 
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
-			.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
+			.select(
+				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+			)
 			.eq("id", testId)
 			.limit(1)
 			.single();
@@ -57,18 +63,46 @@
 
 	function getTestLink() {
 		let l =
-			"https://latexonline.cc/compile?text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath, amsfonts, amssymb}\\title{" +
+			"https://latexonline.cc/compile?target=test.tex&text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}\\title{" +
 			test.test_name +
 			"}\\author{" +
 			test.tournaments.tournament_name +
 			"}\\date{Mustang Math}\\begin{document}\\maketitle";
+
+		if (group.includes("Feedback")) {
+			l += "\\section{Test Feedback}";
+			for (var feedback of test.testsolves) {
+				if (feedback.feedback != null && feedback.feedback != "") {
+					l +=
+						"\\textbf{" + feedback.id + ":} " + feedback.feedback + "\\newline";
+				}
+			}
+		}
+
 		for (const problem of problems) {
-			l +=
-				"\\section{Problem " +
-				(problem.problem_number + 1) +
-				"}" +
-				problem.problem_latex +
-				"";
+			l += "\\section{Problem " + (problem.problem_number + 1);
+			if (group.includes("Problems")) {
+				l +=
+					"}\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
+			}
+
+			if (group.includes("Answers") && problem.answer_latex != "") {
+				l += "\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
+			}
+
+			if (group.includes("Solutions") && problem.solution_latex != "") {
+				l +=
+					"\\textbf{Solution:} " +
+					problem.solution_latex.replace("\\ans{", "\\boxed{") +
+					"\\newline\\newline";
+			}
+
+			if (group.includes("Comments") && problem.comment_latex != "") {
+				l +=
+					"\\textbf{Comment:} " +
+					problem.comment_latex.replace("\\ans{", "\\boxed{") +
+					"\\newline\\newline";
+			}
 		}
 		link = l + "\\end{document}";
 	}
@@ -87,51 +121,87 @@
 	</div>
 {/if}
 
+<br />
 {#if loading}
 	<Loading />
 {:else}
-	<br />
-	<h1>Test: {test.test_name}</h1>
-	<p><strong>Tournament:</strong> {test.tournaments.tournament_name}</p>
-	<p><strong>Description:</strong> {test.test_description}</p>
-	<p style="margin-bottom: 5px;">
-		<strong>Coordinators:</strong>
-		{testCoordinators.length === 0
-			? "None"
-			: testCoordinators.map((tc) => tc.full_name).join(", ")}
-	</p>
-	{#if userIsTestCoordinator}
-		<Button href={`/tests/${testId}/edit`} title="Edit problems" />
-		<br /><br />
-		<Button href={`/tests/${testId}/testsolve`} title="Manage testsolves" />
-		<br /><br />
-	{/if}
-	{#if loadingProblems}
-		<p>Loading problems...</p>
-	{:else}
-		<div class="row" style="grid-template-columns: 70% 30%;">
-			<div class="col" style="margin: auto;margin-bottom: 20px;padding: 10px;">
+	<div>
+		<h1>Test: {test.test_name}</h1>
+		<p><strong>Tournament:</strong> {test.tournaments.tournament_name}</p>
+		<p><strong>Description:</strong> {test.test_description}</p>
+		<p style="margin-bottom: 5px;">
+			<strong>Coordinators:</strong>
+		</p>
+		<div class="flex">
+			<ul style="text-align: left;">
+				{#each testCoordinators as coordinator}
+					<li>- {coordinator.full_name}</li>
+				{/each}
+			</ul>
+		</div>
+		{#if userIsTestCoordinator}
+			<Button href={`/tests/${testId}/edit`} title="Edit problems" />
+			<br /><br />
+			<Button href={`/tests/${testId}/testsolve`} title="Manage testsolves" />
+			<br /><br />
+			<Button
+				action={() => {
+					openModal = !openModal;
+				}}
+				title="Open Test"
+			/>
+			<br /><br />
+		{/if}
+		{#if loadingProblems}
+			<p>Loading problems...</p>
+		{:else}
+			<div style="padding: 20px;">
 				<ProblemList
 					{problems}
 					customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
 				/>
 			</div>
-			<div class="col" style="margin: auto;padding: 10px;">
+		{/if}
+	</div>
+
+	{#if openModal}
+		<div
+			class="flex"
+			style="background-color: rgba(0,0,0,0.5); position: absolute; top: 0; bottom: 0;right:0;left: 0;z-index: 100;"
+		>
+			<div
+				style="width: 200px; height: max-content; z-index: 101;background-color: white;padding: 10px;position: relative;"
+			>
+				<div style="position: absolute; top: 5px; right: 8px;">
+					<button
+						on:click={() => {
+							openModal = !openModal;
+						}}
+						style="font-size: 12px;cursor:pointer;outline: none;border: none;background: none;"
+						><i class="fa-solid fa-x" /></button
+					>
+				</div>
+
+				<p><strong>PDF Options</strong></p>
+
+				{#each values as value}
+					<Checkbox
+						bind:group
+						on:click={() => {
+							setTimeout(function () {
+								getTestLink();
+							}, 50);
+						}}
+						labelText={value}
+						{value}
+					/>
+				{/each}
+
+				<br />
 				<a href={link} target="_blank"
-					><i class="fa-solid fa-up-right-from-square" /> Open in New Page</a
+					><i class="fa-solid fa-up-right-from-square" /> Open Test in New Page</a
 				>
 				<br /><br />
-				<div class="wrap">
-					<iframe
-						scrolling="yes"
-						width="100%"
-						allowfullscreen={true}
-						allow={true}
-						height="100%"
-						src={link}
-						title="Test Preview"
-					/>
-				</div>
 			</div>
 		</div>
 	{/if}
@@ -148,20 +218,8 @@
 		color: black;
 	}
 
-	a:hover {
-		cursor: pointer;
-	}
-
-	.wrap {
-		width: 100%;
-		height: 300px;
-		padding: 0;
-		overflow: hidden;
-	}
-
-	iframe {
-		width: 100%;
-		height: 100%;
-		border: 0px;
+	:global(.bx--checkbox-label:focus) {
+		outline: none !important;
+		border: none !important;
 	}
 </style>

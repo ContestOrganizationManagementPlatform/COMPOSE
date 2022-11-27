@@ -98,7 +98,8 @@
 				</Link>
 				<br />
 			{:else}
-				You need to be verified to see other links.
+				<br />
+				<p>You need to be verified to see other links.</p>
 			{/if}
 			{#if userRole >= 30}
 				<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
@@ -124,13 +125,6 @@
 					class={path == "admin/tests" ? "active link" : "link"}
 				>
 					<p class="linkPara">Admin: Tests</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/tests/new"
-					class={path == "admin/tests/new" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: New Test</p>
 				</Link>
 				<br />
 				<Link

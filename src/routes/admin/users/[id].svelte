@@ -20,6 +20,7 @@
 			user = {
 				full_name: userInfo.full_name,
 				discord: userInfo.discord,
+				email: userInfo.email,
 				initials: userInfo.initials,
 				role: (userInfo.user_roles[0]?.role ?? 0) + "",
 			};
@@ -57,6 +58,11 @@
 		<p><strong>User ID:</strong> {userId}</p>
 		<p><strong>Discord:</strong> {user.discord}</p>
 		<p><strong>Initials:</strong> {user.initials}</p>
+		<p>
+			<strong>Email:</strong>
+			<a style="color: var(--green);" href="mailto:{user.email}">{user.email}</a
+			>
+		</p>
 		<FormGroup disabled={userId === supabase.auth.user().id}>
 			<Select labelText="Role" bind:selected={user.role}>
 				<SelectItem value="0" text="No role assigned (0)" />

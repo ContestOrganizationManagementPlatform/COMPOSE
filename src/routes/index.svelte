@@ -97,6 +97,7 @@
 					initials,
 					math_comp_background,
 					amc_score,
+					email: supabase.auth.user().email,
 				};
 
 				let { error } = await supabase.from("users").upsert(updates, {

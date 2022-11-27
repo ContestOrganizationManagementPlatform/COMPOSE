@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     full_name text,
     discord text,
+    email text,
     initials text,
     math_comp_background text,
     amc_score int2

@@ -133,6 +133,11 @@
 		width: 30em;
 	}
 
+	:global(.bx--number input[type="number"]) {
+		font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+		font-weight: 400;
+		font-size: 14px;
+	}
 	:global(::placeholder),
 	:global(.bx--text-area::placeholder) {
 		font-family: "Ubuntu", "Roboto", Arial, -apple-system, BlinkMacSystemFont,
