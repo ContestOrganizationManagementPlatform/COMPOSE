@@ -15,6 +15,7 @@
 	import { ProblemImage } from "$lib/getProblemImages";
 	import Problem from "$lib/components/Problem.svelte";
 	import LatexKeyboard from "$lib/components/editor/LatexKeyboard.svelte";
+	import ImageManager from "$lib/components/images/ImageManager.svelte";
 
 	export let originalProblem = null;
 	export let originalImages = [];
@@ -288,6 +289,8 @@
 						on:delete={deleteImage}
 					/>
 				{/each}
+
+				<ImageManager />
 			</Form>
 		</div>
 
