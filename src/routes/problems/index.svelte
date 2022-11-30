@@ -3,7 +3,7 @@
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import { sortIDs } from "$lib/sortIDs";
 	import Button from "$lib/components/Button.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import { InlineNotification, Checkbox } from "carbon-components-svelte";
 
 	let problems = [];
 	let problemCounts = [];
@@ -12,6 +12,11 @@
 
 	let errorTrue = false;
 	let errorMessage = "";
+
+	let link = "";
+	let openModal = false;
+	let values = ["Problems", "Answers", "Solutions"];
+	let group = values.slice(0, 1);
 
 	(async () => {
 		let { data: newProblems, error } = await supabase
@@ -36,7 +41,32 @@
 			(a, b) => b.problem_count - a.problem_count
 		);
 		loaded = true;
+		getProblemLink();
 	})();
+
+	function getProblemLink() {
+		let l =
+			"https://latexonline.cc/compile?text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
+
+		for (const problem of problems) {
+			l += "\\section*{Problem " + problem.front_id + "}";
+			if (group.includes("Problems")) {
+				l += "\\textbf{" + problem.problem_latex + "}\\newline\\newline";
+			}
+
+			if (group.includes("Answers") && problem.answer_latex != "") {
+				l += "\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
+			}
+
+			if (group.includes("Solutions") && problem.solution_latex != "") {
+				l +=
+					"\\textbf{Solution:} " +
+					problem.solution_latex.replace("\\ans{", "\\boxed{") +
+					"\\newline\\newline";
+			}
+		}
+		link = l + "\\end{document}";
+	}
 </script>
 
 <svelte:window bind:outerWidth={width} />
@@ -74,11 +104,69 @@
 		{/each}
 	</div>
 </div>
+
+<Button
+	action={() => {
+		openModal = !openModal;
+	}}
+	title="Download All Problems"
+/>
+<br /><br />
+
 <div style="width:80%; margin: auto;margin-bottom: 20px;">
 	<ProblemList {problems} />
 </div>
 
+{#if openModal}
+	<div
+		class="flex"
+		style="background-color: rgba(0,0,0,0.5); position: absolute; top: 0; bottom: 0;right:0;left: 0;z-index: 100;"
+	>
+		<div
+			style="width: 300px; height: max-content; z-index: 101;background-color: white;padding: 10px;position: relative;"
+		>
+			<div style="position: absolute; top: 5px; right: 8px;">
+				<button
+					on:click={() => {
+						openModal = !openModal;
+					}}
+					style="font-size: 12px;cursor:pointer;outline: none;border: none;background: none;"
+					><i class="fa-solid fa-x" /></button
+				>
+			</div>
+
+			<p><strong>PDF Options</strong></p>
+
+			{#each values as value}
+				<Checkbox
+					bind:group
+					on:click={() => {
+						setTimeout(function () {
+							getProblemLink();
+						}, 50);
+					}}
+					labelText={value}
+					{value}
+				/>
+			{/each}
+
+			<br />
+			<a href={link} download="test.pdf">Download Problems</a>
+			<br /><br />
+		</div>
+	</div>
+{/if}
+
 <style>
+	a {
+		margin-bottom: 10px;
+		border: 2px solid var(--green);
+		padding: 5px 10px;
+		font-weight: 600;
+		text-decoration: none;
+		color: black;
+	}
+
 	.stats {
 		background-color: white;
 		border: 1px solid var(--green);

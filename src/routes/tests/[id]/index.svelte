@@ -188,6 +188,7 @@
 				{/each}
 			</ul>
 		</div>
+		<br />
 		{#if userIsTestCoordinator}
 			<Button href={`/tests/${testId}/edit`} title="Edit problems" />
 			<br /><br />
