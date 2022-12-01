@@ -5,7 +5,7 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import { browser } from "$app/env";
+	import { browser } from "$app/environment";
 	import { user } from "$lib/sessionStore";
 	import { onMount } from "svelte";
 

@@ -6,7 +6,7 @@
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { page } from "$app/stores";
 
-	$: path = $page.routeId;
+	$: path = $page.route.id;
 
 	let open = false;
 	let fullname = "";

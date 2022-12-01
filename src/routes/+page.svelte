@@ -11,6 +11,8 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 
+    export let data;
+
 	let loading = false;
 	let updatedProfile = false;
 	let full_name;
@@ -122,12 +124,6 @@
 		}
 	}
 
-	async function getQuote() {
-		let resp = await fetch("/api/dailyquote");
-		quote = await resp.json();
-	}
-
-	getQuote();
 	getProfile();
 </script>
 
@@ -156,8 +152,8 @@
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
 <h4 style="margin-bottom: 30px;">
-	{#if quote}
-		"{quote.q}" - {quote.a}
+	{#if data.quote}
+		"{data.quote.q}" - {data.quote.a}
 	{:else}
 		Loading inspirational quote...
 	{/if}
