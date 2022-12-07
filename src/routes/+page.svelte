@@ -164,29 +164,34 @@
 		<br />
 
 		<Form on:submit={updateProfile}>
-			<TextInput
-				placeholder="Full Name"
-				style="width: 100%"
-				bind:value={full_name}
-			/> <br />
-			<TextInput
-				placeholder="Discord"
-				style="width: 100%"
-				bind:value={discord}
-			/>
+			<div class="row" style="column-gap: 10px;">
+				<TextInput
+					placeholder="Full Name"
+					style="width: 100%"
+					bind:value={full_name}
+				/>
+				<TextInput
+					placeholder="Initials"
+					style="width: 100%"
+					bind:value={initials}
+				/>
+			</div>
 			<br />
-			<TextInput
-				placeholder="Initials"
-				style="width: 100%"
-				bind:value={initials}
-			/> <br />
-			<NumberInput
-				placeholder="Best AMC 10/12 score (optional)"
-				style="width: 100%"
-				min={0}
-				max={150}
-				bind:value={amc_score}
-			/> <br />
+			<div class="row" style="column-gap: 10px;">
+				<TextInput
+					placeholder="Discord"
+					style="width: 100%"
+					bind:value={discord}
+				/>
+				<NumberInput
+					placeholder="Best AMC 10/12 score (optional)"
+					style="width: 100%"
+					min={0}
+					max={150}
+					bind:value={amc_score}
+				/>
+			</div>
+			<br />
 			<TextArea
 				placeholder="Math Competition Background"
 				style="width: 100%"

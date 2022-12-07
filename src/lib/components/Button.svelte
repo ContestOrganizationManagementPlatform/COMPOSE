@@ -2,13 +2,14 @@
 	import { Button } from "carbon-components-svelte";
 	export let title;
 	export let action;
+	export let classs = "button";
 	export let href = null;
 </script>
 
 {#if href}
 	<Button
 		kind="primary"
-		class="button"
+		class={classs}
 		size="small"
 		{href}
 		type="submit"
@@ -23,7 +24,7 @@
 {:else}
 	<Button
 		kind="primary"
-		class="button"
+		class={classs}
 		size="small"
 		on:click={action}
 		type="submit"
