@@ -5,27 +5,27 @@
 	import { InlineNotification } from "carbon-components-svelte";
 
 	let loaded = false;
-	let isAdmin;
+	let isPW;
 
 	let errorTrue = false;
 	let errorMessage = "";
 
-	async function loadIsAdmin() {
+	async function loadIsPW() {
 		try {
 			const role = await getThisUserRole();
-			if (role >= 40) {
-				isAdmin = true;
+			if (role >= 30) {
+				isPW = true;
 			} else {
-				isAdmin = false;
+				isPW = false;
 			}
 			loaded = true;
 		} catch (err) {
 			errorTrue = true;
 			errorMessage = error.message;
-			isAdmin = false;
+			isPW = false;
 		}
 	}
-	loadIsAdmin();
+	loadIsPW();
 </script>
 
 {#if errorTrue}
@@ -41,7 +41,7 @@
 
 {#if !loaded}
 	<Loading />
-{:else if isAdmin}
+{:else if isPW}
 	<slot />
 {:else}
 	You're not allowed to be in here!

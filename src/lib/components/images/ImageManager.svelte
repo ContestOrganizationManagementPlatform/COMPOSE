@@ -76,7 +76,7 @@
 	<p>Current Folder: {folderString}</p>
 	<div class="listing-container">
 		{#each curListing as listing}
-			<div class="listing-item" on:click={() => openItem(listing)}>
+			<div class="listing-item" on:click={() => openItem(listing)} on:keydown={() => openItem(listing)}>
 				{#if listing.special === "back"}
 					<ArrowLeft />
 				{:else if listing.type === "folder"}

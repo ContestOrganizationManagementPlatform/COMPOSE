@@ -195,7 +195,7 @@
 		<Select bind:ref={userSelectRef} labelText="User To Import As (leave default for yourself)">
 			<SelectItem value="" text="" />
 			{#each allUsers as user}
-			<SelectItem value={user.id} text="{user.full_name} ({user.id})"/>
+				<SelectItem value={user.id} text="{user.full_name} ({user.id})"/>
 			{/each}
 		</Select>
 	{/if}
