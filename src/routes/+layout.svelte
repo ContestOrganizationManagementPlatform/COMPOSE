@@ -39,6 +39,7 @@
 			<div style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;">
 				<Account logIn={true} />
 				<br />
+				<br />
 				<div class="flex">
 					<div class="bottomSection" style="color: white;">
 						<button
@@ -63,6 +64,7 @@
 		<div class="flex">
 			<div style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;">
 				<Account logIn={false} />
+				<br />
 				<br />
 				<div class="flex">
 					<div class="bottomSection" style="color: white;">

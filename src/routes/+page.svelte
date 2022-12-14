@@ -151,7 +151,8 @@
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
-<h4 style="margin-bottom: 30px;">
+<br />
+<h4 style="margin-bottom: 30px;font-style:italic;">
 	{#if data.quote}
 		"{data.quote.q}" - {data.quote.a}
 	{:else}
@@ -197,7 +198,7 @@
 				style="width: 100%"
 				bind:value={math_comp_background}
 			/> <br />
-			<Button title="Submit" />
+			<Button title="Submit" fontSize="1.5em" />
 		</Form>
 		<br />
 	</div>

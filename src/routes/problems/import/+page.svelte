@@ -1,7 +1,13 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { TextArea, InlineNotification } from "carbon-components-svelte";
+	import {
+		TextArea,
+		InlineNotification,
+		Select,
+		SelectItem,
+	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import { getThisUserRole } from "$lib/getUserRole";
 
 	const texRegex =
 		/\\ques\[(?<topic>\w*)\].*\\begin\{question\}\s*(?<question>.*)\s*\\end\{question\}.*\\begin\{comment\}\s*(?<comment>.*)\s*\\end\{comment\}.*\\begin\{answer\}\s*(?<answer>.*)\s*\\end\{answer\}.*\\begin\{solution\}\s*(?<solution>.*)\s*\\end\{solution\}/s;
@@ -18,6 +24,10 @@
 	let payloads = [];
 	let success = false;
 	let problemText;
+	let allUsers;
+	let loadedUsers = false;
+	let userSelectRef;
+	let isAdmin = false;
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -71,6 +81,7 @@
 				sub_topics: "",
 				difficulty: 0,
 				edited_at: new Date().toISOString(),
+				author_id: userSelectRef.id,
 			};
 			payloads = [...payloads, payload];
 			return true;
@@ -134,6 +145,18 @@
 			success = true;
 		}
 	}
+
+	async function getAllUsers() {
+		let { data: users, error } = await supabase
+			.from("users")
+			.select("full_name,id");
+		if (error) throw error;
+		allUsers = users;
+		loadedUsers = true;
+		isAdmin = (await getThisUserRole() >= 40);
+	}
+	
+	getAllUsers();
 </script>
 
 {#if errorTrue}
@@ -167,6 +190,15 @@
 	/>
 	<br />
 	<Button action={manualAdd} title="Manually add" />
+
+	{#if isAdmin && loadedUsers}
+		<Select bind:ref={userSelectRef} labelText="User To Import As (leave default for yourself)">
+			<SelectItem value="" text="" />
+			{#each allUsers as user}
+			<SelectItem value={user.id} text="{user.full_name} ({user.id})"/>
+			{/each}
+		</Select>
+	{/if}
 
 	<p style="margin-top: 20px;">
 		{payloads.length} problems queued to be uploaded

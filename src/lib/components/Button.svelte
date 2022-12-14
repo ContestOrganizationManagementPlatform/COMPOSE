@@ -4,6 +4,7 @@
 	export let action;
 	export let classs = "button";
 	export let href = null;
+	export let fontSize = "1em";
 </script>
 
 {#if href}
@@ -16,7 +17,7 @@
 		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 	>
 		<p
-			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+			style="margin-left: auto; margin-right: auto; font-size: {fontSize};font-weight: 500;padding: 0;"
 		>
 			{title}
 		</p>
@@ -31,7 +32,7 @@
 		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 	>
 		<p
-			style="margin-left: auto; margin-right: auto; font-size: 1em;font-weight: 500;padding: 0;"
+			style="margin-left: auto; margin-right: auto; font-size: {fontSize};font-weight: 500;padding: 0;"
 		>
 			{title}
 		</p>
