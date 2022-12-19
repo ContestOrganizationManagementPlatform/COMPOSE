@@ -5,10 +5,16 @@
 	 */
 	import { ImageListing, ImageBucket } from "$lib/ImageBucket";
 	import { Folder, Image, ArrowLeft } from "carbon-icons-svelte";
+	import { FileUploader } from "carbon-components-svelte";
+
+	const MAX_IMAGE_SIZE = 1024 * 1024;
+	const MAX_IMAGE_SIZE_READABLE = "1 mb";
 
 	let curFolder = []; // array of folders
 	let folderString = "/";
 	let curListing = [];
+
+	let fileUploader;
 
 	async function loadFolder() {
 		curListing = await ImageBucket.getFolderFromList(curFolder);
@@ -37,6 +43,30 @@
 		}
 	}
 
+	async function addImage(e) {
+		const images = e.detail;
+		console.log(images);
+
+		for (const img of images) {
+			if (img.size > MAX_IMAGE_SIZE) {
+				cancelUpload(
+					`Image ${img.name} is too large (${MAX_IMAGE_SIZE_READABLE} max)`
+				);
+				return;
+			}
+		}
+	}
+
+	let showUploadError = false;
+	let uploadError = "";
+
+	// clear and cancel file upload
+	function cancelUpload(reason) {
+		fileUploader.clearFiles();
+		uploadError = reason;
+		showUploadError = true;
+	}
+
 	loadFolder();
 </script>
 
@@ -46,7 +76,7 @@
 	<p>Current Folder: {folderString}</p>
 	<div class="listing-container">
 		{#each curListing as listing}
-			<div class="listing-item" on:click={() => openItem(listing)}>
+			<div class="listing-item" on:click={() => openItem(listing)} on:keydown={() => openItem(listing)}>
 				{#if listing.special === "back"}
 					<ArrowLeft />
 				{:else if listing.type === "folder"}
@@ -67,6 +97,21 @@
 				{/if}
 			</div>
 		{/each}
+	</div>
+
+	<div>
+		<FileUploader
+			multiple
+			buttonLabel="Upload files"
+			labelDescription={`Accepts png, jpg, jpeg, webp. ${MAX_IMAGE_SIZE_READABLE} max each (but please try and use smaller images). To use in the problem, use \image{<image file path>}`}
+			accept={[".jpg", ".png", ".jpeg", ".webp"]}
+			status="edit"
+			bind:this={fileUploader}
+			on:add={addImage}
+		/>
+		{#if showUploadError}
+			<p class="error-p">Error: {uploadError}</p>
+		{/if}
 	</div>
 </div>
 
@@ -97,5 +142,9 @@
 
 	.listing-expanded {
 		margin: 5px;
+	}
+
+	.error-p {
+		color: #aa0000;
 	}
 </style>

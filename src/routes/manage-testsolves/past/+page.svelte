@@ -34,7 +34,10 @@
 
 <br />
 <h1 style="margin-bottom: 5px;">Past Testsolves</h1>
-<Button href="/admin/testsolves/upcoming" title="Look at upcoming testsolves" />
+<Button
+	href="/manage-testsolves/upcoming"
+	title="Look at upcoming testsolves"
+/>
 
 {#if loading}
 	<Loading />

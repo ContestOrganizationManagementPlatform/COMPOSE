@@ -1,24 +1,15 @@
 import { supabase } from "$lib/supabaseClient";
 
-export async function post({ request }) {
+export async function POST({ request }) {
 	const body = await request.json();
 	if (body.full_name?.length >= 100) {
-		return {
-			status: 400,
-			body: "Full name is too long (if this is an actual issue, please notify us)",
-		};
+		return new Response("Full name is too long (if this is an actual issue, please notify us)", { status: 400 });
 	}
 	if (body.discord?.length >= 50) {
-		return {
-			status: 400,
-			body: "Discord is too long",
-		};
+		return new Response("Discord is too long", { status: 400 });
 	}
 	if (body.initials?.length >= 6) {
-		return {
-			status: 400,
-			body: "Initials are too long (max length 6)",
-		};
+		return new Response("Initials are too long (max length 6)", { status: 400 });
 	}
 
 	const req = {
@@ -31,12 +22,7 @@ export async function post({ request }) {
 		returning: "minimal", // Don't return the value after inserting
 	});
 	if (error) {
-		return {
-			status: 400,
-			body: error.message,
-		};
+		return new Response(error.message, { status: 400 });
 	}
-	return {
-		status: 300,
-	};
+	return new Response(undefined, { status: 300 });
 }

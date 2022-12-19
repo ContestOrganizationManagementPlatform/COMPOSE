@@ -1,11 +1,10 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
-	import Banner from "$lib/components/Banner.svelte";
+	import Button from "$lib/components/Button.svelte";
 	import {
 		Form,
 		TextInput,
-		Button,
 		PasswordInput,
 	} from "carbon-components-svelte";
 
@@ -52,8 +51,6 @@
 	};
 </script>
 
-<Banner />
-<br />
 <Form
 	style="display: flex;
 	flex-direction: column;
@@ -71,44 +68,30 @@
 		class="input"
 		bind:value={email}
 		placeholder="Email"
-		style="width: 30em;"
+		style="width: 35em;"
 	/>
 	<br />
 	<PasswordInput
 		bind:value={password}
 		class="input"
 		placeholder="Password"
-		style="width: 30em;"
+		style="width: 35em;"
 	/> <br />
 	{#if !logIn && password != ""}
 		<PasswordInput
 			bind:value={retypePassword}
 			class="input"
 			placeholder="retype password"
-			style="width: 30em;"
+			style="width: 35em;"
 		/> <br />
 	{/if}
-	{#if logIn}
-		<Button
-			kind="tertiary"
-			class="button"
-			size="small"
-			on:click={handleLogin}
-			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-		>
-			<p>Enter</p>
-		</Button>
-	{:else}
-		<Button
-			kind="tertiary"
-			class="button"
-			size="small"
-			on:click={handleSignUp}
-			style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-		>
-			<p>Enter</p>
-		</Button>
-	{/if}
+	<div class="profileButtons">
+		{#if logIn}
+			<Button title="Enter" action={handleLogin} />
+		{:else}
+			<Button title="Enter" action={handleSignUp} />
+		{/if}
+	</div>
 </Form>
 {#if signupSuccess}
 	<p style="text-align: center;">
@@ -118,6 +101,10 @@
 {/if}
 
 <style>
+	.header {
+		font-size: 50px;
+	}
+
 	:global(.bx--text-input--password__visibility, .bx--btn.bx--text-input--password__visibility__toggle.bx--tooltip__trigger:focus) {
 		outline-color: var(--green) !important;
 	}

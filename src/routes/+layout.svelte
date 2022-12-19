@@ -5,7 +5,7 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import { browser } from "$app/env";
+	import { browser } from "$app/environment";
 	import { user } from "$lib/sessionStore";
 	import { onMount } from "svelte";
 
@@ -33,43 +33,57 @@
 			<Loading />
 		</div>
 	{:else if !$user && hasAccount}
-		<Account logIn={true} />
+		<Banner />
 		<br />
 		<div class="flex">
-			<div class="bottomSection">
-				<button
-					size="lg"
-					class="link"
-					id="switchScreen"
-					on:click={() => {
-						hasAccount = false;
-					}}>Sign-Up</button
-				>
-				<button size="lg" class="link" id="forgotPassword"
-					><a href="/password-reset" style="color: black;">Forgot Password</a
-					></button
-				>
+			<div style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;">
+				<Account logIn={true} />
+				<br />
+				<br />
+				<div class="flex">
+					<div class="bottomSection" style="color: white;">
+						<button
+							size="lg"
+							class="link"
+							id="switchScreen"
+							on:click={() => {
+								hasAccount = false;
+							}}>Sign-Up</button
+						>
+						<button size="lg" class="link" id="forgotPassword"
+							><a href="/password-reset" style="color: black;">Forgot Password</a
+							></button
+						>
+					</div>
+				</div>
 			</div>
 		</div>
 	{:else if !$user && !hasAccount}
-		<Account logIn={false} />
+	<Banner />
 		<br />
 		<div class="flex">
-			<div class="bottomSection">
-				<button
-					size="lg"
-					class="link"
-					id="switchScreen"
-					on:click={() => {
-						hasAccount = true;
-					}}
-				>
-					Log-In
-				</button>
-				<button size="lg" class="link" id="forgotPassword"
-					><a href="/password-reset" style="color: black;">Forgot Password</a
-					></button
-				>
+			<div style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;">
+				<Account logIn={false} />
+				<br />
+				<br />
+				<div class="flex">
+					<div class="bottomSection" style="color: white;">
+						<button
+							size="lg"
+							class="link"
+							id="switchScreen"
+							on:click={() => {
+								hasAccount = true;
+							}}
+						>
+							Log-In
+						</button>
+						<button size="lg" class="link" id="forgotPassword"
+							><a href="/password-reset" style="color: black;">Forgot Password</a
+							></button
+						>
+					</div>
+				</div>
 			</div>
 		</div>
 	{:else}
@@ -168,17 +182,31 @@
 	:global(.profileButtons .button:focus) {
 		border-color: transparent !important;
 		background-color: var(--green) !important;
+		transition: all 0.3s ease-out;
+	}
+	:global(.buttonPrimaryLight) {
+		border-color: var(--light-blue) !important;
+		background-color: var(--body) !important;
 	}
 	:global(.profileButtons .button p) {
 		color: white !important;
 	}
 	:global(.profileButtons .button:hover) {
-		background-color: transparent !important;
+		background-color: var(--light-blue) !important;
 		border: 2px solid var(--green) !important;
+	}
+	:global(.buttonPrimaryLight:hover) {
+		background-color: var(--light-blue) !important;
+		border: 2px solid var(--body) !important;
 	}
 	:global(.profileButtons .button:hover p) {
 		color: var(--green) !important;
 	}
+
+	:global(.buttonPrimaryLight:hover p) {
+		color: var(--body) !important;
+	}
+
 	:global(.profileButtons .button:focus),
 	:global(.profileButtons .bx--text-input:focus),
 	:global(.profileButtons .bx--text-input:active) {

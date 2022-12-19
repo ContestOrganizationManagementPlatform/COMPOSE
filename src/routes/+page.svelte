@@ -11,6 +11,8 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 
+    export let data;
+
 	let loading = false;
 	let updatedProfile = false;
 	let full_name;
@@ -122,12 +124,6 @@
 		}
 	}
 
-	async function getQuote() {
-		let resp = await fetch("/api/dailyquote");
-		quote = await resp.json();
-	}
-
-	getQuote();
 	getProfile();
 </script>
 
@@ -155,9 +151,10 @@
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
-<h4 style="margin-bottom: 30px;">
-	{#if quote}
-		"{quote.q}" - {quote.a}
+<br />
+<h4 style="margin-bottom: 30px;font-style:italic;">
+	{#if data.quote}
+		"{data.quote.q}" - {data.quote.a}
 	{:else}
 		Loading inspirational quote...
 	{/if}
@@ -168,35 +165,40 @@
 		<br />
 
 		<Form on:submit={updateProfile}>
-			<TextInput
-				placeholder="Full Name"
-				style="width: 100%"
-				bind:value={full_name}
-			/> <br />
-			<TextInput
-				placeholder="Discord"
-				style="width: 100%"
-				bind:value={discord}
-			/>
+			<div class="row" style="column-gap: 10px;">
+				<TextInput
+					placeholder="Full Name"
+					style="width: 100%"
+					bind:value={full_name}
+				/>
+				<TextInput
+					placeholder="Initials"
+					style="width: 100%"
+					bind:value={initials}
+				/>
+			</div>
 			<br />
-			<TextInput
-				placeholder="Initials"
-				style="width: 100%"
-				bind:value={initials}
-			/> <br />
-			<NumberInput
-				placeholder="Best AMC 10/12 score (optional)"
-				style="width: 100%"
-				min={0}
-				max={150}
-				bind:value={amc_score}
-			/> <br />
+			<div class="row" style="column-gap: 10px;">
+				<TextInput
+					placeholder="Discord"
+					style="width: 100%"
+					bind:value={discord}
+				/>
+				<NumberInput
+					placeholder="Best AMC 10/12 score (optional)"
+					style="width: 100%"
+					min={0}
+					max={150}
+					bind:value={amc_score}
+				/>
+			</div>
+			<br />
 			<TextArea
 				placeholder="Math Competition Background"
 				style="width: 100%"
 				bind:value={math_comp_background}
 			/> <br />
-			<Button title="Submit" />
+			<Button title="Submit" fontSize="1.5em" />
 		</Form>
 		<br />
 	</div>

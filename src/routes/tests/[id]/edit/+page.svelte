@@ -47,17 +47,22 @@
 			.select("*,full_problems(*)")
 			.eq("test_id", testId)
 			.order("problem_number");
+        console.log(problemList);
+        // filter duplicates ?? idk why they appear
+        problemList = problemList.filter((x, i) => problemList[i-1]?.relation_id !== x.relation_id);
+        console.log(problemList);
 		testProblems = problemList.map((pb) => ({
 			problem_number: pb.problem_number,
 			...pb.full_problems,
 		}));
 		selectedTest = testProblems.map((pb) => pb.id);
-
 		let { data: allProblemList, error2 } = await supabase
-			.from("unused_problems")
+			.from("full_problems")
 			.select("*")
 			.order("front_id");
-		allProblems = allProblemList;
+        // prevent problems from appearing twice
+		allProblems = allProblemList.filter(pb => !testProblems.find(tpb => tpb.id === pb.id));
+        console.log(testProblems, allProblems);
 		selectedAll = [];
 
 		loadingProblems = false;

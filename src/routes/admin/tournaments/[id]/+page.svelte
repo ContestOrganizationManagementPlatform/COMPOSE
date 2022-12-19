@@ -3,7 +3,7 @@
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
-	import Loading from "../../../lib/components/Loading.svelte";
+	import Loading from "../../../../lib/components/Loading.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
 
 	let tournamentId = $page.params.id;

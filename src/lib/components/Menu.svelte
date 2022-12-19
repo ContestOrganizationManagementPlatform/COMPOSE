@@ -6,7 +6,7 @@
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { page } from "$app/stores";
 
-	$: path = $page.routeId;
+	$: path = $page.route.id;
 
 	let open = false;
 	let fullname = "";
@@ -128,10 +128,17 @@
 				</Link>
 				<br />
 				<Link
-					href="/admin/testsolves/upcoming"
-					class={path == "admin/testsolves/upcoming" ? "active link" : "link"}
+					href="/manage-testsolves"
+					class={path == "manage-testsolves" ? "active link" : "link"}
 				>
 					<p class="linkPara">Admin: Testsolves</p>
+				</Link>
+				<br />
+				<Link
+					href="/admin/transfer-problem"
+					class={path == "admin/transfer-problem" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: Transfer Problem</p>
 				</Link>
 				<br />
 				<Link

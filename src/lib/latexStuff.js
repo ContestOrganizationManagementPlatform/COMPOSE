@@ -181,6 +181,13 @@ export function checkLatex(str, field) {
 	return errorList;
 }
 
+const imageRegex = /\\image\{(.+)\}/;
+
+// Returns the list of image URLs found in the string
+export function searchImages(str) {
+	return imageRegex.exec(str);
+}
+
 const macros = {
 	"\\ans": "\\boxed{#1}",
 	"\\Abs": "\\left\\lVert #1 \\right\\rVert",

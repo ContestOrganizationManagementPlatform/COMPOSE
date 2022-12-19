@@ -1,4 +1,4 @@
-export async function post({ request }) {
+export async function POST({ request }) {
 	let discordWebhook = import.meta.env.VITE_DISCORD_WEBHOOK_URL;
 	const body = await request.json();
 	try {
@@ -34,8 +34,14 @@ export async function post({ request }) {
 			body: JSON.stringify(discordBody),
 		});
 		const data = await res.json();
-		return data;
+		return new Response(JSON.stringify(data), {
+            headers: {
+                'content-type': 'application/json; charset=utf-8'
+            }
+        });
 	} catch (e) {
-		return e;
+		return new Response(error.message, {
+            status: 400
+        })
 	}
 }
