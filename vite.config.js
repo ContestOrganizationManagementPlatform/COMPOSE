@@ -3,7 +3,7 @@ import fs from "vite-plugin-fs";
 import builtins from "rollup-plugin-node-builtins";
 
 const builtinsPlugin = {
-  ...builtins({ crypto: true }),
+  ...builtins({ crypto: false }),
   name: "builtins",
 };
 
@@ -12,7 +12,7 @@ const config = {
 	plugins: [sveltekit(), fs(), builtinsPlugin],
 	server: {
 		port: 3000,
-	},
+	}
 };
 
 export default config;
