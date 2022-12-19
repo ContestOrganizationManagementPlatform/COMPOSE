@@ -1,27 +1,36 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { Select, SelectItem } from "carbon-components-svelte";
+	import { Select, SelectItem, ToastNotification } from "carbon-components-svelte";
     import Button from '$lib/components/Button.svelte';
+	import Loading from "$lib/components/Loading.svelte";
+	import Problem from "../../../lib/components/Problem.svelte";
 
 	let problems = [];
 	let loading = true;
 	let curProblem = 0;
 	let users = [];
 	let curUser = 0;
+	let show = false;
 
 	async function getProblems() {
 		let { data: problemData, error } = await supabase
 			.from("problems")
-			.select("id,problem_latex,author_id,users(full_name)");
+			.select("id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)");
 		if (error) throw error;
 		for (let problem of problemData) {
-			problems.append({
+			problems.push({
 				id: problem.id,
-				latex: problem.problem_latex,
+				problem_latex: problem.problem_latex,
+				answer_latex: problem.answer_latex,
+				solution_latex: problem.solution_latex,
+				comment_latex: problem.comment_latex,
 				author_id: problem.author_id,
 				author_name: problem.users.full_name,
 			});
 		}
+		problems.sort((book1, book2) => {
+			return book1.id > book2.id ? 1 : book1.id < book2.id ? -1 : 0;
+		})
 		getUsers();
 		loading = false;
 	}
@@ -40,29 +49,49 @@
 			.update({ author_id: users[curUser].id })
 			.eq("id", problems[curProblem].id);
         if (error) throw error;
+		show = true;
+		setInterval(() => {show = false;}, 3000);
 	}
 
 	getProblems();
 </script>
 
+<br />
+
+{#if show}
+	<div style="position: absolute; bottom: 15px;left:15px;">
+		<ToastNotification
+			lowContrast
+			kind="success"
+			title="Success!"
+			subtitle="Transfered problem easily!"
+			caption={new Date().toLocaleString()}
+		/>
+	</div>
+{/if}
+
 <h1>Transfer Problems</h1>
 {#if loading}
-	Loading problems...
+	<Loading />
 {:else}
-	<Select labelText="Problem to Transfer" bind:selected={curProblem}>
-		{#each problems as problem, i}
-			<SelectItem value={i} text={problem.id} />
-		{/each}
-	</Select>
-	<p>Problem: {problems[curProblem].latex}</p>
 	<p>
-		Current author: {problems[curProblem].author_name} ({problems[curProblem]
-			.author_id})
+		Current author: {problems[curProblem].author_name}
 	</p>
-	<Select labelText="User to transfer to" bind:selected={curUser}>
-		{#each users as user, i}
-			<SelectItem value={i} text={user.full_name + " (" + user.id + ")"} />
-		{/each}
-	</Select>
-    <Button title="Transfer Problem" action={transferProblem} />
+	<div style="padding: 20px;">
+		<Select labelText="Problem to Transfer" bind:selected={curProblem}>
+			{#each problems as problem, i}
+				<SelectItem value={i} text={problem.id} />
+			{/each}
+		</Select>
+		<br />
+		<Problem problem={problems[curProblem]} />
+		<br />
+		<Select labelText="User to transfer to" bind:selected={curUser}>
+			{#each users as user, i}
+				<SelectItem value={i} text={user.full_name} />
+			{/each}
+		</Select>
+		<br />
+		<Button title="Transfer Problem" action={transferProblem} />
+	</div>
 {/if}

@@ -45,8 +45,24 @@
 	})();
 
 	function getProblemLink() {
-		let l =
-			"https://latexonline.cc/compile?text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
+		const macros = {
+			"\\ans": "\\boxed{#1}",
+			"\\Abs": "\\left\\lVert #1 \\right\\rVert",
+			"\\ang": "\\left \\langle #1 \\right \\rangle",
+			"\\set": "\\left\\{#1\\right\\}",
+			"\\paren": "\\left(#1\\right)",
+			"\\floor": "\\left\\lfloor #1 \\right\\rfloor",
+			"\\ceil": "\\left\\lceil #1 \\right\\rceil",
+			"\\VEC": "\\overrightarrow{#1}",
+			"\\Mod": "\\enspace(\\text{mod}\\ #1)",
+		}; // unfortunately this only works for commands with exactly one parameter for now
+		let preamble = "";
+		const keys = Object.keys(macros);
+		for (var key of keys) {
+            preamble += "\\newcommand{" + key + "}[1]{" + macros[key] + "}"
+		}
+
+		let l = "/api/pdf-generator?latex=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}" + preamble + "\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
 
 		for (const problem of problems) {
 			l += "\\section*{Problem " + problem.front_id + "}";

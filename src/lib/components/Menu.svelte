@@ -135,6 +135,13 @@
 				</Link>
 				<br />
 				<Link
+					href="/admin/transfer-problem"
+					class={path == "admin/transfer-problem" ? "active link" : "link"}
+				>
+					<p class="linkPara">Admin: Transfer Problem</p>
+				</Link>
+				<br />
+				<Link
 					href="/admin/tournaments"
 					class={path == "admin/tournaments" ? "active link" : "link"}
 				>

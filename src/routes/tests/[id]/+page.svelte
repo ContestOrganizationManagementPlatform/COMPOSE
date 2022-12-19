@@ -90,11 +90,12 @@
 
 	function getTestLink() {
 		let l =
-			"https://latexonline.cc/compile?target=test.tex&text=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}\\title{" +
+			"/api/pdf-generator?latex=\\title{" +
 			test.test_name +
 			"}\\author{" +
 			test.tournaments.tournament_name +
 			"}\\date{Mustang Math}\\begin{document}\\maketitle";
+		console.log(l);
 
 		if (group.includes("Feedback")) {
 			l += "\\section*{Test Feedback}";
@@ -248,7 +249,7 @@
 				{/each}
 
 				<br />
-				<a href={link} target="_blank"
+				<a href={link} target="_blank" rel="noreferrer"
 					><i class="fa-solid fa-up-right-from-square" /> Open Test in New Page</a
 				>
 				<br /><br />
