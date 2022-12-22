@@ -165,19 +165,6 @@
 			error = "Not all the fields have been filled out";
 		}
 	}
-
-	function addImage(e) {
-		if (e.detail.length + problemFiles.length > fileUploadLimit) {
-			alert("Cannot upload this many files");
-		}
-		problemFiles = [...problemFiles, ...e.detail];
-		fileUploader.clearFiles();
-	}
-
-	function deleteImage(e) {
-		const imageName = e.detail;
-		problemFiles = problemFiles.filter((x) => x.name !== imageName);
-	}
 </script>
 
 <svelte:window on:click={updateActive} />
@@ -267,29 +254,6 @@
 					</div>
 				{/if}
 
-				<br />
-				<div id="button">
-					<FileUploader
-						multiple
-						labelTitle="Problem Attachments"
-						buttonLabel="Upload files"
-						labelDescription="Accepts png, jpg, jpeg, webp. {fileUploadLimit} files max, 50 mb max each (but please try and use smaller images). To use in the problem, use \image{'{'}<image file name>{'}'}"
-						accept={[".jpg", ".png", ".jpeg", ".webp"]}
-						status="edit"
-						bind:this={fileUploader}
-						on:add={addImage}
-					/>
-				</div>
-				{#each problemFiles as imgFile}
-					<FileUploaderItem
-						id={imgFile.name}
-						name={imgFile.name}
-						status="edit"
-						style="text-align: left;"
-						on:delete={deleteImage}
-					/>
-				{/each}
-
 				<ImageManager />
 			</Form>
 		</div>
@@ -328,7 +292,6 @@
 					showMetadata={false}
 					showLatexErrors={true}
 					widthPara={100}
-					images={problemImages}
 					bind:failed={problemFailed}
 				/>
 			{/if}
