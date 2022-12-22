@@ -1,6 +1,7 @@
 import latex from "node-latex";
 import fs from "vite-plugin-fs";
-import crypto from "crypto";
+import pkg from 'crypto-js';
+const { createHash } = pkg;
 
 const macros = {
 	"\\ans": "\\boxed{#1}",

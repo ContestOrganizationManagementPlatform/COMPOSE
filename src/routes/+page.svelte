@@ -11,7 +11,7 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 
-    export let data;
+    export let data; 
 
 	let loading = false;
 	let updatedProfile = false;
