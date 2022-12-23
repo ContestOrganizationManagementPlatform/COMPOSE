@@ -23,6 +23,7 @@
 		"@supabase/supabase-js": "^1.35.4",
 		"carbon-components-svelte": "^0.70.12",
 		"chart.js": "^3.9.1",
+		"crypto-js": "^4.1.1",
 		"fs": "^0.0.1-security",
 		"node-latex": "^3.1.0",
 		"svelte-chartjs": "^3.0.1",
