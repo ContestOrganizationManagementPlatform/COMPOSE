@@ -4,6 +4,7 @@
 
 import { supabase } from "$lib/supabaseClient";
 import { ProblemImage } from "$lib/getProblemImages";
+import { searchImages } from "$lib/latexStuff";
 
 const BUCKET_NAME = "problem-images";
 
@@ -37,6 +38,8 @@ export class ImageListing {
 		return this.downloaded;
 	}
 }
+
+// TODO: add proper cache to prevent having to fetch images every time
 
 export const ImageBucket = {
 	getMainFolder: async () => {
@@ -78,4 +81,39 @@ export const ImageBucket = {
 	getFolderFromList: async (folderList) => {
 		return await ImageBucket.getFolder(folderList.join("/"));
 	},
+	getImage: async (url) => {
+		let { data, error } = await supabase.storage.from(BUCKET_NAME).download(url);
+		if (error) {
+			throw new Error(error.message);
+		}
+		return ProblemImage.fromFile(data);
+	},
+	// Downloads all the images found in the given latex string.
+	downloadLatexImages: async (latex) => {
+		const imageList = searchImages(latex);
+
+		let images = [];
+		let errorList = [];
+
+		// load images from supabase
+		for (const imageURL of imageList) {
+			let img;
+			try {
+				img = await ImageBucket.getImage(imageURL);
+			} catch (e) {
+				errorList.push({
+					error: "Image failed to load: " + imageURL,
+					sev: "err",
+				});
+				continue;
+			}
+			img.name = imageURL;
+			images.push(img);
+		}
+
+		return {
+			images,
+			errorList
+		}
+	}
 };

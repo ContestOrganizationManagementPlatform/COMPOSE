@@ -181,11 +181,11 @@ export function checkLatex(str, field) {
 	return errorList;
 }
 
-const imageRegex = /\\image\{(.+)\}/;
+const imageRegex = /\\image\{(.+?)\}/g;
 
 // Returns the list of image URLs found in the string
 export function searchImages(str) {
-	return imageRegex.exec(str);
+	return [...str.matchAll(imageRegex)].map(x => x[1]); // only want capturing groups
 }
 
 const macros = {

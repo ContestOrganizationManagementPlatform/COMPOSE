@@ -1,8 +1,9 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { getProblemImages } from "$lib/getProblemImages";
 
-	import { displayLatex } from "$lib/latexStuff.js";
+	import { displayLatex, searchImages } from "$lib/latexStuff.js";
+	import { ImageBucket } from "$lib/ImageBucket.js";
+
 	export let problem; // whole object from database
 	export let showMetadata = false;
 	export let showLatexErrors = false;
@@ -13,8 +14,6 @@
 
 	let author = "";
 
-	export let images = [];
-
 	(async () => {
 		if ("full_name" in problem) {
 			author = problem.full_name;
@@ -24,10 +23,6 @@
 				.select("full_name")
 				.eq("id", problem.author_id);
 			author = users[0].full_name;
-		}
-
-		if (problem.id) {
-			images = await getProblemImages(supabase, problem.id);
 		}
 
 		loaded = true;
@@ -42,11 +37,21 @@
 	let fieldList = ["problem", "comment", "answer", "solution"];
 	let errorList = [];
 
-	$: if (loaded) {
+	async function loadProblem() {
 		failed = false;
 		errorList = [];
 		for (const field of fieldList) {
-			const displayed = displayLatex(problem[field + "_latex"], images);
+			// find and load images
+			const fieldText = problem[field + "_latex"];
+			const imageDownloadResult = await ImageBucket.downloadLatexImages(
+				fieldText
+			);
+			if (imageDownloadResult.errorList.length > 0) {
+				failed = true;
+				errorList.push(...imageDownloadResult.errorList);
+			}
+
+			const displayed = displayLatex(fieldText, imageDownloadResult.images);
 			displayed.errorList.forEach((x) => (x.field = field)); // add context to errors
 			errorList.push(...displayed.errorList);
 			latexes[field] = displayed.out;
@@ -54,6 +59,10 @@
 				if (err.sev === "err") failed = true;
 			}
 		}
+	}
+
+	$: if (loaded && problem) {
+		loadProblem();
 	}
 </script>
 

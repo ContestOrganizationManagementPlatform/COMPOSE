@@ -1,7 +1,6 @@
 import latex from "node-latex";
 import fs from "vite-plugin-fs";
-import pkg from 'crypto-js';
-const { createHash } = pkg;
+import { createHash } from "crypto";
 
 const macros = {
 	"\\ans": "\\boxed{#1}",
@@ -31,7 +30,7 @@ export async function GET({ request, response }) {
 			og_latex;
 		const hash = createHash("sha256").update(text_latex).digest("hex");
 
-		fs.writeFile(
+		await fs.writeFile(
 			"./src/routes/api/pdf-generator/tex-files/" + hash + ".tex",
 			text_latex,
 			function (err) {
@@ -43,10 +42,10 @@ export async function GET({ request, response }) {
 			}
 		);
 
-		const input = fs.createReadStream(
+		const input = await fs.createReadStream(
 			"./src/routes/api/pdf-generator/tex-files/" + hash + ".tex"
 		);
-		const output = fs.createWriteStream(
+		const output = await fs.createWriteStream(
 			"./src/routes/api/pdf-generator/tex-pdfs/" + hash + ".pdf"
 		);
 		const pdf = latex(input);
@@ -58,7 +57,7 @@ export async function GET({ request, response }) {
 		});
 		pdf.on("finish", () => console.log("PDF generated!"));
 
-		const finalPdf = fs.readFileSync(
+		const finalPdf = await fs.readFileSync(
 			"./src/routes/api/pdf-generator/tex-pdfs/" + hash + ".pdf"
 		);
 
