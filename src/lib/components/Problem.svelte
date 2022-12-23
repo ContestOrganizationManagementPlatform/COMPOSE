@@ -2,7 +2,7 @@
 	import { supabase } from "$lib/supabaseClient";
 
 	import { displayLatex, searchImages } from "$lib/latexStuff.js";
-	import { ImageBucket } from "$lib/ImageBucket.js";
+	import { ImageBucket } from "$lib/ImageBucket";
 
 	export let problem; // whole object from database
 	export let showMetadata = false;
