@@ -5,6 +5,7 @@
 	export let classs = "button";
 	export let href = null;
 	export let fontSize = "1em";
+	export let bwidth = "30em";
 </script>
 
 {#if href}
@@ -14,7 +15,7 @@
 		size="small"
 		{href}
 		type="submit"
-		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+		style="width: {bwidth}; border-radius: 2.5em; margin: 0; padding: 0;"
 	>
 		<p
 			style="margin-left: auto; margin-right: auto; font-size: {fontSize};font-weight: 500;padding: 0;"
@@ -29,7 +30,7 @@
 		size="small"
 		on:click={action}
 		type="submit"
-		style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+		style="width: {bwidth}; border-radius: 2.5em; margin: 0; padding: 0;"
 	>
 		<p
 			style="margin-left: auto; margin-right: auto; font-size: {fontSize};font-weight: 500;padding: 0;"

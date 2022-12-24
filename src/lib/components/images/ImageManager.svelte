@@ -1,20 +1,28 @@
-<script>
+<script lang="ts">
 	/* ImageManager
 	 * This component allows users to upload/manage problem images.
 	 * Users can create folders to store images in, as well as upload images.
 	 */
-	import { ImageListing, ImageBucket } from "$lib/ImageBucket";
+	import {
+		ImageListing,
+		ImageBucket,
+		type ListingType,
+	} from "$lib/ImageBucket";
 	import { Folder, Image, ArrowLeft } from "carbon-icons-svelte";
-	import { FileUploader } from "carbon-components-svelte";
+	import { FileUploader, TextInput } from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	const MAX_IMAGE_SIZE = 1024 * 1024;
 	const MAX_IMAGE_SIZE_READABLE = "1 mb";
+	const MAX_NAME_LENGTH = 32;
+
+	const ACCEPTED_IMAGE_FORMATS = [".jpg", ".png", ".jpeg", ".webp"];
 
 	let curFolder = []; // array of folders
 	let folderString = "/";
 	let curListing = [];
 
-	let fileUploader;
+	let fileUploader: FileUploader;
 
 	async function loadFolder() {
 		curListing = await ImageBucket.getFolderFromList(curFolder);
@@ -26,7 +34,7 @@
 		}
 	}
 
-	async function openItem(listing) {
+	async function openItem(listing: ImageListing) {
 		if (listing.type === "folder") {
 			if (listing.special === "back") {
 				curFolder.pop();
@@ -43,9 +51,8 @@
 		}
 	}
 
-	async function addImage(e) {
+	async function addImage(e: CustomEvent<ReadonlyArray<File>>) {
 		const images = e.detail;
-		console.log(images);
 
 		for (const img of images) {
 			if (img.size > MAX_IMAGE_SIZE) {
@@ -61,10 +68,65 @@
 	let uploadError = "";
 
 	// clear and cancel file upload
-	function cancelUpload(reason) {
+	function cancelUpload(reason: string) {
 		fileUploader.clearFiles();
 		uploadError = reason;
 		showUploadError = true;
+	}
+
+	let showNewFolder = false;
+	function toggleNewFolder(e: Event) {
+		e.preventDefault();
+		showNewFolder = !showNewFolder;
+	}
+
+	// checks if item with name exists in current folder
+	function itemExists(name: string, type: ListingType | "" = "") {
+		for (const listing of curListing) {
+			if (listing.name === name && type !== "" && listing.type === type) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	let folderNameInput = "";
+	const folderNameRegex = /^[a-zA-Z0-9_-]{1,32}$/;
+	function createNewFolder(e: Event) {
+		e.preventDefault();
+		showUploadError = false;
+		uploadError = "";
+
+		folderNameInput = folderNameInput.trim();
+
+		if (folderNameInput.length === 0) {
+			uploadError = "Folder must have a name";
+			showUploadError = true;
+			return;
+		}
+
+		if (folderNameInput.length > MAX_NAME_LENGTH) {
+			uploadError = "Folder name is too long";
+			showUploadError = true;
+			return;
+		}
+
+		if (itemExists(folderNameInput, "folder")) {
+			uploadError = "Folder with that name already exists";
+			showUploadError = true;
+			return;
+		}
+
+		if (!folderNameInput.match(folderNameRegex)) {
+			uploadError = "Invalid folder name";
+			showUploadError = true;
+			return;
+		}
+
+		// add folder
+		ImageBucket.addFakeFolder(folderString, folderNameInput);
+
+		loadFolder();
 	}
 
 	loadFolder();
@@ -72,11 +134,37 @@
 
 <div class="manager-container">
 	<p>Image Manager</p>
+	{#if showUploadError}
+		<p class="error-p">Error: {uploadError}</p>
+	{/if}
 
 	<p>Current Folder: {folderString}</p>
+
+	<div class="new-folder-options">
+		<Button title="New folder" action={toggleNewFolder} />
+		{#if showNewFolder}
+			<div class="new-folder-form">
+				<div>
+					<TextInput
+						size="sm"
+						placeholder="Enter folder name..."
+						bind:value={folderNameInput}
+					/>
+				</div>
+				<div style="margin-left: 5px">
+					<Button bwidth="5em" title="Add" action={createNewFolder} />
+				</div>
+			</div>
+			<p>Note: folders without images are deleted upon refresh.</p>
+		{/if}
+	</div>
 	<div class="listing-container">
 		{#each curListing as listing}
-			<div class="listing-item" on:click={() => openItem(listing)} on:keydown={() => openItem(listing)}>
+			<div
+				class="listing-item"
+				on:click={() => openItem(listing)}
+				on:keydown={() => openItem(listing)}
+			>
 				{#if listing.special === "back"}
 					<ArrowLeft />
 				{:else if listing.type === "folder"}
@@ -103,15 +191,14 @@
 		<FileUploader
 			multiple
 			buttonLabel="Upload files"
-			labelDescription={`Accepts png, jpg, jpeg, webp. ${MAX_IMAGE_SIZE_READABLE} max each (but please try and use smaller images). To use in the problem, use \image{<image file path>}`}
-			accept={[".jpg", ".png", ".jpeg", ".webp"]}
+			labelDescription={`Accepts ${ACCEPTED_IMAGE_FORMATS.join(
+				", "
+			)}. ${MAX_IMAGE_SIZE_READABLE} max each (but please try and use smaller images). To use in the problem, use \image{<image file path>}`}
+			accept={ACCEPTED_IMAGE_FORMATS}
 			status="edit"
 			bind:this={fileUploader}
 			on:add={addImage}
 		/>
-		{#if showUploadError}
-			<p class="error-p">Error: {uploadError}</p>
-		{/if}
 	</div>
 </div>
 
@@ -146,5 +233,11 @@
 
 	.error-p {
 		color: #aa0000;
+	}
+
+	.new-folder-form {
+		display: flex;
+		flex-direction: row;
+		margin-top: 5px;
 	}
 </style>

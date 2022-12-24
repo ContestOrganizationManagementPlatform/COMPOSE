@@ -71,6 +71,7 @@
 			}
 			return false;
 		} else {
+			const user = supabase.auth.user();
 			const matches = text.match(texRegex);
 			const payload = {
 				problem_latex: matches.groups.question,
@@ -81,7 +82,7 @@
 				sub_topics: "",
 				difficulty: 0,
 				edited_at: new Date().toISOString(),
-				author_id: userSelectRef.id,
+				author_id: userSelectRef ? userSelectRef.value : user.id
 			};
 			payloads = [...payloads, payload];
 			return true;
@@ -133,14 +134,6 @@
 				errorTrue = true;
 				errorMessage = error2.message;
 			}
-
-			const res = await fetch("/api/discord", {
-				method: "POST",
-				body: JSON.stringify({
-					customMessage: true,
-					message: `Imported ${payloads.length} problems from text files`,
-				}),
-			});
 
 			success = true;
 		}

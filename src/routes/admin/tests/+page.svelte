@@ -1,5 +1,5 @@
 <script>
-	import { supabase } from "$lib/supabaseClient.js";
+	import { supabase } from "$lib/supabaseClient.ts";
 	import { InlineNotification } from "carbon-components-svelte";
 	import Menu from "$lib/components/Menu.svelte";
 	import Button from "$lib/components/Button.svelte";
