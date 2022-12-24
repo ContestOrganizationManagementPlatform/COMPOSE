@@ -135,14 +135,6 @@
 				errorMessage = error2.message;
 			}
 
-			const res = await fetch("/api/discord", {
-				method: "POST",
-				body: JSON.stringify({
-					customMessage: true,
-					message: `Imported ${payloads.length} problems from text files`,
-				}),
-			});
-
 			success = true;
 		}
 	}
