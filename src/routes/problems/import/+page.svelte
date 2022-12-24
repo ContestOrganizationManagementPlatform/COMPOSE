@@ -81,7 +81,7 @@
 				sub_topics: "",
 				difficulty: 0,
 				edited_at: new Date().toISOString(),
-				author_id: userSelectRef.id,
+				author_id: userSelectRef.value,
 			};
 			payloads = [...payloads, payload];
 			return true;
