@@ -71,6 +71,7 @@
 			}
 			return false;
 		} else {
+			const user = supabase.auth.user();
 			const matches = text.match(texRegex);
 			const payload = {
 				problem_latex: matches.groups.question,
@@ -81,7 +82,7 @@
 				sub_topics: "",
 				difficulty: 0,
 				edited_at: new Date().toISOString(),
-				author_id: userSelectRef.value,
+				author_id: userSelectRef ? userSelectRef.value : user.id
 			};
 			payloads = [...payloads, payload];
 			return true;

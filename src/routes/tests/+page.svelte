@@ -1,5 +1,5 @@
 <script>
-	import { supabase } from "$lib/supabaseClient.js";
+	import { supabase } from "$lib/supabaseClient.ts";
 	import Button from "$lib/components/Button.svelte";
 	import {
 		DataTable,
