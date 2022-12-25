@@ -73,6 +73,7 @@
 		} else {
 			const user = supabase.auth.user();
 			const matches = text.match(texRegex);
+			console.log(userSelectRef);
 			const payload = {
 				problem_latex: matches.groups.question,
 				comment_latex: matches.groups.comment,
@@ -82,7 +83,7 @@
 				sub_topics: "",
 				difficulty: 0,
 				edited_at: new Date().toISOString(),
-				author_id: userSelectRef ? userSelectRef.value : user.id
+				author_id: userSelectRef && userSelectRef != "" ? userSelectRef : user.id
 			};
 			payloads = [...payloads, payload];
 			return true;
@@ -94,6 +95,7 @@
 		let payloadList = [];
 		for (const payload of payloads) {
 			const { topics, ...payloadNoTopics } = payload;
+			payloadNoTopics.author_id = userSelectRef && userSelectRef != "" ? userSelectRef : user.id;
 			payloadList.push(payloadNoTopics);
 		}
 
@@ -153,7 +155,7 @@
 </script>
 
 {#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
+	<div style="position: fixed; bottom: 10px; left: 10px;z-index:100;">
 		<InlineNotification
 			lowContrast
 			kind="error"
@@ -185,10 +187,10 @@
 	<Button action={manualAdd} title="Manually add" />
 
 	{#if isAdmin && loadedUsers}
-		<Select bind:ref={userSelectRef} labelText="User To Import As (leave default for yourself)">
+		<Select bind:selected={userSelectRef} labelText="User To Import As (leave default for yourself)">
 			<SelectItem value="" text="" />
 			{#each allUsers as user}
-				<SelectItem value={user.id} text="{user.full_name} ({user.id})"/>
+				<SelectItem value={user.id} text="{user.full_name}"/>
 			{/each}
 		</Select>
 	{/if}
