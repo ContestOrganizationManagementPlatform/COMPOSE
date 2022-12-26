@@ -51,7 +51,7 @@
 		Geometry: "Geo",
 	};
 
-	let pageSize = 10;
+	let pageSize = 25;
 	let page = 1;
 
 	let editHeader = { key: "edit", value: "", width: "20px" };
