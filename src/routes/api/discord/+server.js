@@ -40,7 +40,7 @@ export async function POST({ request }) {
             }
         });
 	} catch (e) {
-		return new Response(error.message, {
+		return new Response(e.message, {
             status: 400
         })
 	}

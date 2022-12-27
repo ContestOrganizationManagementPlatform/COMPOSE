@@ -9,8 +9,18 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 
+	const regexes = {
+		topic: /\\ques\[(\w*)\]/s,
+		question: /\\begin\{question\}\s*(.*)\s*\\end\{question\}/s,
+		comment: /\\begin\{comment\}\s*(.*)\s*\\end\{comment\}/s,
+		answer: /\\begin\{answer\}\s*(.*)\s*\\end\{answer\}/s,
+		solution: /\\begin\{solution\}\s*(.*)\s*\\end\{solution\}/s,
+		multisolution:
+			/\\begin\{solution\*\}\s*\\soln\{(\d+)\}\s*(.*?)\s*\\end\{solution\*\}/gs,
+	};
+
 	const texRegex =
-		/\\ques\[(?<topic>\w*)\].*\\begin\{question\}\s*(?<question>.*)\s*\\end\{question\}.*\\begin\{comment\}\s*(?<comment>.*)\s*\\end\{comment\}.*\\begin\{answer\}\s*(?<answer>.*)\s*\\end\{answer\}.*\\begin\{solution\}\s*(?<solution>.*)\s*\\end\{solution\}/s;
+		/^(?=\\begin\{question\}\s*(?<question>.*)\s*\\end\{question\})(?=\\begin\{comment\}\s*(?<comment>.*)\s*\\end\{comment\})(?=\\begin\{answer\}\s*(?<answer>.*)\s*\\end\{answer\})(?=\\begin\{solution\}\s*(?<solution>.*)\s*\\end\{solution\}).*$/s;
 
 	const idMap = {
 		Alg: 1,
@@ -63,31 +73,36 @@
 	}
 
 	function importProblem(text, name) {
-		if (!texRegex.test(text)) {
-			if (name) {
-				errorMessages.push(
-					`Skipped file ${name} because regex failed - check the content`
-				);
+		const user = supabase.auth.user();
+		const getResult = (regex) => {
+			const res = text.match(regex);
+			if (!res) return null;
+			return res[1];
+		};
+
+		const multisolutionResult = [...text.matchAll(regexes.multisolution)];
+		let newSolution = null;
+		if (multisolutionResult.length > 0) {
+			newSolution = "";
+			for (const res of multisolutionResult) {
+				let [_, solNum, solText] = res;
+				newSolution += `\nSolution ${solNum}:\n\n${solText}\n`;
 			}
-			return false;
-		} else {
-			const user = supabase.auth.user();
-			const matches = text.match(texRegex);
-			console.log(userSelectRef);
-			const payload = {
-				problem_latex: matches.groups.question,
-				comment_latex: matches.groups.comment,
-				answer_latex: matches.groups.answer,
-				solution_latex: matches.groups.solution,
-				topics: [matches.groups.topic],
-				sub_topics: "",
-				difficulty: 0,
-				edited_at: new Date().toISOString(),
-				author_id: userSelectRef && userSelectRef != "" ? userSelectRef : user.id
-			};
-			payloads = [...payloads, payload];
-			return true;
 		}
+
+		const payload = {
+			problem_latex: getResult(regexes.question) ?? "",
+			comment_latex: getResult(regexes.comment) ?? "",
+			answer_latex: getResult(regexes.answer) ?? "",
+			solution_latex: newSolution ?? getResult(regexes.solution) ?? "",
+			topics: [getResult(regexes.topic) ?? ""],
+			sub_topics: "",
+			difficulty: 0,
+			edited_at: new Date().toISOString(),
+			author_id: userSelectRef && userSelectRef != "" ? userSelectRef : user.id,
+		};
+		payloads = [...payloads, payload];
+		return true;
 	}
 
 	async function submitProblems() {
@@ -95,7 +110,10 @@
 		let payloadList = [];
 		for (const payload of payloads) {
 			const { topics, ...payloadNoTopics } = payload;
-			payloadNoTopics.author_id = userSelectRef && userSelectRef != "" ? userSelectRef : user.id;
+			payloadNoTopics.author_id =
+				userSelectRef && userSelectRef != ""
+					? userSelectRef
+					: supabase.auth.user().id;
 			payloadList.push(payloadNoTopics);
 		}
 
@@ -137,6 +155,7 @@
 				errorMessage = error2.message;
 			}
 
+			payloads = [];
 			success = true;
 		}
 	}
@@ -148,9 +167,9 @@
 		if (error) throw error;
 		allUsers = users;
 		loadedUsers = true;
-		isAdmin = (await getThisUserRole() >= 40);
+		isAdmin = (await getThisUserRole()) >= 40;
 	}
-	
+
 	getAllUsers();
 </script>
 
@@ -187,10 +206,13 @@
 	<Button action={manualAdd} title="Manually add" />
 
 	{#if isAdmin && loadedUsers}
-		<Select bind:selected={userSelectRef} labelText="User To Import As (leave default for yourself)">
+		<Select
+			bind:selected={userSelectRef}
+			labelText="User To Import As (leave default for yourself)"
+		>
 			<SelectItem value="" text="" />
 			{#each allUsers as user}
-				<SelectItem value={user.id} text="{user.full_name}"/>
+				<SelectItem value={user.id} text={user.full_name} />
 			{/each}
 		</Select>
 	{/if}
