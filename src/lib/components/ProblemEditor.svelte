@@ -11,7 +11,7 @@
 		FileUploaderItem,
 	} from "carbon-components-svelte";
 
-	import { displayLatex, checkLatex } from "$lib/latexStuff.js";
+	import { displayLatex, checkLatex } from "$lib/latexStuff";
 	import { ProblemImage } from "$lib/getProblemImages";
 	import Problem from "$lib/components/Problem.svelte";
 	import LatexKeyboard from "$lib/components/editor/LatexKeyboard.svelte";

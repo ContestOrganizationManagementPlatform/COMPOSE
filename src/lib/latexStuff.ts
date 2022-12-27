@@ -1,7 +1,9 @@
 import katex from "katex";
+import type { ProblemImage } from "./getProblemImages";
 
 const allowedControls = [
 	"\\image",
+	"\\includegraphics",
 	"\\textbf",
 	"\\underline",
 	"\\textit",
@@ -181,11 +183,14 @@ export function checkLatex(str, field) {
 	return errorList;
 }
 
-const imageRegex = /\\image\{(.+?)\}/g;
+const imageRegex = /\\(?:image|includegraphics)(?:\[(.*?)\])?\{(.+?)\}/g;
 
 // Returns the list of image URLs found in the string
 export function searchImages(str) {
-	return [...str.matchAll(imageRegex)].map(x => x[1]); // only want capturing groups
+	return [...str.matchAll(imageRegex)].map((x) => ({
+		settings: x[1],
+		url: x[2],
+	})); // only want capturing groups
 }
 
 const macros = {
@@ -200,9 +205,14 @@ const macros = {
 	"\\Mod": "\\enspace(\\text{mod}\\ #1)",
 };
 
+const settingsRegex = {
+	scale: /scale=((?:\d|\.)+)/,
+};
+
 // display the math mode parts of latex, rest as plaintext
+// async for image loading
 // returns { out: output, errorList: [errors] }
-export function displayLatex(str, images) {
+export async function displayLatex(str: string, images: ProblemImage[]) {
 	let i = 0;
 	let out = "";
 	let curToken = "";
@@ -213,7 +223,7 @@ export function displayLatex(str, images) {
 	let dispStack = []; // stack of endings for italics, bolds, etc
 
 	// helper function to get next characters
-	function nxt(c) {
+	function nxt(c: number) {
 		return str.substring(i, i + c);
 	}
 	while (i < str.length) {
@@ -326,12 +336,18 @@ export function displayLatex(str, images) {
 			curToken += "\\underline{";
 			dispStack.push("</u>");
 			i += 11;
-		} else if (nxt(7) === "\\image{" && !esc) {
+		} else if (
+			(nxt(6) === "\\image" || nxt(16) === "\\includegraphics") &&
+			!esc
+		) {
 			// look for next }
-			i += 7;
+			i += nxt(3) === "\\im" ? 6 : 16;
+			let imgStart = i;
 			for (let j = i; j < str.length; j++) {
-				if (str[j] === "}") {
-					let imageName = str.substring(i, j);
+				if (str[j] === "{") {
+					imgStart = j + 1;
+				} else if (str[j] === "}") {
+					let imageName = str.substring(imgStart, j);
 					let image = images.find((img) => img.name === imageName);
 					if (!image) {
 						errorList.push({
@@ -339,7 +355,15 @@ export function displayLatex(str, images) {
 							sev: "warn",
 						});
 					} else {
-						out += `<img src='${image.url}' alt='${imageName}'/>`;
+						let scaleSetting = image.settings?.match(settingsRegex.scale) ?? [
+							"",
+							"1",
+						];
+						console.log(scaleSetting);
+						let percentage = Math.floor(parseFloat(scaleSetting[1]) * 100);
+						let dims = await image.getDimensions();
+						dims.width *= percentage / 100;
+						out += `<img src='${image.url}' alt='${imageName}' style="width: ${dims.width}px; height: auto;" />`;
 					}
 					i = j + 1;
 					break;

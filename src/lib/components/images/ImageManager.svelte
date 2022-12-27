@@ -11,6 +11,9 @@
 	import { Folder, Image, ArrowLeft } from "carbon-icons-svelte";
 	import { FileUploader, TextInput } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import { ProblemImage } from "$lib/getProblemImages";
+	import { fail } from "@sveltejs/kit";
+	import Modal from "../Modal.svelte";
 
 	const MAX_IMAGE_SIZE = 1024 * 1024;
 	const MAX_IMAGE_SIZE_READABLE = "1 mb";
@@ -23,6 +26,7 @@
 	let curListing = [];
 
 	let fileUploader: FileUploader;
+	let fileList = [];
 
 	async function loadFolder() {
 		curListing = await ImageBucket.getFolderFromList(curFolder);
@@ -61,6 +65,10 @@
 				);
 				return;
 			}
+			if (itemExists(img.name, "image")) {
+				cancelUpload(`Image ${img.name} is already present`);
+				return;
+			}
 		}
 	}
 
@@ -72,6 +80,26 @@
 		fileUploader.clearFiles();
 		uploadError = reason;
 		showUploadError = true;
+	}
+
+	async function submitImages(e: Event) {
+		e.preventDefault();
+		let imageList = fileList.map((f) => ProblemImage.fromFile(f));
+		let failedList = [];
+		for (const img of imageList) {
+			try {
+				await ImageBucket.addImage(folderString, img);
+			} catch (e) {
+				failedList.push(img.name);
+			}
+		}
+		if (failedList.length > 0) {
+			cancelUpload(
+				"The following files failed to upload: " + failedList.join(", ")
+			);
+		}
+		fileList = [];
+		loadFolder();
 	}
 
 	let showNewFolder = false;
@@ -129,6 +157,17 @@
 		loadFolder();
 	}
 
+	async function deleteImage(listing: ImageListing) {
+		const path = listing.fullName();
+		await ImageBucket.deleteImage(path);
+		if (curListing.length <= 2) {
+			// folder now empty, navigate back
+			curFolder = [];
+			folderString = "/";
+		}
+		loadFolder();
+	}
+
 	loadFolder();
 </script>
 
@@ -180,6 +219,13 @@
 							<p>Loading image...</p>
 						{:then img}
 							<img src={img.url} alt="Attached for problem" />
+							<br />
+							<Modal
+								runHeader="Delete"
+								onSubmit={() => deleteImage(listing)}
+								del
+								stopPropagation
+							/>
 						{/await}
 					</div>
 				{/if}
@@ -197,8 +243,10 @@
 			accept={ACCEPTED_IMAGE_FORMATS}
 			status="edit"
 			bind:this={fileUploader}
+			bind:files={fileList}
 			on:add={addImage}
 		/>
+		<Button action={submitImages} title="Submit images" />
 	</div>
 </div>
 

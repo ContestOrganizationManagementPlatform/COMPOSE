@@ -1,7 +1,7 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 
-	import { displayLatex, searchImages } from "$lib/latexStuff.js";
+	import { displayLatex, searchImages } from "$lib/latexStuff";
 	import { ImageBucket } from "$lib/ImageBucket";
 
 	export let problem; // whole object from database
@@ -47,17 +47,22 @@
 				fieldText
 			);
 			if (imageDownloadResult.errorList.length > 0) {
+				console.log("fail");
 				failed = true;
 				errorList.push(...imageDownloadResult.errorList);
 			}
 
-			const displayed = displayLatex(fieldText, imageDownloadResult.images);
+			const displayed = await displayLatex(
+				fieldText,
+				imageDownloadResult.images
+			);
 			displayed.errorList.forEach((x) => (x.field = field)); // add context to errors
 			errorList.push(...displayed.errorList);
 			latexes[field] = displayed.out;
 			for (const err of displayed.errorList) {
 				if (err.sev === "err") failed = true;
 			}
+			errorList = errorList;
 		}
 	}
 

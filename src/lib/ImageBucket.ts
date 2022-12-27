@@ -165,15 +165,16 @@ export const ImageBucket = {
 		for (const imageURL of imageList) {
 			let img: ProblemImage;
 			try {
-				img = await ImageBucket.getImage(imageURL);
+				img = await ImageBucket.getImage(imageURL.url);
 			} catch (e) {
 				errorList.push({
-					error: "Image failed to load: " + imageURL,
+					error: "Image failed to load: " + imageURL.url,
 					sev: "err",
 				});
 				continue;
 			}
-			img.name = imageURL;
+			img.name = imageURL.url;
+			img.settings = imageURL.settings;
 			images.push(img);
 		}
 
@@ -191,5 +192,28 @@ export const ImageBucket = {
 				isFake: true,
 			})
 		);
+	},
+	addImage: async (folder: string, image: ProblemImage) => {
+		if (!folder.endsWith("/")) folder += "/";
+		if (!folder.startsWith("/")) folder = "/" + folder;
+		const fullPath = folder + image.name;
+		console.log(fullPath);
+		const { error } = await supabase.storage
+			.from(BUCKET_NAME)
+			.upload(fullPath, image.blob);
+		if (error) throw new Error(error.message);
+
+		// remove fake folders, if contained in one
+		fakeFolderList = fakeFolderList.filter((ff) => {
+			return !fullPath.startsWith(ff.fullName());
+		});
+	},
+	deleteImage: async (imagePath: string) => {
+		console.log("Deleting ", imagePath);
+		if (imagePath.startsWith("/")) imagePath = imagePath.substring(1);
+		const { error } = await supabase.storage
+			.from(BUCKET_NAME)
+			.remove([imagePath]);
+		if (error) throw new Error(error.message);
 	},
 };
