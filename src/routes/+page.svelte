@@ -189,6 +189,7 @@
 					style="width: 100%"
 					min={0}
 					max={150}
+					step={0.1}
 					bind:value={amc_score}
 				/>
 			</div>
