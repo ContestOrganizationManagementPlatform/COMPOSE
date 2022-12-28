@@ -11,7 +11,7 @@
 		FileUploaderItem,
 	} from "carbon-components-svelte";
 
-	import { displayLatex, checkLatex } from "$lib/latexStuff.js";
+	import { displayLatex, checkLatex } from "$lib/latexStuff";
 	import { ProblemImage } from "$lib/getProblemImages";
 	import Problem from "$lib/components/Problem.svelte";
 	import LatexKeyboard from "$lib/components/editor/LatexKeyboard.svelte";
@@ -42,6 +42,7 @@
 	let problemFailed = false;
 	let submittedText = "";
 	let error = "";
+	let show = true;
 
 	let fields = {
 		problem: originalProblem?.problem_latex ?? "What is $1+1$?",
@@ -197,63 +198,100 @@
 						required={true}
 					/>
 				</FormGroup>
-				<TextArea
-					class="textArea"
-					labelText="Problem"
-					bind:value={fields.problem}
-					bind:ref={fieldrefs.problem}
-					on:input={updateFields}
-					required={true}
-				/>
-				{#if activeTextarea === "problem"}
+				<div style="position: relative;">
+					<TextArea
+						class="textArea"
+						labelText="Problem"
+						bind:value={fields.problem}
+						bind:ref={fieldrefs.problem}
+						on:input={updateFields}
+						required={true}
+					/>
+					<div style="position: absolute; top: 5px; right: 5px;">
+						{#if show}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+						{:else}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+						{/if}
+					</div>
+				</div>
+				{#if activeTextarea === "problem" && show}
 					<div class="stickyKeyboard">
 						<LatexKeyboard />
 					</div>
 				{/if}
 				<br />
 
-				<TextInput
-					class="textInput"
-					labelText="Answer"
-					bind:value={fields.answer}
-					bind:ref={fieldrefs.answer}
-					on:input={updateFields}
-					required={true}
-				/>
-				{#if activeTextarea === "answer"}
+				<div style="position: relative;">
+					<TextInput
+						class="textInput"
+						labelText="Answer"
+						bind:value={fields.answer}
+						bind:ref={fieldrefs.answer}
+						on:input={updateFields}
+						required={true}
+					/>
+					<div style="position: absolute; top: 5px; right: 5px;">
+						{#if show}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+						{:else}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+						{/if}
+					</div>
+				</div>
+				{#if activeTextarea === "answer" && show}
 					<div class="stickyKeyboard">
 						<LatexKeyboard />
 					</div>
 				{/if}
 				<br />
-				<TextArea
-					class="textArea"
-					labelText="Solution"
-					bind:value={fields.solution}
-					bind:ref={fieldrefs.solution}
-					on:input={updateFields}
-					required={true}
-				/>
-				{#if activeTextarea === "solution"}
+				
+				<div style="position: relative;">
+					<TextArea
+						class="textArea"
+						labelText="Solution"
+						bind:value={fields.solution}
+						bind:ref={fieldrefs.solution}
+						on:input={updateFields}
+						required={true}
+					/>
+					<div style="position: absolute; top: 5px; right: 5px;">
+						{#if show}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+						{:else}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+						{/if}
+					</div>
+				</div>
+				{#if activeTextarea === "solution" && show}
 					<div class="stickyKeyboard">
 						<LatexKeyboard />
 					</div>
 				{/if}
 				<br />
-				<TextArea
-					class="textArea"
-					labelText="Comments"
-					bind:value={fields.comment}
-					bind:ref={fieldrefs.comment}
-					on:input={updateFields}
-					required={true}
-				/>
-				{#if activeTextarea === "comment"}
+				
+				<div style="position: relative;">
+					<TextArea
+						class="textArea"
+						labelText="Comments"
+						bind:value={fields.comment}
+						bind:ref={fieldrefs.comment}
+						on:input={updateFields}
+						required={true}
+					/>
+					<div style="position: absolute; top: 5px; right: 5px;">
+						{#if show}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+						{:else}
+							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+						{/if}
+					</div>
+				</div>
+				{#if activeTextarea === "comment" && show}
 					<div class="stickyKeyboard">
 						<LatexKeyboard />
 					</div>
 				{/if}
-
 				<ImageManager />
 			</Form>
 		</div>

@@ -3,7 +3,6 @@
 	import KeyboardButton from "$lib/components/editor/KeyboardButton.svelte";
 
 	export let onClick = () => {};
-
 	function handleClick(beforeText, afterText) {
 		let el = document.activeElement;
 		if (el.nodeName !== "TEXTAREA") return;

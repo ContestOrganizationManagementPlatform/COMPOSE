@@ -11,7 +11,7 @@
 	async function loadLatex() {
 		const imageDownloadResult = await ImageBucket.downloadLatexImages(value);
 
-		rendered = displayLatex(value, imageDownloadResult.images);
+		rendered = await displayLatex(value, imageDownloadResult.images);
 	}
 	loadLatex();
 </script>

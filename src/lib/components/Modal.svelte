@@ -6,6 +6,7 @@
 	export let runHeader;
 	export let onSubmit;
 	export let del = false;
+	export let stopPropagation = false;
 </script>
 
 {#if del}
@@ -16,6 +17,7 @@
 		on:click={(e) => {
 			if (!open) {
 				e.preventDefault();
+				if (stopPropagation) e.stopPropagation();
 			}
 			open = true;
 		}}
@@ -29,6 +31,7 @@
 		on:click={(e) => {
 			if (!open) {
 				e.preventDefault();
+				if (stopPropagation) e.stopPropagation();
 			}
 			open = true;
 		}}

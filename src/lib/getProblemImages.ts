@@ -7,6 +7,7 @@ class ProblemImageConstructor {
 	size: number;
 	blob: Blob;
 	url?: string;
+	settings?: string;
 }
 
 export class ProblemImage {
@@ -15,13 +16,38 @@ export class ProblemImage {
 	size: number;
 	blob: Blob;
 	url: string;
+	settings: string;
+	dimensions?: {
+		width: number;
+		height: number;
+	};
 
-	constructor({ name, type, size, blob, url }: ProblemImageConstructor) {
+	constructor({
+		name,
+		type,
+		size,
+		blob,
+		url,
+		settings,
+	}: ProblemImageConstructor) {
 		this.name = name;
 		this.type = type;
 		this.size = size;
 		this.blob = blob;
 		this.url = url ?? URL.createObjectURL(blob);
+		this.settings = settings ?? "";
+	}
+
+	async getDimensions() {
+		if (this.dimensions) return this.dimensions;
+		let tempImage = new Image();
+		tempImage.src = this.url;
+		await tempImage.decode();
+		this.dimensions = {
+			width: tempImage.naturalWidth,
+			height: tempImage.naturalHeight,
+		};
+		return this.dimensions;
 	}
 
 	// sets name to empty

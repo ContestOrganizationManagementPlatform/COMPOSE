@@ -6,7 +6,7 @@
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import { InlineNotification } from "carbon-components-svelte";
-	import { displayLatex } from "$lib/latexStuff.js";
+	import { displayLatex } from "$lib/latexStuff";
 
 	let testId = $page.params.id;
 	let test;
