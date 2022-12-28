@@ -14,6 +14,14 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
+	let roleDictionary = {
+		0: "No role assigned",
+		10: "No permissions",
+		20: "Problem Contributor",
+		30: "Problem Writer",
+		40: "Administrator"
+	}
+
 	const user = supabase.auth.user();
 	let roles = [];
 	let isOpen = true;
@@ -82,7 +90,8 @@
 						<a href={"/admin/users/" + role.user_id}
 							><h3><strong>{role.name} ({role.initials})</strong></h3></a
 						>
-						<p><i>{role.user_id}</i></p>
+						<p><i style="font-style: italic;">{role.user_id}</i></p>
+						<p>Role: <i>{roleDictionary[role.role]}</i></p>
 						<br />
 						<Button title="Update" href={"/admin/users/" + role.user_id} />
 					</FormGroup>
