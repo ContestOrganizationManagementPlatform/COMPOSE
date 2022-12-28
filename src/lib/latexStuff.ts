@@ -147,16 +147,14 @@ export function checkLatex(str, field) {
 						curInd + res.ind - 5,
 						curInd + res.ind + 6
 					);
-					retErr.error = `Mismatched ${c1} around "${subStr}" (line ${
-						curLine + linesBetween
-					})`;
+					retErr.error = `Mismatched ${c1} around "${subStr}" (line ${curLine + linesBetween
+						})`;
 				} else if (res.err === -1) {
 					const linesBetween = (istr.substring(0, res.ind).match(/\n/g) || [])
 						.length;
 					const subStr = str.substring(curInd + res.ind - 10, curInd + res.ind);
-					retErr.error = `Mismatched ${c2} after "${subStr}" (line ${
-						curLine + linesBetween
-					})`;
+					retErr.error = `Mismatched ${c2} after "${subStr}" (line ${curLine + linesBetween
+						})`;
 				}
 				errorList.push(retErr);
 			}
@@ -202,7 +200,7 @@ const macros = {
 	"\\floor": "\\left\\lfloor #1 \\right\\rfloor",
 	"\\ceil": "\\left\\lceil #1 \\right\\rceil",
 	"\\VEC": "\\overrightarrow{#1}",
-	"\\Mod": "\\enspace(\\text{mod}\\ #1)",
+	"\\Mod": "\\enspace(\\text{mod}\\ #1)"
 };
 
 const settingsRegex = {
@@ -228,7 +226,15 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 	}
 	while (i < str.length) {
 		// here goes!
-		if (nxt(2) === "$$" && !esc) {
+		if (nxt(4) === "$\\_$" && !esc) {
+			if (!insideMath) out += "<span>_</span>";
+			curToken += "_";
+			i += 4;
+		} else if (nxt(4) === "$\\%$" && !esc) {
+			if (!insideMath) out += "<span>%</span>";
+			curToken += "%";
+			i += 4;
+		} else if (nxt(2) === "$$" && !esc) {
 			if (insideMath) {
 				if (!displayMode) {
 					errorList.push({
