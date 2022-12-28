@@ -62,7 +62,6 @@
 			for (const err of displayed.errorList) {
 				if (err.sev === "err") failed = true;
 			}
-			console.log(latexes.problem);
 			errorList = errorList;
 		}
 	}
