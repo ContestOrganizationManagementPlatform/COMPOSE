@@ -291,7 +291,7 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 			}
 			i++;
 		} else if (nxt(2) === "\n\n" && !esc) {
-			if (!insideMath) out += "<br>";
+			if (!insideMath) out += "<br><br>";
 			i += 2;
 		} else if (str[i] === "\n" && !esc) {
 			if (!insideMath) out += "\t";
