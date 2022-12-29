@@ -14,7 +14,7 @@ export async function POST({ request }) {
 							color: 6660998,
 							timestamp: body.created_at,
 							url:
-								"https://problem-writing-platform.vercel.app/problems/id/" +
+								"https://problem-writing-platform.vercel.app/problems/" +
 								body.id,
 							author: {
 								name: body.authorName,
