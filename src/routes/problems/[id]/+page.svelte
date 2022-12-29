@@ -43,7 +43,8 @@
 	}
 	fetchProblem();
 
-	async function submitProblem(payload) {
+	// this is never used?
+	/* async function submitProblem(payload) {
 		const { topics, ...payloadNoTopics } = payload;
 		let { data, error } = await supabase
 			.from("problems")
@@ -69,7 +70,7 @@
 			body: JSON.stringify(payload),
 		});
 		fetchProblem();
-	}
+	} */
 
 	async function deleteProblem() {
 		const { data, error } = await supabase

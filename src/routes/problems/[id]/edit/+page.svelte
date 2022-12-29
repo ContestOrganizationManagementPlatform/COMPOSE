@@ -63,10 +63,6 @@
 				topic_id: tp,
 			}))
 		);
-		const res = await fetch("/api/discord", {
-			method: "POST",
-			body: JSON.stringify(payload),
-		});
 
 		// delete all files already in the problem
 		const { data: fileList, error4 } = await supabase.storage
