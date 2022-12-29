@@ -68,7 +68,7 @@
 				}), // don't question it
 			});
 
-			// window.location.replace(`/problems/${problemId}`);
+			window.location.replace(`/problems/${problemId}`);
 		}
 	}
 
