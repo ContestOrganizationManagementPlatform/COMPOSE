@@ -50,7 +50,7 @@
 
 <Drawer
 	{open}
-	size={width > 850 ? "30%" : width > 600 ? "50%" : "100%"}
+	size={width > 1250 ? "30%" : width > 770 ? "50%" : "100%"}
 	placement="left"
 	on:clickAway={() => (open = false)}
 >

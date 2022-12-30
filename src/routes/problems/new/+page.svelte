@@ -56,19 +56,18 @@
 						upsert: true,
 					});
 			}
-
-			const res = await fetch("/api/discord", {
+			await fetch("/api/discord", {
 				method: "POST",
 				body: JSON.stringify({
 					problem: payload,
-					authorName,
+					authorName: authorName,
 					id: problemId,
 					created_at: data[0].created_at,
 					front_id: await getFrontID(problemId),
-				}), // don't question it
+				})
 			});
 
-			window.location.replace(`/problems/${problemId}`);
+			//window.location.replace(`/problems/${problemId}`);
 		}
 	}
 

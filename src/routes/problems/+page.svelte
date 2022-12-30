@@ -61,8 +61,8 @@
 		for (var key of keys) {
             preamble += "\\newcommand{" + key + "}[1]{" + macros[key] + "}"
 		}
-
-		let l = "/api/pdf-generator?latex=\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}" + preamble + "\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
+		
+		let l = import.meta.env.VITE_PDF_GENERATOR_LINK + "\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}" + preamble + "\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
 
 		for (const problem of problems) {
 			l += "\\section*{Problem " + problem.front_id + "}";
