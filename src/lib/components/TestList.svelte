@@ -53,7 +53,6 @@
 		problemCounts = problemCountsData.sort(
 			(a, b) => b.problem_count - a.problem_count
 		);
-		loaded = true;
 	})();
 	let editHeader = { key: "edit", value: "", width: "20px" };
 
