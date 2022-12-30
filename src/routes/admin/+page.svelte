@@ -11,7 +11,13 @@
 <Button href="/admin/users" title="Users" />
 <br />
 <br />
-<Button href="/admin/tests" title="Check out tests" />
+<Button href="/admin/tests" title="Tests" />
 <br />
 <br />
-<Button href="/admin/tournaments" title="Check out tournaments" />
+<Button href="/manage-testsolves" title="Manage Testsolves" />
+<br />
+<br />
+<Button href="/admin/transfer-problem" title="Transfer Problem" />
+<br />
+<br />
+<Button href="/admin/tournaments" title="Tournaments" />
