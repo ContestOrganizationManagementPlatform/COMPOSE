@@ -2,6 +2,7 @@
 	import { supabase } from "$lib/supabaseClient";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
+	import { ImageBucket } from "$lib/ImageBucket";
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -56,6 +57,18 @@
 						upsert: true,
 					});
 			}
+
+			let imageDownloadResult = await ImageBucket.downloadLatexImages(payload.problem_latex);
+			let imageName = "";
+			if (imageDownloadResult.images.length > 0) {
+				imageName = await ImageBucket.getImageURL(imageDownloadResult.images[0].name);
+			} else {
+				imageDownloadResult = await ImageBucket.downloadLatexImages(payload.solution_latex);
+				if (imageDownloadResult.images.length > 0) {
+					imageName = await ImageBucket.getImageURL(imageDownloadResult.images[0].name);
+				}
+			}
+
 			await fetch("/api/discord", {
 				method: "POST",
 				body: JSON.stringify({
@@ -64,6 +77,7 @@
 					id: problemId,
 					created_at: data[0].created_at,
 					front_id: await getFrontID(problemId),
+					image: imageName
 				})
 			});
 

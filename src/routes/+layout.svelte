@@ -179,7 +179,8 @@
 		flex-direction: column;
 	}
 	:global(.profileButtons .button),
-	:global(.profileButtons .button:focus) {
+	:global(.profileButtons .button:focus),
+	:global(.bx--btn--primary) {
 		border-color: transparent !important;
 		background-color: var(--green) !important;
 		transition: all 0.3s ease-out;

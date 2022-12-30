@@ -15,6 +15,8 @@
 	import { fail } from "@sveltejs/kit";
 	import Modal from "../Modal.svelte";
 
+	export let add: any;
+
 	const MAX_IMAGE_SIZE = 1024 * 1024;
 	const MAX_IMAGE_SIZE_READABLE = "1 mb";
 	const MAX_NAME_LENGTH = 32;
@@ -39,6 +41,7 @@
 	}
 
 	async function openItem(listing: ImageListing) {
+		console.log(listing);
 		if (listing.type === "folder") {
 			if (listing.special === "back") {
 				curFolder.pop();
@@ -52,6 +55,7 @@
 		} else if (listing.type === "image") {
 			listing.expanded = !listing.expanded;
 			curListing = curListing;
+			add("problem", " $\\image{" + listing.folderString + listing.name + "}$")
 		}
 	}
 
@@ -239,7 +243,7 @@
 			buttonLabel="Upload files"
 			labelDescription={`Accepts ${ACCEPTED_IMAGE_FORMATS.join(
 				", "
-			)}. ${MAX_IMAGE_SIZE_READABLE} max each (but please try and use smaller images). To use in the problem, use \image{<image file path>}`}
+			)}. ${MAX_IMAGE_SIZE_READABLE} max each (but please try and use smaller images). To use in the problem, use \\image{<image file path>}`}
 			accept={ACCEPTED_IMAGE_FORMATS}
 			status="edit"
 			bind:this={fileUploader}

@@ -154,6 +154,16 @@ export const ImageBucket = {
 		}
 		return ProblemImage.fromBlob(data);
 	},
+	// note: imageLocation is in the form 'folder/avatar1.png'
+	getImageURL: async (imageLocation: string) => {
+		let { data, error } = await supabase.storage
+			.from(BUCKET_NAME)
+			.getPublicUrl(imageLocation);
+		if (error) {
+			throw new Error(error.message);
+		}
+		return data.publicURL;
+	},
 	// Downloads all the images found in the given latex string.
 	downloadLatexImages: async (latex: string) => {
 		const imageList = searchImages(latex);
