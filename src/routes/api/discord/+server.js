@@ -1,4 +1,10 @@
-import { EmbedBuilder, WebhookClient, ButtonStyle, ButtonBuilder, ActionRowBuilder } from 'discord.js';
+import {
+	EmbedBuilder,
+	WebhookClient,
+	ButtonStyle,
+	ButtonBuilder,
+	ActionRowBuilder,
+} from "discord.js";
 
 export async function POST({ request }) {
 	let token = import.meta.env.VITE_DISCORD_TOKEN;
@@ -11,7 +17,12 @@ export async function POST({ request }) {
 		let topics = "None";
 		if (body.problem.topics && body.problem.topics.length > 0) {
 			topics = body.problem.topics
-				.map((element) => ["", "Algebra", "Combinatorics", "Geometry", "Number Theory"][element])
+				.map(
+					(element) =>
+						["", "Algebra", "Combinatorics", "Geometry", "Number Theory"][
+							element
+						]
+				)
 				.join(", ");
 		}
 
@@ -35,9 +46,7 @@ export async function POST({ request }) {
 				{
 					name: "Sub-Topics",
 					value:
-						body.problem.sub_topics != ""
-							? body.problem.sub_topics
-							: "None",
+						body.problem.sub_topics != "" ? body.problem.sub_topics : "None",
 					inline: true,
 				},
 				{
@@ -63,24 +72,28 @@ export async function POST({ request }) {
 				}
 			);
 		
+		if (body.image != "") {
+			embed.setImage(body.image);
+		}
+
 		const buttonRow = new ActionRowBuilder().addComponents(
 			new ButtonBuilder()
 				.setLabel("View Problem")
-				.setURL("https://compose.mustangmath.com/problems/id/" + body.id)
+				.setURL("https://compose.mustangmath.com/problems/" + body.id)
 				.setStyle(ButtonStyle.Link),
 			new ButtonBuilder()
 				.setLabel("Edit Problem")
-				.setURL("https://compose.mustangmath.com/problems/id/" + body.id + "/edit")
+				.setURL("https://compose.mustangmath.com/problems/" + body.id + "/edit")
 				.setStyle(ButtonStyle.Link)
 		);
-		
+
 		webhookClient.send({
-			username: 'Problem Writing Platform',
+			username: "Problem Writing Platform",
 			avatarURL: "https://mustangmath.com/logo.png",
 			embeds: [embed],
-			components: [buttonRow]
+			components: [buttonRow],
 		});
-		
+
 		return new Response("Works!", {
 			status: 200,
 			headers: { "content-type": "application/text" },

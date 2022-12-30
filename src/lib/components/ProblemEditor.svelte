@@ -84,6 +84,10 @@
 		activeTextarea = null;
 	}
 
+	function addToField(fieldName, fieldValue) {
+		fields[fieldName] += fieldValue;
+	}
+
 	function updateFields() {
 		errorList = [];
 		let failed = false;
@@ -292,7 +296,7 @@
 						<LatexKeyboard />
 					</div>
 				{/if}
-				<ImageManager />
+				<ImageManager add={addToField} />
 			</Form>
 		</div>
 
