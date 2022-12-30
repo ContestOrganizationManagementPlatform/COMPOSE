@@ -9,7 +9,7 @@ const config = {
 		optimizeImports()
 	],
 	kit: {
-		adapter: adapter(),
+		adapter: adapter()
 	},
 };
 

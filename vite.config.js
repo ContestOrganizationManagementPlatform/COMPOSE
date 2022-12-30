@@ -12,6 +12,9 @@ const config = {
 	plugins: [sveltekit(), fs(), builtinsPlugin],
 	server: {
 		port: 3000,
+	},
+	ssr: {
+		noExternal: ["chart.js"]
 	}
 };
 
