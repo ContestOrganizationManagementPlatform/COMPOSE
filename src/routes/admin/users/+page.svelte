@@ -1,18 +1,19 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import {
-		TextInput,
-		Form,
-		FormGroup,
-		Select,
 		InlineNotification,
-		SelectItem,
+		DataTable,
+		Link,
+		Toolbar,
+		ToolbarContent,
+		ToolbarSearch,
+		Pagination,
 	} from "carbon-components-svelte";
-	import Button from "$lib/components/Button.svelte";
-	import Modal from "$lib/components/Modal.svelte";
 
 	let errorTrue = false;
 	let errorMessage = "";
+	let pageSize = 25;
+	let page = 1;
 
 	let roleDictionary = {
 		0: "No role assigned",
@@ -22,9 +23,8 @@
 		40: "Administrator"
 	}
 
-	const user = supabase.auth.user();
 	let roles = [];
-	let isOpen = true;
+
 	async function roleManager() {
 		let { data: users, error } = await supabase
 			.from("users")
@@ -34,34 +34,18 @@
 			errorTrue = true;
 			errorMessage = error.message;
 		}
-		roles = [];
+		let roles2 = [];
 		for (let user of users) {
 			const curRole = user.user_roles[0]?.role ?? 0;
-			roles.push({
-				user_id: user.id,
-				role: curRole + "",
+			roles2.push({
+				edit: user.id + "test",
+				id: user.id,
+				role: roleDictionary[curRole],
 				name: user.full_name,
 				initials: user.initials,
 			});
 		}
-		roles = roles;
-	}
-
-	async function addRoleToUser(user_id, roleNum) {
-		if (roleNum === "0") {
-			// special, delete role
-			let { error } = await supabase
-				.from("user_roles")
-				.delete()
-				.eq("user_id", user_id);
-			if (error) alert(error.message);
-		} else {
-			let { error } = await supabase.from("user_roles").upsert({
-				user_id,
-				role: roleNum,
-			});
-			if (error) alert(error.message);
-		}
+		roles = roles2;
 	}
 
 	roleManager();
@@ -82,35 +66,47 @@
 {/if}
 
 <div style="padding: 10px;">
-	<Form>
-		<div class="grid-thirds">
-			{#each roles as role}
-				<div class="box" style="padding-bottom: 0 !important;">
-					<FormGroup disabled={role.user_id === user.id}>
-						<a href={"/admin/users/" + role.user_id}
-							><h3><strong>{role.name} ({role.initials})</strong></h3></a
+<DataTable
+		sortable
+		size="compact"
+		headers={[
+			{ key: "edit", value: "", width: "50px" },
+			{ key: "name", value: "Name" },
+			{ key: "initials", value: "Initials", width: "100px" },
+			{ key: "role", value: "Role" },
+			{ key: "id", value: "ID"},
+		]}
+		rows={roles}
+		{pageSize}
+		{page}
+	>
+		<Toolbar size="sm">
+			<ToolbarContent>
+				<ToolbarSearch persistent shouldFilterRows />
+			</ToolbarContent>
+		</Toolbar>
+
+		<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
+			<div>
+				{#if cell.key === "edit"}
+					<div class="pencil">
+						<Link class="link" href={"/admin/users/" + row.id}
+							><i class="ri-pencil-fill" /></Link
 						>
-						<p><i style="font-style: italic;">{role.user_id}</i></p>
-						<p>Role: <i>{roleDictionary[role.role]}</i></p>
-						<br />
-						<Button title="Update" href={"/admin/users/" + role.user_id} />
-					</FormGroup>
-				</div>
-			{/each}
-		</div>
-	</Form>
+					</div>
+				{:else}
+					<div style="overflow: hidden;">
+						{cell.value == null || cell.value == "" ? "None" : cell.value}
+					</div>
+				{/if}
+			</div>
+		</svelte:fragment>
+	</DataTable>
+
+	<Pagination
+		bind:pageSize
+		bind:page
+		totalItems={roles.length}
+		pageSizeInputDisabled
+	/>
 </div>
-
-<style>
-	a {
-		text-decoration: none;
-		color: black;
-	}
-
-	.box {
-		background-color: var(--white);
-		border: 1px solid var(--green);
-		margin: 10px;
-		padding: 5px 20px;
-	}
-</style>

@@ -5,9 +5,15 @@
 		DataTable,
 		Link,
 		InlineNotification,
+		Toolbar,
+		ToolbarContent,
+		ToolbarSearch,
+		Pagination,
 	} from "carbon-components-svelte";
 
-	let tests = [];
+	let rows = [];
+	let pageSize = 25;
+	let page = 1;
 	let tournaments = {};
 
 	let errorTrue = false;
@@ -22,6 +28,8 @@
 			errorMessage = error.message;
 		}
 
+		let rowValues = [];
+
 		for (const test of testList) {
 			if (!tournaments[test.tournament_id]) {
 				tournaments[test.tournament_id] = {
@@ -30,7 +38,16 @@
 				};
 			}
 			tournaments[test.tournament_id].tests.push(test);
+			rowValues.push({
+				id: test.id,
+				edit: test.id,
+				competition: test.tournaments.tournament_name,
+				name: test.test_name,
+				description: test.test_description
+			})
 		}
+
+		rows = rowValues;
 	}
 
 	getTests();
@@ -50,45 +67,54 @@
 <br />
 <h1>View Tests</h1>
 <br />
-<div style="padding: 10px;" class="grid">
-	{#each Object.values(tournaments) as tournament}
-		<div class="box">
-			<h3 style="margin-bottom: 10px;"><strong>{tournament.name}</strong></h3>
-			<div class="miniGrid">
-				{#each tournament.tests as test, i}
-					<div class="miniBox">
-						<h5>Test {i + 1}</h5>
-						<p><strong>Name:</strong> {test.test_name}</p>
-						<p><strong>Description:</strong> {test.test_description}</p>
-						<div style="margin: 5px;">
-							<Button href={"/tests/" + test.id} title="View" />
-						</div>
+<div style="padding: 10px;">
+	<DataTable
+		sortable
+		size="compact"
+		headers={[
+			{ key: "edit", value: "", width: "50px" },
+			{ key: "id", value: "ID", width: "100px" },
+			{ key: "competition", value: "Competition" },
+			{ key: "name", value: "Name" },
+			{ key: "description", value: "Description" },
+		]}
+		{rows}
+		{pageSize}
+		{page}
+	>
+		<Toolbar size="sm">
+			<ToolbarContent>
+				<ToolbarSearch persistent shouldFilterRows />
+			</ToolbarContent>
+		</Toolbar>
+
+		<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
+			<div>
+				{#if cell.key === "edit"}
+					<div class="pencil">
+						<Link class="link" href={"/tests/" + row.id}
+							><i class="ri-pencil-fill" /></Link
+						>
 					</div>
-				{/each}
+				{:else}
+					<div style="overflow: hidden;">
+						{cell.value == null || cell.value == "" ? "None" : cell.value}
+					</div>
+				{/if}
 			</div>
-		</div>
-	{/each}
+		</svelte:fragment>
+	</DataTable>
+
+	<Pagination
+		bind:pageSize
+		bind:page
+		totalItems={rows.length}
+		pageSizeInputDisabled
+	/>
 </div>
 
 <style>
-	.box {
-		background-color: var(--white);
-		border: 1px solid var(--green);
-		margin: 10px;
-		padding: 10px 20px;
-	}
-
-	.grid {
-		display: grid;
-		grid-template-columns: 50% 50%;
-	}
-
-	.miniGrid {
-		display: grid;
-		grid-template-columns: 100%;
-		grid-gap: 5px;
-	}
-	.miniBox {
-		border-bottom: 2px solid var(--green);
+	:global(.bx--search-input:focus:not([disabled])) {
+		outline: none !important;
 	}
 </style>
