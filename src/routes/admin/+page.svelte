@@ -8,7 +8,7 @@
 <br />
 <h1>Admin: Portal</h1>
 <br />
-<Button href="/admin/roles" title="Roles" />
+<Button href="/admin/users" title="Users" />
 <br />
 <br />
 <Button href="/admin/tests" title="Check out tests" />
