@@ -8,8 +8,11 @@
 	import { browser } from "$app/environment";
 	import { user } from "$lib/sessionStore";
 	import { onMount } from "svelte";
+	import { page } from "$app/stores";
 
 	let loaded = false;
+
+	console.log($page.route.id);
 
 	let hasAccount = true;
 	// user.set(browser ? localStorage.getItem("user") : null);
@@ -32,7 +35,7 @@
 		<div class="loadingPage flex">
 			<Loading />
 		</div>
-	{:else if !$user && hasAccount}
+	{:else if !$user && hasAccount && $page.route.id != "/password-reset"}
 		<Banner />
 		<br />
 		<div class="flex">
@@ -58,7 +61,7 @@
 				</div>
 			</div>
 		</div>
-	{:else if !$user && !hasAccount}
+	{:else if !$user && !hasAccount && $page.route.id != "/password-reset"}
 	<Banner />
 		<br />
 		<div class="flex">
