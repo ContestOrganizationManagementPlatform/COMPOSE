@@ -38,15 +38,18 @@ export class ProblemImage {
 		this.settings = settings ?? "";
 	}
 
-	async getDimensions() {
-		if (this.dimensions) return this.dimensions;
+	async loadDimensions() {
 		let tempImage = new Image();
 		tempImage.src = this.url;
-		await tempImage.decode();
+		await tempImage.decode()
 		this.dimensions = {
 			width: tempImage.naturalWidth,
 			height: tempImage.naturalHeight,
 		};
+	}
+
+	getDimensions() {
+		if (!this.dimensions) throw "Dimensions not yet initialized";
 		return this.dimensions;
 	}
 
