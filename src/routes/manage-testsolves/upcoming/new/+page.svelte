@@ -2,12 +2,14 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { Select, SelectItem } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import Loading from "$lib/components/Loading.svelte";
 
 	let finalUser = "";
 	let finalTest = "";
 	let users = [];
 	let tests = [];
 	let loading = true;
+	let message = "";
 
 	async function getUsers() {
 		let { data: usersInfo, error } = await supabase.from("users").select("*");
@@ -26,42 +28,50 @@
 	getTests();
 </script>
 
+<br />
 <h1>Create New Testsolve</h1>
 
-{#if loading}
-	<p>Loading...</p>
-{:else}
-	<Select labelText="Testsolver" bind:selected={finalUser}>
-		<SelectItem text="" value="" />
-		{#each users as user}
-			<SelectItem
-				text={user.full_name + " (" + user.id + ")"}
-				value={user.id}
-			/>
-		{/each}
-	</Select>
-	<Select labelText="Test" bind:selected={finalTest}>
-		<SelectItem text="" value="" />
-		{#each tests as test}
-			<SelectItem
-				text={test.test_name + " (" + test.id + ")"}
-				value={test.id}
-			/>
-		{/each}
-	</Select>
-	<Button
-		title="Submit"
-		action={async () => {
-			if (finalTest === "" || finalUser === "") {
-				alert("Please select a test and a user");
-			} else {
-				console.log(finalTest);
-				console.log(finalUser);
-				const { data, error } = await supabase
-					.from("testsolvers")
-					.insert([{ test_id: finalTest, solver_id: finalUser }]);
-				if (error) alert(error.message);
-			}
-		}}
-	/>
-{/if}
+<div style="padding: 20px;">
+	{#if loading}
+		<Loading />
+	{:else}
+		<Select labelText="Testsolver" bind:selected={finalUser}>
+			<SelectItem text="" value="" />
+			{#each users as user}
+				<SelectItem
+					text={user.full_name}
+					value={user.id}
+				/>
+			{/each}
+		</Select>
+		<br />
+		<Select labelText="Test" bind:selected={finalTest}>
+			<SelectItem text="" value="" />
+			{#each tests as test}
+				<SelectItem
+					text={test.test_name}
+					value={test.id}
+				/>
+			{/each}
+		</Select>
+		<br />
+		<Button
+			title="Submit"
+			action={async () => {
+				if (finalTest === "" || finalUser === "") {
+					alert("Please select a test and a user");
+				} else {
+					message = "";
+					console.log(finalTest);
+					console.log(finalUser);
+					const { data, error } = await supabase
+						.from("testsolvers")
+						.insert([{ test_id: finalTest, solver_id: finalUser }]);
+					if (error) alert(error.message);
+					message = "Success! Added testsolve.";
+				}
+			}}
+		/>
+		<p>{message}</p>
+	{/if}
+</div>

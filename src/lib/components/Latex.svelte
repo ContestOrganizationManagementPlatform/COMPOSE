@@ -4,7 +4,7 @@
 	import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
 	import { unified } from "unified";
 	import { processLatexViaUnified } from "@unified-latex/unified-latex";
-	import { rehypeStringify } from "rehype-stringify";
+	import rehypeStringify from "rehype-stringify";
 
 	export let style = "";
 	export let value;
@@ -21,8 +21,6 @@
 			.use(unifiedLatexToHast)
 			.use(rehypeStringify)
 			.processSync(value).value;
-		
-		console.log(unifiedStr);
 	}
 	loadLatex();
 </script>

@@ -32,7 +32,7 @@
 <br />
 <h1 style="margin-bottom: 5px;">Upcoming Testsolves</h1>
 <Button href="/manage-testsolves/past" title="Look at past testsolves" />
-<Button href="/manage-testsolves/new" title="Create new testsolve" />
+<Button href="/manage-testsolves/upcoming/new" title="Create new testsolve" />
 
 {#if loading}
 	<Loading />
