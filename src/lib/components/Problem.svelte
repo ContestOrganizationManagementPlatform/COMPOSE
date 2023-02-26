@@ -3,6 +3,10 @@
 
 	import { displayLatex, searchImages } from "$lib/latexStuff";
 	import { ImageBucket } from "$lib/ImageBucket";
+	import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
+	import { unified } from "unified";
+	import { processLatexViaUnified } from "@unified-latex/unified-latex";
+	import rehypeStringify from "rehype-stringify";
 
 	export let problem; // whole object from database
 	export let showMetadata = false;
@@ -47,7 +51,6 @@
 				fieldText
 			);
 			if (imageDownloadResult.errorList.length > 0) {
-				console.log("fail");
 				failed = true;
 				errorList.push(...imageDownloadResult.errorList);
 			}

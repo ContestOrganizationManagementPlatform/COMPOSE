@@ -1,6 +1,10 @@
 <script>
 	import { displayLatex } from "$lib/latexStuff";
 	import { ImageBucket } from "$lib/ImageBucket";
+	import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
+	import { unified } from "unified";
+	import { processLatexViaUnified } from "@unified-latex/unified-latex";
+	import rehypeStringify from "rehype-stringify";
 
 	export let style = "";
 	export let value;
@@ -12,6 +16,11 @@
 		const imageDownloadResult = await ImageBucket.downloadLatexImages(value);
 
 		rendered = await displayLatex(value, imageDownloadResult.images);
+
+		let unifiedStr = processLatexViaUnified()
+			.use(unifiedLatexToHast)
+			.use(rehypeStringify)
+			.processSync(value).value;
 	}
 	loadLatex();
 </script>

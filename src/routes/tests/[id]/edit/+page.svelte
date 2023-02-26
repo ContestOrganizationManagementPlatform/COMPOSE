@@ -171,6 +171,7 @@
 					problems={allProblems}
 					condensed
 					selectable
+					showUnresolved={false}
 					editable={false}
 					bind:selectedItems={selectedAll}
 					disableAll={refreshingProblems}
@@ -183,6 +184,7 @@
 					condensed
 					selectable
 					draggable
+					showUnresolved={false}
 					editable={false}
 					pageEnabled={false}
 					bind:selectedItems={selectedTest}

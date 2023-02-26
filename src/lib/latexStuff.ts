@@ -1,5 +1,9 @@
 import katex from "katex";
+import renderMathInElement from "katex/dist/contrib/auto-render";
 import type { ProblemImage } from "./getProblemImages";
+import { processLatexViaUnified } from "@unified-latex/unified-latex";
+import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
+import rehypeStringify from "rehype-stringify";
 
 const allowedControls = [
 	"\\image",
@@ -46,148 +50,17 @@ function checkMismatch(str, c1, c2, ignoreBackslash) {
 }
 
 export function checkLatex(str, field) {
-	let errorList = [];
-
-	// check mismatching $
-	let dollarCount = 0,
-		skip = false;
-	let curLine = 1;
-	for (let i = 0; i < str.length; i++) {
-		if (skip) {
-			skip = false;
-			continue;
-		}
-		switch (str[i]) {
-			case "\\":
-				if (str[i + 1] === " " || !str[i + 1]) {
-					errorList.push({
-						error: `Backslash not escaping anything. If you want a set difference, use \\setminus. If you want an actual backslash, use \\textbackslash{}. (line ${curLine})`,
-						sev: "warn",
-					});
-				}
-				skip = true;
-				break;
-			case "$":
-				dollarCount++;
-				break;
-			case "\n":
-				curLine++;
-				break;
-			case "#":
-			case "&":
-				errorList.push({
-					error: `${str[i]} character used, make sure to use \\${str[i]} if you want it displayed as text (line ${curLine})`,
-					sev: "warn",
-				});
-				break;
-			case "~":
-				errorList.push({
-					error: `~ character used, make sure to use \\~{} if you want it displayed as text (line ${curLine})`,
-					sev: "info",
-				});
-				break;
-		}
-	}
-	if (dollarCount % 2 === 1) {
-		errorList.push({
-			error: "Mismatching $ signs",
-			sev: "err",
-		});
-	}
-
-	// check for \ans in solution
-	if (field === "solution" && str !== "") {
-		if (!str.match("\\ans")) {
-			errorList.push({
-				error: "Missing \\ans in solution",
-				sev: "err",
-			});
-		}
-	}
-
-	// check mismatched ()
-	const parenMis = checkMismatch(str, "(", ")", true);
-	if (parenMis.err !== 0) {
-		let retErr = {
-			error: "",
-			sev: "warn",
-		};
-		if (parenMis.err === 1) {
-			const subStr = str.substring(parenMis.ind - 5, parenMis.ind + 6);
-			retErr.error = `Mismatched ( around "${subStr}"`;
-		} else if (parenMis.err === -1) {
-			const subStr = str.substring(parenMis.ind - 10, parenMis.ind);
-			retErr.error = `Mismatched ) after "${subStr}"`;
-		}
-		errorList.push(retErr);
-	}
-
-	// check between $$
-	const dollarList = str.match(/[^$]*(\$\$|\$|.$)/gm) || [];
-	let curInd = 0; // current index in actual string
-	curLine = 1;
-	let inDollars = false;
-	for (const istr of dollarList) {
-		// check mismatching brackets
-		const bracketList = [
-			["{", "}", "err"],
-			["[", "]", "err"],
-		];
-		for (const [c1, c2, sev] of bracketList) {
-			const res = checkMismatch(istr, c1, c2, true);
-			if (res.err !== 0) {
-				let retErr = {
-					error: "",
-					sev: sev,
-				};
-				if (res.err === 1) {
-					const linesBetween = (istr.substring(0, res.ind).match(/\n/g) || [])
-						.length;
-					const subStr = str.substring(
-						curInd + res.ind - 5,
-						curInd + res.ind + 6
-					);
-					retErr.error = `Mismatched ${c1} around "${subStr}" (line ${curLine + linesBetween
-						})`;
-				} else if (res.err === -1) {
-					const linesBetween = (istr.substring(0, res.ind).match(/\n/g) || [])
-						.length;
-					const subStr = str.substring(curInd + res.ind - 10, curInd + res.ind);
-					retErr.error = `Mismatched ${c2} after "${subStr}" (line ${curLine + linesBetween
-						})`;
-				}
-				errorList.push(retErr);
-			}
-		}
-
-		// check control sequences
-		if (!inDollars) {
-			const controlMatch = istr.match(/\\\w+/g) || [];
-			for (const cc of controlMatch) {
-				if (!allowedControls.includes(cc)) {
-					errorList.push({
-						error: `Control sequence ${cc} is outside of $$. Make sure this is intentional!`,
-						sev: "info",
-					});
-				}
-			}
-		}
-
-		curInd += istr.length;
-		curLine += (istr.match("\n") || []).length;
-		inDollars = !inDollars;
-	}
-
-	return errorList;
+	return []; // defunct
 }
 
 const imageRegex = /\\(?:image|includegraphics)(?:\[(.*?)\])?\{(.+?)\}/g;
 
 // Returns the list of image URLs found in the string
 export function searchImages(str) {
-	return [...str.matchAll(imageRegex)].map((x) => ({
+	return [...str.matchAll(imageRegex)].map((x, i) => ({
 		settings: x[1],
 		url: x[2],
+		index: i
 	})); // only want capturing groups
 }
 
@@ -207,185 +80,112 @@ const settingsRegex = {
 	scale: /scale=((?:\d|\.)+)/,
 };
 
-// display the math mode parts of latex, rest as plaintext
-// async for image loading
-// returns { out: output, errorList: [errors] }
+const processor = processLatexViaUnified()
+	.use(unifiedLatexToHast)
+	.use(rehypeStringify);
+
+// workaround to make images not get parsed
+const placeholderText = "PARSETHISIMAGELATER6358272";
+const placeholderEnd = "ENDPLACEHOLDER671384256";
+const placeholderRegex = /PARSETHISIMAGELATER6358272(.*?)ENDPLACEHOLDER671384256/g;
+
 export async function displayLatex(str: string, images: ProblemImage[]) {
-	let i = 0;
-	let out = "";
-	let curToken = "";
-	let insideMath = false;
-	let esc = false;
 	let errorList = [];
-	let displayMode = false;
-	let dispStack = []; // stack of endings for italics, bolds, etc
 
-	// helper function to get next characters
-	function nxt(c: number) {
-		return str.substring(i, i + c);
+	str = str.replaceAll(imageRegex, (_m, _settings, imageName) => {
+		return placeholderText + imageName + placeholderEnd;
+	});
+
+	let unifiedStr = str;
+	try {
+		unifiedStr = processor.processSync(str).value as string;
+	} catch (e) {
+		errorList.push({
+			error: e.toString(),
+			sev: "err",
+		});
 	}
-	while (i < str.length) {
-		// here goes!
-		if (nxt(2) === "$$" && !esc) {
-			if (insideMath) {
-				if (!displayMode) {
-					errorList.push({
-						error: "Mismatched display mode $$ vs inline mode $",
-						sev: "err",
-					});
-				}
-				try {
-					out += katex.renderToString(curToken, {
-						throwOnError: true,
-						output: "html",
-						displayMode: true,
-						macros: macros,
-					});
-				} catch (err) {
-					errorList.push({
-						error: err.toString(),
-						sev: "warn",
-					});
-					out += "ERROR";
-				}
-				insideMath = false;
-				curToken = "";
-			} else {
-				insideMath = true;
-				curToken = "";
-				displayMode = true;
-			}
-			i += 2;
-		} else if (str[i] === "$") {
-			if (esc) {
-				out += "$";
-				curToken += "$";
-			} else if (insideMath) {
-				if (displayMode) {
-					errorList.push({
-						error: "Mismatched display mode $$ vs inline mode $",
-						sev: "err",
-					});
-				}
-				try {
-					out += katex.renderToString(curToken, {
-						throwOnError: true,
-						output: "html",
-						macros: macros,
-					});
-				} catch (err) {
-					errorList.push({
-						error: err.toString(),
-						sev: "warn",
-					});
-					out += "ERROR";
-				}
-				insideMath = false;
-				curToken = "";
-			} else {
-				insideMath = true;
-				curToken = "";
-				displayMode = false;
-			}
-			i++;
-		} else if (nxt(2) === "\n\n" && !esc) {
-			if (!insideMath) out += "<br><br>";
-			i += 2;
-		} else if (str[i] === "\n" && !esc) {
-			if (!insideMath) out += "\t";
-			i++;
-		} else if (str[i] === "<") {
-			if (!insideMath) out += "&lt;";
-			curToken += "<";
-			i++;
-		} else if (str[i] === ">") {
-			if (!insideMath) out += "&gt;";
-			curToken += ">";
-			i++;
-		} else if (str[i] === "{" && !esc) {
-			if (!insideMath) out += "{";
-			curToken += "{";
-			dispStack.push("}");
-			i++;
-		} else if (str[i] === "}" && !esc) {
-			if (dispStack.length !== 0) {
-				const cc = dispStack.pop();
-				if (!insideMath) out += cc;
-				curToken += cc;
-			}
-			i++;
-		} else if (nxt(6) === "\\emph{" && !esc) {
-			if (!insideMath) out += "<i>";
-			curToken += "\\emph{";
-			dispStack.push("</i>");
-			i += 6;
-		} else if (nxt(8) === "\\textit{" && !esc) {
-			if (!insideMath) out += "<i>";
-			curToken += "\\textit{";
-			dispStack.push("</i>");
-			i += 8;
-		} else if (nxt(8) === "\\textbf{" && !esc) {
-			if (!insideMath) out += "<b>";
-			curToken += "\\textbf{";
-			dispStack.push("</b>");
-			i += 8;
-		} else if (nxt(11) === "\\underline{" && !esc) {
-			if (!insideMath) out += "<u>";
-			curToken += "\\underline{";
-			dispStack.push("</u>");
-			i += 11;
-		} else if (
-			(nxt(6) === "\\image" || nxt(16) === "\\includegraphics") &&
-			!esc
-		) {
-			// look for next }
-			i += nxt(3) === "\\im" ? 6 : 16;
-			let imgStart = i;
-			for (let j = i; j < str.length; j++) {
-				if (str[j] === "{") {
-					imgStart = j + 1;
-				} else if (str[j] === "}") {
-					let imageName = str.substring(imgStart, j);
-					let image = images.find((img) => img.name === imageName);
-					if (!image) {
-						errorList.push({
-							error: "No image named " + imageName,
-							sev: "warn",
-						});
-					} else {
-						let scaleSetting = image.settings?.match(settingsRegex.scale) ?? [
-							"",
-							"1",
-						];
-						console.log(scaleSetting);
-						let percentage = Math.floor(parseFloat(scaleSetting[1]) * 100);
-						let dims = await image.getDimensions();
-						dims.width *= percentage / 100;
-						out += `<img src='${image.url}' alt='${imageName}' style="width: ${dims.width}px; height: auto;" />`;
-					}
-					i = j + 1;
-					break;
-				}
-			}
-		} else if (
-			str[i] === "\\" &&
-			i < str.length - 1 &&
-			!str[i + 1].match(/[a-zA-Z]/)
-		) {
-			esc = true;
-			i++;
-			continue;
-		} else {
-			if (!insideMath) out += str[i];
-			curToken += str[i];
-			i++;
+
+	let fakeElem = document.createElement("div");
+	fakeElem.innerHTML = unifiedStr;
+	try {
+		renderMathInElement(fakeElem, {
+			delimiters: [
+				{ left: "$$", right: "$$", display: true },
+				{ left: "\\[", right: "\\]", display: true },
+				{ left: "$", right: "$", display: false },
+				{ left: "\\(", right: "\\)", display: false },
+			],
+			macros: macros,
+			throwOnError: true
+		})
+	} catch (e) {
+		errorList.push({
+			error: e.toString(),
+			sev: "warn",
+		});
+	}
+
+	// replace math
+	for (const dm of Array.from(
+		fakeElem.querySelectorAll(".display-math")
+	)) {
+		try {
+			katex.render(dm.textContent, dm, {
+				displayMode: true,
+				throwOnError: true,
+				macros
+			});
+		} catch (e) {
+			errorList.push({
+				error: e.toString(),
+				sev: "warn",
+			});
 		}
-
-		esc = false;
 	}
+	for (const im of Array.from(
+		fakeElem.querySelectorAll(".inline-math")
+	)) {
+		try {
+			katex.render(im.textContent, im, {
+				displayMode: false,
+				throwOnError: true,
+				macros
+			});
+		} catch (e) {
+			errorList.push({
+				error: e.toString(),
+				sev: "warn",
+			});
+		}
+	}
+
+	let outHtml = fakeElem.innerHTML;
+
+	// insert images
+	outHtml = outHtml.replaceAll(placeholderRegex, (_m, imageName) => {
+		let image = images.find((img) => img.name === imageName);
+		let out = "";
+		if (!image) {
+			errorList.push({
+				error: "No image named " + imageName,
+				sev: "warn",
+			});
+		} else {
+			let scaleSetting = image.settings?.match(settingsRegex.scale) ?? [
+				"",
+				"1",
+			];
+			let percentage = Math.floor(parseFloat(scaleSetting[1]) * 100);
+			let dims = image.getDimensions();
+			dims.width *= percentage / 100;
+			out = `<img src='${image.url}' alt='${imageName}' style="width: ${dims.width}px; height: auto;" />`;
+		}
+		return out;
+	});
 
 	return {
-		out: out,
-		errorList: errorList,
+		out: outHtml,
+		errorList
 	};
 }

@@ -22,16 +22,20 @@
 	"type": "module",
 	"dependencies": {
 		"@supabase/supabase-js": "^1.35.4",
+		"@unified-latex/unified-latex": "^1.2.2",
+		"@unified-latex/unified-latex-to-hast": "^1.2.2",
 		"carbon-components-svelte": "^0.70.12",
 		"chart.js": "^3.9.1",
 		"crypto-js": "^4.1.1",
 		"discord.js": "^14.7.1",
 		"fs": "^0.0.1-security",
 		"node-latex": "^3.1.0",
+		"rehype-stringify": "^9.0.3",
 		"svelte-chartjs": "^3.0.1",
 		"svelte-drawer-component": "^1.2.2",
 		"svelte-katex": "^0.1.2",
 		"svelte-preprocess": "^5.0.0",
+		"unified": "^10.1.2",
 		"vite-plugin-fs": "^1.0.0-beta.4"
 	}
 }

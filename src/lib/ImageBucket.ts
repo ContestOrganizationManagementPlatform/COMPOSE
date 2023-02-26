@@ -176,6 +176,7 @@ export const ImageBucket = {
 			let img: ProblemImage;
 			try {
 				img = await ImageBucket.getImage(imageURL.url);
+				await img.loadDimensions();
 			} catch (e) {
 				errorList.push({
 					error: "Image failed to load: " + imageURL.url,

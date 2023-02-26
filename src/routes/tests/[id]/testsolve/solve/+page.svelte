@@ -30,6 +30,7 @@
 				.eq("solver_id", supabase.auth.user().id);
 			if (error) {
 				errorTrue = true;
+				loading = false;
 				errorMessage = error.message;
 			} else if (count > 0) {
 				disallowed = false;
@@ -57,6 +58,7 @@
 
 		if (error) {
 			errorTrue = true;
+			loading = false;
 			errorMessage = error.message;
 		} else {
 			let testsolveId = data[0].id;
@@ -73,6 +75,7 @@
 
 			if (error2) {
 				errorTrue = true;
+				loading = false;
 				errorMessage = error.message;
 			} else {
 				window.location.href = "/testsolve/" + testsolveId;
@@ -102,6 +105,7 @@
 	</div>
 {/if}
 
+<br />
 {#if loading}
 	<p>Loading...</p>
 {:else if disallowed}

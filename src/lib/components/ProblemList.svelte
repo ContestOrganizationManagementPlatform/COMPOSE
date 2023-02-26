@@ -26,8 +26,9 @@
 	export let customHeaders = [];
 	export let draggable = false;
 	export let pageEnabled = true;
+	export let showUnresolved = true;
 
-	let showList = [
+	let showList = showUnresolved ? [
 		"front_id",
 		"full_name",
 		"unresolved_count",
@@ -35,7 +36,15 @@
 		"sub_topics",
 		"difficulty",
 		"test_name",
-		"unresolved_count",
+		"created_at",
+		"edited_at",
+	] : [
+		"front_id",
+		"full_name",
+		"topics_short",
+		"sub_topics",
+		"difficulty",
+		"test_name",
 		"created_at",
 		"edited_at",
 	];
