@@ -19,7 +19,7 @@
 
 	let testsolve = null;
 	let timeElapsed;
-	$: timeElapsed =
+	$: timeElapsed = testsolve?.time_elapsed * 1000 ?? 
 		new Date(testsolve?.end_time).getTime() -
 		new Date(testsolve?.start_time).getTime();
 

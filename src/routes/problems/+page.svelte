@@ -9,6 +9,7 @@
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
+	const userId = supabase.auth.user().id;
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -40,8 +41,8 @@
 		problemCounts = problemCountsData.sort(
 			(a, b) => b.problem_count - a.problem_count
 		);
+		//getProblemLink();
 		loaded = true;
-		getProblemLink();
 	})();
 
 	function getProblemLink() {
@@ -126,6 +127,15 @@
 		openModal = !openModal;
 	}}
 	title="Download All Problems"
+/>
+<br /><br />
+<Button
+	action={() => {
+		problems = problems.filter((problem) => {
+			return problem.author_id == userId;
+		});
+	}}
+	title="My Problems"
 />
 <br /><br />
 

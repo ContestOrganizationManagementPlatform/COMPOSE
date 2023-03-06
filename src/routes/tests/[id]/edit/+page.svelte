@@ -47,12 +47,14 @@
 			.select("*,full_problems(*)")
 			.eq("test_id", testId)
 			.order("problem_number");
-        console.log(problemList);
+        //console.log(problemList);
         // filter duplicates ?? idk why they appear
         problemList = problemList.filter((x, i) => problemList[i-1]?.relation_id !== x.relation_id);
-        console.log(problemList);
+        //console.log(problemList);
 		testProblems = problemList.map((pb) => ({
 			problem_number: pb.problem_number,
+			relation_id: pb.relation_id,
+			test_id: pb.test_id,
 			...pb.full_problems,
 		}));
 		selectedTest = testProblems.map((pb) => pb.id);
@@ -62,7 +64,7 @@
 			.order("front_id");
         // prevent problems from appearing twice
 		allProblems = allProblemList.filter(pb => !testProblems.find(tpb => tpb.id === pb.id));
-        console.log(testProblems, allProblems);
+        //console.log(testProblems, allProblems);
 		selectedAll = [];
 
 		loadingProblems = false;
@@ -129,6 +131,37 @@
 		refreshProblems();
 	}
 
+	// manually reset the problem numbers to 1, 2, ...
+	async function fixProblemOrder() {
+		// confirm first
+		let shouldReorder = confirm("Are you sure you want to fix problem numbers? Only do this if they are broken.");
+		console.log(testProblems);
+		if (!shouldReorder) return;
+
+		loadingProblems = true;
+
+		for (let i = 0; i < testProblems.length; i++) {
+			const curProblem = testProblems[i];
+			if (curProblem.problem_number !== i) {
+				// needs reordering
+				let { error } = await supabase.from("test_problems").update({
+					problem_id: curProblem.id,
+					test_id: curProblem.test_id,
+					problem_number: i
+				}).eq("relation_id", curProblem.relation_id);
+				if (error) {
+					alert(error.message);
+					refreshProblems();
+					return;
+				}
+			}
+		}
+
+		loadingProblems = false;
+		
+		refreshProblems();
+	}
+
 	getTest();
 </script>
 
@@ -157,7 +190,8 @@
 			: testCoordinators.map((tc) => tc.full_name).join(", ")}
 	</p>
 	<br />
-	<Button href={`/tests/${testId}`} title="Go back" />
+	<Button href={`/tests/${testId}`} title="Go back" /> <br/><br/>
+	<Button action={fixProblemOrder} title="Fix problem numbers" />
 	<br /><br />
 	{#if !userIsTestCoordinator}
 		<p>You are not a coordinator so you cannot edit the problems!</p>

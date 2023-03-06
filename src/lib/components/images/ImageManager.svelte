@@ -222,7 +222,7 @@
 						{#await listing.download()}
 							<p>Loading image...</p>
 						{:then img}
-							<img src={img.url} alt="Attached for problem" />
+							<img src={img.url} alt="Attached for problem" style="max-width: 100%;" />
 							<br />
 							<Modal
 								runHeader="Delete"
