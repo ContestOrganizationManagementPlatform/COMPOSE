@@ -14,6 +14,16 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
+	async function getAuthorName() {
+		let { data: user, error } = await supabase
+			.from("users")
+			.select("full_name")
+			.eq("id", supabase.auth.user().id)
+			.single();
+		if (error) throw error;
+		else return user.full_name;
+	}
+
 	async function fetchTopic(problem_id) {
 		let { data: problem_topics, error } = await supabase
 			.from("problem_topics")
@@ -80,7 +90,19 @@
 		if (error) {
 			errorTrue = true;
 			errorMessage = error.message;
-		} else window.location.replace("/problems");
+		} else {
+			const authorName = await getAuthorName();
+			await fetch("/api/discord-update", {
+				method: "POST",
+				body: JSON.stringify({
+					id: problem.id,
+					update: "deleted",
+					updater: authorName
+				})
+			});
+			
+			window.location.replace("/problems");
+		}
 	}
 </script>
 

@@ -1,18 +1,15 @@
 
-CREATE OR REPLACE VIEW full_problems AS
+CREATE OR REPLACE VIEW full_problems WITH (security_invoker) AS
   SELECT
     problems.*,
     users.full_name,
-    users.initials || COUNT(*) OVER(PARTITION BY users.initials ORDER BY problems.id) AS front_id,
+    users.initials || problems.id AS front_id,
     topics.topics,
     topics.topics_short,
-    tests.test_name AS test_name,
     COALESCE(unresolved_count.count, 0) AS unresolved_count
   FROM
     problems
     LEFT JOIN users ON users.id = problems.author_id
-    LEFT JOIN test_problems ON test_problems.problem_id = problems.id
-    LEFT JOIN tests ON test_problems.test_id = tests.id
 
     -- make the topic into a comma separated string
     LEFT JOIN (
@@ -37,5 +34,3 @@ CREATE OR REPLACE VIEW full_problems AS
         (testsolve_answers.feedback = '') IS FALSE
       GROUP BY testsolve_answers.problem_id
     ) AS unresolved_count ON problems.id = unresolved_count.problem_id;
-
-ALTER VIEW full_problems OWNER TO authenticated; -- necessary to get rls to work!

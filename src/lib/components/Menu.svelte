@@ -197,6 +197,7 @@
 
 	.unfoldButton {
 		z-index: 10;
+		cursor: pointer;
 	}
 
 	.linkPara:hover {

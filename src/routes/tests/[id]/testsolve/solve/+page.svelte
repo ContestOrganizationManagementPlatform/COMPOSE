@@ -6,6 +6,7 @@
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -16,7 +17,11 @@
 	let answers = [];
 
 	let startTime = null;
+	let timeOffset = 0; // seconds to add to timer
 	let endTime = null;
+
+	// if a user has a previously uncompleted testsolve, load it
+	let loadedTestsolve = null;
 
 	async function permissionCheck() {
 		// check permission
@@ -37,33 +42,124 @@
 			}
 		}
 
-		startTime = new Date();
+		await loadTestsolve();
 
 		loading = false;
 	}
 
+	async function loadTestsolve() {
+		// check if there is a prior testsolve
+
+		let { data, error } = await supabase
+			.from("testsolves")
+			.select("*")
+			.eq("test_id", $page.params.id)
+			.eq("solver_id", supabase.auth.user().id)
+			.eq("completed", false);
+		
+		if (error) alert(error.message);
+
+		if (data.length > 0) {
+			loadedTestsolve = data[0];
+
+			//console.log(loadedTestsolve);
+
+			// need to fetch all the previous answers
+			let { data: data2, error: error2 } = await supabase
+				.from("testsolve_answers")
+				.select("*")
+				.eq("testsolve_id", loadedTestsolve.id);
+
+			if (error2) {
+				errorTrue = true;
+				errorMessage = error.message;
+			} else {
+				answers = data2;
+			}
+
+			// load in start time
+			timeOffset = loadedTestsolve.time_elapsed;
+		}
+		startTime = new Date();
+	}
+
 	permissionCheck();
 
-	async function submitTestsolve() {
+	async function submitTestsolve(completedSolve) {
+		console.log(completedSolve);
 		endTime = new Date();
 
-		let { data, error } = await supabase.from("testsolves").insert([
-			{
-				test_id: $page.params.id,
-				solver_id: supabase.auth.user().id,
-				start_time: startTime.toISOString(),
-				end_time: endTime.toISOString(),
-			},
-		]);
+		// time elapsed in seconds
+		const timeElapsed = Math.floor((endTime - startTime) / 1000) + timeOffset;
 
-		if (error) {
-			errorTrue = true;
-			loading = false;
-			errorMessage = error.message;
+		let data;
+
+		// check if this is a resubmission
+		if (loadedTestsolve) {
+			let { data: tsData, error } = await supabase.from("testsolves").update(
+				{
+					test_id: $page.params.id,
+					solver_id: supabase.auth.user().id,
+					start_time: startTime.toISOString(),
+					end_time: endTime.toISOString(),
+					time_elapsed: timeElapsed,
+					completed: completedSolve
+				},
+			)
+			.eq("id", loadedTestsolve.id);
+
+			if (error) {
+				errorTrue = true;
+				loading = false;
+				errorMessage = error.message;
+			}
+
+			data = tsData;
 		} else {
-			let testsolveId = data[0].id;
+			let { data: tsData, error } = await supabase.from("testsolves").insert([
+				{
+					test_id: $page.params.id,
+					solver_id: supabase.auth.user().id,
+					start_time: startTime.toISOString(),
+					end_time: endTime.toISOString(),
+					time_elapsed: timeElapsed,
+					completed: completedSolve
+				},
+			]);
 
-			let { data2, error2 } = await supabase.from("testsolve_answers").insert(
+			if (error) {
+				errorTrue = true;
+				loading = false;
+				errorMessage = error.message;
+			}
+
+			data = tsData;
+		}
+
+		
+		let testsolveId = data[0].id;
+				
+		// update all answers if previous testsolve, else insert
+		if (loadedTestsolve) {
+			for (const ans of answers) {
+				let { error: error2 } = await supabase
+					.from("testsolve_answers")
+					.update({
+						testsolve_id: testsolveId,
+						problem_id: ans.problem_id,
+						answer: ans.answer,
+						feedback: ans.feedback,
+						correct: ans.correct,
+					})
+					.eq("id", ans.id);
+			
+				if (error2) {
+					errorTrue = true;
+					errorMessage = error2.message;
+				}
+			}
+		} else {
+			let { error: error2 } = await supabase.from("testsolve_answers").insert(
 				answers.map((ans) => ({
 					testsolve_id: testsolveId,
 					problem_id: ans.problem_id,
@@ -75,18 +171,28 @@
 
 			if (error2) {
 				errorTrue = true;
-				loading = false;
-				errorMessage = error.message;
+				errorMessage = error2.message;
+			}
+		}
+
+		if (!errorTrue) {
+			if (!completedSolve) {
+				window.location.href = "/testsolve";
 			} else {
 				window.location.href = "/testsolve/" + testsolveId;
 			}
 		}
 	}
 
+	async function saveTestsolve() {
+		submitTestsolve(false);
+	}
+
 	let timeElapsed = 0; // in ms
 
 	function updateTimer() {
-		timeElapsed = new Date().getTime() - startTime.getTime();
+		if (!startTime) return;
+		timeElapsed = new Date().getTime() - startTime.getTime() + timeOffset * 1000;
 	}
 
 	let timerInterval = setInterval(updateTimer, 1000);
@@ -120,12 +226,15 @@
 	/>
 	<div class="timer">
 		<p>Time elapsed: {formatTime(timeElapsed, { hideHours: true })}</p>
+		<Button action={saveTestsolve} title="Save" bwidth="100%" />
+		<div style="height: 5px" />
+		<Button action={() => {submitTestsolve(true)}} title="Submit" bwidth="100%" />
 	</div>
 {/if}
 
 <style>
 	.timer {
-		position: absolute;
+		position: fixed;
 		right: 0;
 		top: 0;
 		margin: 10px;

@@ -1,5 +1,5 @@
 
-CREATE OR REPLACE VIEW unused_problems AS
+CREATE OR REPLACE VIEW unused_problems WITH (security_invoker)  AS
   SELECT
     *
   FROM
@@ -10,5 +10,4 @@ CREATE OR REPLACE VIEW unused_problems AS
       test_problems.problem_id = full_problems.id AND
       test_problems.test_id IS NOT NULL
   );
-
-ALTER VIEW unused_problems OWNER TO authenticated; -- necessary to get rls to work!
+  

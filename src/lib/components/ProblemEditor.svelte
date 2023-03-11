@@ -142,8 +142,7 @@
 			fields.comment &&
 			fields.answer &&
 			fields.solution &&
-			topics &&
-			difficulty
+			topics
 		) {
 			if (problemFiles.length > fileUploadLimit) {
 				error = "Too many files uploaded";
@@ -158,7 +157,7 @@
 					solution_latex: fields.solution,
 					topics: topics,
 					sub_topics: subTopic,
-					difficulty: parseInt(difficulty),
+					difficulty: difficulty ? parseInt(difficulty) : 0,
 					edited_at: new Date().toISOString(),
 					problem_files: problemFiles,
 				};
@@ -191,15 +190,14 @@
 					<TextInput
 						bind:value={subTopic}
 						style="margin-right: 20px;"
-						placeholder="Sub-Topic"
+						placeholder="Sub-Topic (optional)"
 						class="textInput"
 					/>
 					<TextInput
 						bind:value={difficulty}
 						type="number"
-						placeholder="Difficulty"
+						placeholder="Difficulty (optional)"
 						class="textInput"
-						required={true}
 					/>
 				</FormGroup>
 				<div style="position: relative;">
@@ -296,6 +294,7 @@
 						<LatexKeyboard />
 					</div>
 				{/if}
+				<br />
 				<ImageManager add={addToField} />
 			</Form>
 		</div>

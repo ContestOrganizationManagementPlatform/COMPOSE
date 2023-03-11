@@ -36,6 +36,7 @@
 					name: x.test_name,
 					id: x.id,
 					solves: [],
+					completed: true
 				}));
 			}
 		} else {
@@ -51,6 +52,7 @@
 					name: x.tests.test_name,
 					id: x.test_id,
 					solves: [],
+					completed: true
 				}));
 			}
 		}
@@ -83,13 +85,27 @@
 		for (const solve of finishedSolves) {
 			let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
 			if (test) {
+				console.log(test);
+				console.log(solve);
 				test.solves.push(solve);
+				// if this solve is uncompleted
+				if (!solve.completed && solve.solver_id === supabase.auth.user().id) {
+					test.completed = false;
+				}
 			}
 		}
 		availableTestsolves = availableTestsolves;
 
 		for (var solve of finishedSolves) {
-			console.log(solve.users);
+			let status;
+			if (!solve.start_time) {
+				status = "Not started";
+			} else if (!solve.completed) {
+				status = "Incomplete";
+			} else {
+				status = "Completed";
+			}
+
 			tableData.push({
 				id: solve.id,
 				date: solve.end_time
@@ -100,11 +116,7 @@
 					: "N/A",
 				person: solve.users.full_name + " (" + solve.users.initials + ")",
 				test: availableTestsolves.find((ts) => ts.id === solve.test_id).name,
-				status: solve.start_time
-					? solve.end_time
-						? "Completed"
-						: "Started"
-					: "Not started",
+				status
 			});
 		}
 		loading = false;
@@ -141,7 +153,7 @@
 					<div style="margin-top: 10px">
 						<Button
 							href="/tests/{testsolve.id}/testsolve/solve"
-							title="Begin solve"
+							title={testsolve.completed ? "Begin solve" : "Continue solve"}
 						/>
 					</div>
 				</div>

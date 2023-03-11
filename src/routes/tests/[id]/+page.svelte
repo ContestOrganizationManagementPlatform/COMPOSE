@@ -21,7 +21,6 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
-	let link = "";
 	let openModal = false;
 	let values = [
 		"Problems",
@@ -74,7 +73,6 @@
 			problem_number: pb.problem_number,
 			...pb.full_problems,
 		}));
-		getTestLink();
 		loadingProblems = false;
 	}
 
@@ -88,14 +86,13 @@
 		return returning;
 	}
 
-	function getTestLink() {
+	async function openTest() {
 		let l =
-			"/api/pdf-generator?latex=\\title{" +
+			"\\title{" +
 			test.test_name +
 			"}\\author{" +
 			test.tournaments.tournament_name +
 			"}\\date{Mustang Math}\\begin{document}\\maketitle";
-		console.log(l);
 
 		if (group.includes("Feedback")) {
 			l += "\\section*{Test Feedback}";
@@ -154,7 +151,34 @@
 				}
 			}
 		}
-		link = l + "\\end{document}";
+		l += "\\end{document}";
+
+		const resp = await fetch(
+			// make env variable before pushing
+			"https://tocas.pythonanywhere.com/",
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					mode: "no-cors",
+				},
+				body: JSON.stringify({
+					latex: l,
+				}),
+			}
+		);
+		const blob = await resp.blob();
+		const newBlob = new Blob([blob]);
+		const blobUrl = window.URL.createObjectURL(newBlob);
+		const link = document.createElement("a");
+		link.href = blobUrl;
+		link.setAttribute("download", `blah.pdf`);
+		document.body.appendChild(link);
+		link.click();
+		link.parentNode.removeChild(link);
+
+		// clean up Url
+		window.URL.revokeObjectURL(blobUrl);
 	}
 
 	getTest();
@@ -236,22 +260,11 @@
 				<p><strong>PDF Options</strong></p>
 
 				{#each values as value}
-					<Checkbox
-						bind:group
-						on:click={() => {
-							setTimeout(function () {
-								getTestLink();
-							}, 50);
-						}}
-						labelText={value}
-						{value}
-					/>
+					<Checkbox bind:group labelText={value} {value} />
 				{/each}
 
 				<br />
-				<a href={link} target="_blank" rel="noreferrer"
-					><i class="fa-solid fa-up-right-from-square" /> Open Test in New Page</a
-				>
+				<button on:click={openTest}>Open Test in New Page</button>
 				<br /><br />
 			</div>
 		</div>

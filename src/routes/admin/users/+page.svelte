@@ -45,6 +45,8 @@
 				initials: user.initials,
 			});
 		}
+		roles2.sort((a, b) => {return a.name.toLowerCase().localeCompare(b.name.toUpperCase());});
+		console.log(roles2);
 		roles = roles2;
 	}
 

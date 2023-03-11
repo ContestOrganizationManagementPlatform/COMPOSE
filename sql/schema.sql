@@ -78,7 +78,8 @@ CREATE TABLE IF NOT EXISTS testsolves (
     solver_id uuid REFERENCES public.users(id) ON DELETE SET NULL,
     start_time timestamptz,
     end_time timestamptz,
-    feedback text
+    feedback text,
+    completed bool NOT NULL DEFAULT true
 );
 
 CREATE TABLE IF NOT EXISTS testsolve_answers (
