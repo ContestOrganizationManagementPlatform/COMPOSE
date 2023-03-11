@@ -155,27 +155,30 @@
 
 		const resp = await fetch(
 			// make env variable before pushing
-			"https://PWP-Latex-PDF-Generator.mustang-mathmat.repl.co",
+			"https://tocas.pythonanywhere.com/",
 			{
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					"mode": "no-cors"
+					mode: "no-cors",
 				},
 				body: JSON.stringify({
 					latex: l,
 				}),
 			}
 		);
-		var byteCharacters = atob(resp.text());
-		var byteNumbers = new Array(byteCharacters.length);
-		for (var i = 0; i < byteCharacters.length; i++) {
-		byteNumbers[i] = byteCharacters.charCodeAt(i);
-		}
-		var byteArray = new Uint8Array(byteNumbers);
-		var file = new Blob([byteArray], { type: 'application/pdf;base64' });
-		var fileURL = URL.createObjectURL(file);
-		window.open(fileURL);
+		const blob = await resp.blob();
+		const newBlob = new Blob([blob]);
+		const blobUrl = window.URL.createObjectURL(newBlob);
+		const link = document.createElement("a");
+		link.href = blobUrl;
+		link.setAttribute("download", `blah.pdf`);
+		document.body.appendChild(link);
+		link.click();
+		link.parentNode.removeChild(link);
+
+		// clean up Url
+		window.URL.revokeObjectURL(blobUrl);
 	}
 
 	getTest();
@@ -257,11 +260,7 @@
 				<p><strong>PDF Options</strong></p>
 
 				{#each values as value}
-					<Checkbox
-						bind:group
-						labelText={value}
-						{value}
-					/>
+					<Checkbox bind:group labelText={value} {value} />
 				{/each}
 
 				<br />
