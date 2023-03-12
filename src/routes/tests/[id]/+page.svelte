@@ -86,6 +86,42 @@
 		return returning;
 	}
 
+	async function getBucketPaths(path) {
+		const { data, error } = await supabase
+  			.storage
+			.from('problem-images')
+  			.list(path);
+		if (error) throw error;
+		else {
+			console.log(data);
+			let ans = []
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].id != null) {
+					console.log(data[i].name);
+					if (path === '') {
+						ans.push(data[i].name);
+					} else {
+						ans.push(path + '/' + data[i].name);
+					}
+				} else {
+					console.log('hi');
+					let x;
+					if (path === '') {
+						x = await getBucketPaths(data[i].name);
+					} else {
+						x = await getBucketPaths(path + '/' + data[i].name);
+					}
+					console.log(x);
+					for (let j = 0; j < x.length; j++) {
+						console.log(x[j]);
+						ans.push(x[j])
+					}
+				}
+			}
+			return ans;
+		}
+	}
+
 	async function openTest() {
 		let l =
 			"\\title{" +
@@ -153,9 +189,11 @@
 		}
 		l += "\\end{document}";
 
+		let images = await getBucketPaths('');
+
 		const resp = await fetch(
 			// make env variable before pushing
-			"https://tocas.pythonanywhere.com/",
+			import.meta.env.VITE_PDF_GENERATOR_URL,
 			{
 				method: "POST",
 				headers: {
@@ -164,6 +202,7 @@
 				},
 				body: JSON.stringify({
 					latex: l,
+					images
 				}),
 			}
 		);
@@ -172,7 +211,7 @@
 		const blobUrl = window.URL.createObjectURL(newBlob);
 		const link = document.createElement("a");
 		link.href = blobUrl;
-		link.setAttribute("download", `blah.pdf`);
+		link.setAttribute("download", test.test_name + '.pdf');
 		document.body.appendChild(link);
 		link.click();
 		link.parentNode.removeChild(link);
@@ -264,7 +303,7 @@
 				{/each}
 
 				<br />
-				<button on:click={openTest}>Open Test in New Page</button>
+				<button on:click={openTest}>Download Test</button>
 				<br /><br />
 			</div>
 		</div>

@@ -15,6 +15,8 @@
 	let pageSize = 25;
 	let page = 1;
 
+	let loading = true;
+
 	let roleDictionary = {
 		0: "No role assigned",
 		10: "No permissions",
@@ -36,7 +38,8 @@
 		}
 		let roles2 = [];
 		for (let user of users) {
-			const curRole = user.user_roles[0]?.role ?? 0;
+			console.log(user);
+			const curRole = user.user_roles?.role ?? 0;
 			roles2.push({
 				edit: user.id + "test",
 				id: user.id,
@@ -46,8 +49,8 @@
 			});
 		}
 		roles2.sort((a, b) => {return a.name.toLowerCase().localeCompare(b.name.toUpperCase());});
-		console.log(roles2);
 		roles = roles2;
+		loading = false;
 	}
 
 	roleManager();
@@ -56,59 +59,64 @@
 <br />
 <h1>Admin: Users</h1>
 
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
+{#if loading}
+	<p>Loading...</p>
+{:else}
+
+	{#if errorTrue}
+		<div style="position: fixed; bottom: 10px; left: 10px;">
+			<InlineNotification
+				lowContrast
+				kind="error"
+				title="ERROR:"
+				subtitle={errorMessage}
+			/>
+		</div>
+	{/if}
+
+	<div style="padding: 10px;">
+	<DataTable
+			sortable
+			size="compact"
+			headers={[
+				{ key: "edit", value: "", width: "50px" },
+				{ key: "name", value: "Name" },
+				{ key: "initials", value: "Initials", width: "100px" },
+				{ key: "role", value: "Role" },
+				{ key: "id", value: "ID"},
+			]}
+			rows={roles}
+			{pageSize}
+			{page}
+		>
+			<Toolbar size="sm">
+				<ToolbarContent>
+					<ToolbarSearch persistent shouldFilterRows />
+				</ToolbarContent>
+			</Toolbar>
+
+			<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
+				<div>
+					{#if cell.key === "edit"}
+						<div class="pencil">
+							<Link class="link" href={"/admin/users/" + row.id}
+								><i class="ri-pencil-fill" /></Link
+							>
+						</div>
+					{:else}
+						<div style="overflow: hidden;">
+							{cell.value == null || cell.value == "" ? "None" : cell.value}
+						</div>
+					{/if}
+				</div>
+			</svelte:fragment>
+		</DataTable>
+
+		<Pagination
+			bind:pageSize
+			bind:page
+			totalItems={roles.length}
+			pageSizeInputDisabled
 		/>
 	</div>
 {/if}
-
-<div style="padding: 10px;">
-<DataTable
-		sortable
-		size="compact"
-		headers={[
-			{ key: "edit", value: "", width: "50px" },
-			{ key: "name", value: "Name" },
-			{ key: "initials", value: "Initials", width: "100px" },
-			{ key: "role", value: "Role" },
-			{ key: "id", value: "ID"},
-		]}
-		rows={roles}
-		{pageSize}
-		{page}
-	>
-		<Toolbar size="sm">
-			<ToolbarContent>
-				<ToolbarSearch persistent shouldFilterRows />
-			</ToolbarContent>
-		</Toolbar>
-
-		<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
-			<div>
-				{#if cell.key === "edit"}
-					<div class="pencil">
-						<Link class="link" href={"/admin/users/" + row.id}
-							><i class="ri-pencil-fill" /></Link
-						>
-					</div>
-				{:else}
-					<div style="overflow: hidden;">
-						{cell.value == null || cell.value == "" ? "None" : cell.value}
-					</div>
-				{/if}
-			</div>
-		</svelte:fragment>
-	</DataTable>
-
-	<Pagination
-		bind:pageSize
-		bind:page
-		totalItems={roles.length}
-		pageSizeInputDisabled
-	/>
-</div>
