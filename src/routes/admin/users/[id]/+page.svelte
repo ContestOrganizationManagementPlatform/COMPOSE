@@ -22,7 +22,7 @@
 				discord: userInfo.discord,
 				email: userInfo.email,
 				initials: userInfo.initials,
-				role: (userInfo.user_roles[0]?.role ?? 0) + "",
+				role: (userInfo.user_roles?.role ?? 0) + "",
 			};
 		}
 		loading = false;
