@@ -41,7 +41,6 @@
 	}
 
 	async function openItem(listing: ImageListing) {
-		console.log(listing);
 		if (listing.type === "folder") {
 			if (listing.special === "back") {
 				curFolder.pop();
@@ -55,7 +54,7 @@
 		} else if (listing.type === "image") {
 			listing.expanded = !listing.expanded;
 			curListing = curListing;
-			add("problem", " $\\image{" + listing.folderString + listing.name + "}$")
+			add("problem", " $\\image{" + listing.folderString + listing.name + "}$");
 		}
 	}
 
@@ -222,7 +221,11 @@
 						{#await listing.download()}
 							<p>Loading image...</p>
 						{:then img}
-							<img src={img.url} alt="Attached for problem" style="max-width: 100%;" />
+							<img
+								src={img.url}
+								alt="Attached for problem"
+								style="max-width: 100%;"
+							/>
 							<br />
 							<Modal
 								runHeader="Delete"

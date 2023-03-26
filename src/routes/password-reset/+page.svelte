@@ -27,7 +27,6 @@
 		}, {});
 		type = result?.type ?? "";
 		accessToken = result?.access_token ?? "";
-		console.log(accessToken);
 	}
 
 	let email = "";

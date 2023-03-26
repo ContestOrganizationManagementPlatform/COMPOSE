@@ -16,7 +16,6 @@
 	let userRole = 0;
 
 	const user = supabase.auth.user();
-	$: console.log(userRole);
 
 	(async () => {
 		userRole = await getThisUserRole();

@@ -43,8 +43,9 @@
 				edit: test.id,
 				competition: test.tournaments.tournament_name,
 				name: test.test_name,
-				description: test.test_description
-			})
+				description: test.test_description,
+				version: test.test_version,
+			});
 		}
 
 		rows = rowValues;
@@ -77,6 +78,7 @@
 			{ key: "competition", value: "Competition" },
 			{ key: "name", value: "Name" },
 			{ key: "description", value: "Description" },
+			{ key: "version", value: "Version" },
 		]}
 		{rows}
 		{pageSize}

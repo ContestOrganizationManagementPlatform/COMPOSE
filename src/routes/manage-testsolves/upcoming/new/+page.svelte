@@ -38,20 +38,14 @@
 		<Select labelText="Testsolver" bind:selected={finalUser}>
 			<SelectItem text="" value="" />
 			{#each users as user}
-				<SelectItem
-					text={user.full_name}
-					value={user.id}
-				/>
+				<SelectItem text={user.full_name} value={user.id} />
 			{/each}
 		</Select>
 		<br />
 		<Select labelText="Test" bind:selected={finalTest}>
 			<SelectItem text="" value="" />
 			{#each tests as test}
-				<SelectItem
-					text={test.test_name}
-					value={test.id}
-				/>
+				<SelectItem text={test.test_name} value={test.id} />
 			{/each}
 		</Select>
 		<br />
@@ -62,8 +56,6 @@
 					alert("Please select a test and a user");
 				} else {
 					message = "";
-					console.log(finalTest);
-					console.log(finalUser);
 					const { data, error } = await supabase
 						.from("testsolvers")
 						.insert([{ test_id: finalTest, solver_id: finalUser }]);

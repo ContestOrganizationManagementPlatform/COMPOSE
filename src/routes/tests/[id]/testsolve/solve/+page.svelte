@@ -2,7 +2,7 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import { InlineNotification } from "carbon-components-svelte";
+	import { InlineNotification, TextArea } from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
@@ -56,7 +56,7 @@
 			.eq("test_id", $page.params.id)
 			.eq("solver_id", supabase.auth.user().id)
 			.eq("completed", false);
-		
+
 		if (error) alert(error.message);
 
 		if (data.length > 0) {
@@ -86,7 +86,6 @@
 	permissionCheck();
 
 	async function submitTestsolve(completedSolve) {
-		console.log(completedSolve);
 		endTime = new Date();
 
 		// time elapsed in seconds
@@ -94,19 +93,29 @@
 
 		let data;
 
+		// fetch the current test version
+		let { data: testData, error: testError } = await supabase
+			.from("tests")
+			.select("*")
+			.eq("id", $page.params.id)
+			.limit(1)
+			.single();
+		console.log(testData);
+
 		// check if this is a resubmission
 		if (loadedTestsolve) {
-			let { data: tsData, error } = await supabase.from("testsolves").update(
-				{
+			let { data: tsData, error } = await supabase
+				.from("testsolves")
+				.update({
 					test_id: $page.params.id,
 					solver_id: supabase.auth.user().id,
 					start_time: startTime.toISOString(),
 					end_time: endTime.toISOString(),
 					time_elapsed: timeElapsed,
-					completed: completedSolve
-				},
-			)
-			.eq("id", loadedTestsolve.id);
+					completed: completedSolve,
+					test_version: testData.test_version,
+				})
+				.eq("id", loadedTestsolve.id);
 
 			if (error) {
 				errorTrue = true;
@@ -123,7 +132,8 @@
 					start_time: startTime.toISOString(),
 					end_time: endTime.toISOString(),
 					time_elapsed: timeElapsed,
-					completed: completedSolve
+					completed: completedSolve,
+					test_version: testData.test_version,
 				},
 			]);
 
@@ -136,9 +146,8 @@
 			data = tsData;
 		}
 
-		
 		let testsolveId = data[0].id;
-				
+
 		// update all answers if previous testsolve, else insert
 		if (loadedTestsolve) {
 			for (const ans of answers) {
@@ -152,7 +161,7 @@
 						correct: ans.correct,
 					})
 					.eq("id", ans.id);
-			
+
 				if (error2) {
 					errorTrue = true;
 					errorMessage = error2.message;
@@ -192,7 +201,8 @@
 
 	function updateTimer() {
 		if (!startTime) return;
-		timeElapsed = new Date().getTime() - startTime.getTime() + timeOffset * 1000;
+		timeElapsed =
+			new Date().getTime() - startTime.getTime() + timeOffset * 1000;
 	}
 
 	let timerInterval = setInterval(updateTimer, 1000);
@@ -228,7 +238,13 @@
 		<p>Time elapsed: {formatTime(timeElapsed, { hideHours: true })}</p>
 		<Button action={saveTestsolve} title="Save" bwidth="100%" />
 		<div style="height: 5px" />
-		<Button action={() => {submitTestsolve(true)}} title="Submit" bwidth="100%" />
+		<Button
+			action={() => {
+				submitTestsolve(true);
+			}}
+			title="Submit"
+			bwidth="100%"
+		/>
 	</div>
 {/if}
 

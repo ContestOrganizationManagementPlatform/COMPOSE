@@ -208,7 +208,6 @@ export const ImageBucket = {
 		if (!folder.endsWith("/")) folder += "/";
 		if (!folder.startsWith("/")) folder = "/" + folder;
 		const fullPath = folder + image.name;
-		console.log(fullPath);
 		const { error } = await supabase.storage
 			.from(BUCKET_NAME)
 			.upload(fullPath, image.blob);
@@ -220,7 +219,6 @@ export const ImageBucket = {
 		});
 	},
 	deleteImage: async (imagePath: string) => {
-		console.log("Deleting ", imagePath);
 		if (imagePath.startsWith("/")) imagePath = imagePath.substring(1);
 		const { error } = await supabase.storage
 			.from(BUCKET_NAME)

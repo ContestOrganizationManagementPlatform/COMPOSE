@@ -38,7 +38,8 @@ CREATE TABLE IF NOT EXISTS tests (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     test_name text NOT NULL,
     test_description text,
-    tournament_id int8 REFERENCES public.tournaments(id) ON DELETE CASCADE
+    tournament_id int8 REFERENCES public.tournaments(id) ON DELETE CASCADE,
+    test_version text
 );
 
 CREATE TABLE IF NOT EXISTS test_problems (
@@ -79,7 +80,8 @@ CREATE TABLE IF NOT EXISTS testsolves (
     start_time timestamptz,
     end_time timestamptz,
     feedback text,
-    completed bool NOT NULL DEFAULT true
+    completed bool NOT NULL DEFAULT true,
+    test_version text -- version of the test when the testsolve was completed
 );
 
 CREATE TABLE IF NOT EXISTS testsolve_answers (

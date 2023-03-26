@@ -6,7 +6,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
-	import ProblemFeedback from "../../../lib/components/ProblemFeedback.svelte";
+	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
 
 	let problem;
 	let loaded = false;
@@ -97,10 +97,10 @@
 				body: JSON.stringify({
 					id: problem.id,
 					update: "deleted",
-					updater: authorName
-				})
+					updater: authorName,
+				}),
 			});
-			
+
 			window.location.replace("/problems");
 		}
 	}

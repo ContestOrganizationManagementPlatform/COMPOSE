@@ -87,34 +87,28 @@
 	}
 
 	async function getBucketPaths(path) {
-		const { data, error } = await supabase
-  			.storage
-			.from('problem-images')
-  			.list(path);
+		const { data, error } = await supabase.storage
+			.from("problem-images")
+			.list(path);
 		if (error) throw error;
 		else {
-			console.log(data);
-			let ans = []
+			let ans = [];
 			for (let i = 0; i < data.length; i++) {
 				if (data[i].id != null) {
-					console.log(data[i].name);
-					if (path === '') {
+					if (path === "") {
 						ans.push(data[i].name);
 					} else {
-						ans.push(path + '/' + data[i].name);
+						ans.push(path + "/" + data[i].name);
 					}
 				} else {
-					console.log('hi');
 					let x;
-					if (path === '') {
+					if (path === "") {
 						x = await getBucketPaths(data[i].name);
 					} else {
-						x = await getBucketPaths(path + '/' + data[i].name);
+						x = await getBucketPaths(path + "/" + data[i].name);
 					}
-					console.log(x);
 					for (let j = 0; j < x.length; j++) {
-						console.log(x[j]);
-						ans.push(x[j])
+						ans.push(x[j]);
 					}
 				}
 			}
@@ -189,7 +183,7 @@
 		}
 		l += "\\end{document}";
 
-		let images = await getBucketPaths('');
+		let images = await getBucketPaths("");
 
 		const resp = await fetch(
 			// make env variable before pushing
@@ -202,7 +196,7 @@
 				},
 				body: JSON.stringify({
 					latex: l,
-					images
+					images,
 				}),
 			}
 		);
@@ -211,7 +205,7 @@
 		const blobUrl = window.URL.createObjectURL(newBlob);
 		const link = document.createElement("a");
 		link.href = blobUrl;
-		link.setAttribute("download", test.test_name + '.pdf');
+		link.setAttribute("download", test.test_name + ".pdf");
 		document.body.appendChild(link);
 		link.click();
 		link.parentNode.removeChild(link);

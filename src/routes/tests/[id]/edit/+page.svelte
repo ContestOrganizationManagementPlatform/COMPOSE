@@ -5,7 +5,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import { InlineNotification, TextInput } from "carbon-components-svelte";
 
 	let testId = $page.params.id;
 	let test;
@@ -20,6 +20,9 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
+	let testVersion = null;
+	let testVersionWasChanged = false;
+
 	async function getTest() {
 		let { data: tests, error } = await supabase
 			.from("tests")
@@ -32,6 +35,7 @@
 			errorMessage = error.message;
 		}
 		test = tests;
+		testVersion = test.test_version;
 
 		testCoordinators = test.test_coordinators.map((x) => x.users);
 		userIsTestCoordinator =
@@ -47,10 +51,12 @@
 			.select("*,full_problems(*)")
 			.eq("test_id", testId)
 			.order("problem_number");
-        //console.log(problemList);
-        // filter duplicates ?? idk why they appear
-        problemList = problemList.filter((x, i) => problemList[i-1]?.relation_id !== x.relation_id);
-        //console.log(problemList);
+		//console.log(problemList);
+		// filter duplicates ?? idk why they appear
+		problemList = problemList.filter(
+			(x, i) => problemList[i - 1]?.relation_id !== x.relation_id
+		);
+		//console.log(problemList);
 		testProblems = problemList.map((pb) => ({
 			problem_number: pb.problem_number,
 			relation_id: pb.relation_id,
@@ -62,9 +68,11 @@
 			.from("full_problems")
 			.select("*")
 			.order("front_id");
-        // prevent problems from appearing twice
-		allProblems = allProblemList.filter(pb => !testProblems.find(tpb => tpb.id === pb.id));
-        //console.log(testProblems, allProblems);
+		// prevent problems from appearing twice
+		allProblems = allProblemList.filter(
+			(pb) => !testProblems.find((tpb) => tpb.id === pb.id)
+		);
+		//console.log(testProblems, allProblems);
 		selectedAll = [];
 
 		loadingProblems = false;
@@ -134,8 +142,9 @@
 	// manually reset the problem numbers to 1, 2, ...
 	async function fixProblemOrder() {
 		// confirm first
-		let shouldReorder = confirm("Are you sure you want to fix problem numbers? Only do this if they are broken.");
-		console.log(testProblems);
+		let shouldReorder = confirm(
+			"Are you sure you want to fix problem numbers? Only do this if they are broken."
+		);
 		if (!shouldReorder) return;
 
 		loadingProblems = true;
@@ -144,11 +153,14 @@
 			const curProblem = testProblems[i];
 			if (curProblem.problem_number !== i) {
 				// needs reordering
-				let { error } = await supabase.from("test_problems").update({
-					problem_id: curProblem.id,
-					test_id: curProblem.test_id,
-					problem_number: i
-				}).eq("relation_id", curProblem.relation_id);
+				let { error } = await supabase
+					.from("test_problems")
+					.update({
+						problem_id: curProblem.id,
+						test_id: curProblem.test_id,
+						problem_number: i,
+					})
+					.eq("relation_id", curProblem.relation_id);
 				if (error) {
 					alert(error.message);
 					refreshProblems();
@@ -158,8 +170,26 @@
 		}
 
 		loadingProblems = false;
-		
+
 		refreshProblems();
+	}
+
+	function changeVersionInput() {
+		testVersionWasChanged = true;
+	}
+
+	async function submitVersionChange() {
+		testVersionWasChanged = false; // hide button to prevent multiple tries
+		let { error } = await supabase
+			.from("tests")
+			.update({ test_version: testVersion })
+			.eq("id", testId);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else {
+			alert("Test version changed successfully.");
+		}
 	}
 
 	getTest();
@@ -190,7 +220,7 @@
 			: testCoordinators.map((tc) => tc.full_name).join(", ")}
 	</p>
 	<br />
-	<Button href={`/tests/${testId}`} title="Go back" /> <br/><br/>
+	<Button href={`/tests/${testId}`} title="Go back" /> <br /><br />
 	<Button action={fixProblemOrder} title="Fix problem numbers" />
 	<br /><br />
 	{#if !userIsTestCoordinator}
@@ -198,6 +228,23 @@
 	{:else if loadingProblems}
 		<p>Loading problems...</p>
 	{:else}
+		<!-- version number -->
+		<div style="display: flex; justify-content: center;">
+			<div>
+				<TextInput
+					labelText="Test Version"
+					bind:value={testVersion}
+					on:input={changeVersionInput}
+				/>
+				<div
+					style="visibility: {testVersionWasChanged
+						? 'visible'
+						: 'hidden'}; padding-top: 5px;"
+				>
+					<Button action={submitVersionChange} title="Submit changes" />
+				</div>
+			</div>
+		</div>
 		<div class="flex-row">
 			<div class="flex-col">
 				<h3>All Problems</h3>
