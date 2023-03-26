@@ -1,5 +1,4 @@
 import katex from "katex";
-import renderMathInElement from "katex/dist/contrib/auto-render";
 import type { ProblemImage } from "./getProblemImages";
 import { processLatexViaUnified } from "@unified-latex/unified-latex";
 import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
@@ -60,7 +59,7 @@ export function searchImages(str) {
 	return [...str.matchAll(imageRegex)].map((x, i) => ({
 		settings: x[1],
 		url: x[2],
-		index: i
+		index: i,
 	})); // only want capturing groups
 }
 
@@ -73,7 +72,7 @@ const macros = {
 	"\\floor": "\\left\\lfloor #1 \\right\\rfloor",
 	"\\ceil": "\\left\\lceil #1 \\right\\rceil",
 	"\\VEC": "\\overrightarrow{#1}",
-	"\\Mod": "\\enspace(\\text{mod}\\ #1)"
+	"\\Mod": "\\enspace(\\text{mod}\\ #1)",
 };
 
 const settingsRegex = {
@@ -87,7 +86,8 @@ const processor = processLatexViaUnified()
 // workaround to make images not get parsed
 const placeholderText = "PARSETHISIMAGELATER6358272";
 const placeholderEnd = "ENDPLACEHOLDER671384256";
-const placeholderRegex = /PARSETHISIMAGELATER6358272(.*?)ENDPLACEHOLDER671384256/g;
+const placeholderRegex =
+	/PARSETHISIMAGELATER6358272(.*?)ENDPLACEHOLDER671384256/g;
 
 export async function displayLatex(str: string, images: ProblemImage[]) {
 	let errorList = [];
@@ -109,7 +109,8 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 	let fakeElem = document.createElement("div");
 	fakeElem.innerHTML = unifiedStr;
 	try {
-		renderMathInElement(fakeElem, {
+		// @ts-ignore
+		window.renderMathInElement(fakeElem, {
 			delimiters: [
 				{ left: "$$", right: "$$", display: true },
 				{ left: "\\[", right: "\\]", display: true },
@@ -117,8 +118,8 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 				{ left: "\\(", right: "\\)", display: false },
 			],
 			macros: macros,
-			throwOnError: true
-		})
+			throwOnError: true,
+		});
 	} catch (e) {
 		errorList.push({
 			error: e.toString(),
@@ -127,14 +128,12 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 	}
 
 	// replace math
-	for (const dm of Array.from(
-		fakeElem.querySelectorAll(".display-math")
-	)) {
+	for (const dm of Array.from(fakeElem.querySelectorAll(".display-math"))) {
 		try {
 			katex.render(dm.textContent, dm, {
 				displayMode: true,
 				throwOnError: true,
-				macros
+				macros,
 			});
 		} catch (e) {
 			errorList.push({
@@ -143,14 +142,12 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 			});
 		}
 	}
-	for (const im of Array.from(
-		fakeElem.querySelectorAll(".inline-math")
-	)) {
+	for (const im of Array.from(fakeElem.querySelectorAll(".inline-math"))) {
 		try {
 			katex.render(im.textContent, im, {
 				displayMode: false,
 				throwOnError: true,
-				macros
+				macros,
 			});
 		} catch (e) {
 			errorList.push({
@@ -186,6 +183,6 @@ export async function displayLatex(str: string, images: ProblemImage[]) {
 
 	return {
 		out: outHtml,
-		errorList
+		errorList,
 	};
 }

@@ -22,7 +22,6 @@
 		for (let test of testList) {
 			tournaments[test.tournament_id].push(test);
 			tests.push(test);
-			console.log(tests);
 		}
 		loading = false;
 	}

@@ -12,8 +12,6 @@
 
 	let loaded = false;
 
-	console.log($page.route.id);
-
 	let hasAccount = true;
 	// user.set(browser ? localStorage.getItem("user") : null);
 	user.set(supabase.auth.user());
@@ -39,7 +37,9 @@
 		<Banner />
 		<br />
 		<div class="flex">
-			<div style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;">
+			<div
+				style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;"
+			>
 				<Account logIn={true} />
 				<br />
 				<br />
@@ -54,7 +54,8 @@
 							}}>Sign-Up</button
 						>
 						<button size="lg" class="link" id="forgotPassword"
-							><a href="/password-reset" style="color: black;">Forgot Password</a
+							><a href="/password-reset" style="color: black;"
+								>Forgot Password</a
 							></button
 						>
 					</div>
@@ -62,10 +63,12 @@
 			</div>
 		</div>
 	{:else if !$user && !hasAccount && $page.route.id != "/password-reset"}
-	<Banner />
+		<Banner />
 		<br />
 		<div class="flex">
-			<div style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;">
+			<div
+				style="background-color: var(--tinted-green); border-radius: 10px; width: fit-content; padding: 20px;"
+			>
 				<Account logIn={false} />
 				<br />
 				<br />
@@ -82,7 +85,8 @@
 							Log-In
 						</button>
 						<button size="lg" class="link" id="forgotPassword"
-							><a href="/password-reset" style="color: black;">Forgot Password</a
+							><a href="/password-reset" style="color: black;"
+								>Forgot Password</a
 							></button
 						>
 					</div>

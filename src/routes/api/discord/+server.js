@@ -71,7 +71,7 @@ export async function POST({ request }) {
 					value: body.problem.comment_latex,
 				}
 			);
-		
+
 		if (body.image != "") {
 			embed.setImage(body.image);
 		}
@@ -99,7 +99,6 @@ export async function POST({ request }) {
 			headers: { "content-type": "application/text" },
 		});
 	} catch (e) {
-		console.log(e.message);
 		return new Response(e.message, {
 			status: 400,
 		});

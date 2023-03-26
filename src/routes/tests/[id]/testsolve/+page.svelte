@@ -78,7 +78,6 @@
 		allUsers = users.filter(
 			(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
 		);
-		console.log(allUsers);
 		loading = false;
 	}
 

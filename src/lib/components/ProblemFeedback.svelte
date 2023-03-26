@@ -2,13 +2,22 @@
 	import { supabase } from "$lib/supabaseClient";
 	import PieChart from "./PieChart.svelte";
 	import { Checkbox } from "carbon-components-svelte";
+	import {
+		DataTable,
+		Link,
+		Toolbar,
+		ToolbarContent,
+		ToolbarSearch,
+	} from "carbon-components-svelte";
 
 	export let problemID;
-	let feedbackList;
+	let feedbackList = [];
 	let answerList;
 	let allAnswers = [];
 	let noRepeatAnswers = [];
 	let loaded = false;
+	let pageSize = 25;
+	let page = 1;
 
 	async function loadFeedback() {
 		let { data, error } = await supabase
@@ -17,7 +26,16 @@
 			.eq("problem_id", problemID);
 
 		// filter empty feedback
-		feedbackList = data.filter((fd) => !!fd.feedback);
+		const totalFeedbackList = data.filter((fd) => !!fd.feedback);
+
+		feedbackList = totalFeedbackList.map((e, i) => ({
+			id: i,
+			answer: e.answer,
+			feedback: e.feedback,
+			resolved: e.resolved,
+			user: e.testsolves.users.full_name ?? "",
+		}));
+
 		answerList = data
 			.filter((fd) => fd.answer !== null)
 			.map((fd) => ({
@@ -63,7 +81,6 @@
 
 	// resolve or unresolve an answer
 	async function changeResolve(e, feedback) {
-		console.log(e.detail);
 		let newFeedback = {
 			resolved: e.detail,
 		};
@@ -102,42 +119,34 @@
 			{#if feedbackList.length == 0}
 				<p>No feedback for this problem</p>
 			{:else}
-				<div class="row" style="column-gap: 5px;">
-					{#each feedbackList as feedback}
-						<div class="feedback-box">
-							<div
-								class="row"
-								style="width: calc(100% - 5px); column-gap: 5px; margin-bottom: 5px;"
-							>
-								<div class="sender">
-									<p>
-										<strong>From:</strong>
-										{feedback.testsolves.users.full_name}
-									</p>
-								</div>
-								<div class="sender">
-									<p>
-										<strong>Their answer:</strong>
-										{feedback.answer ?? "n/a"}
-									</p>
-								</div>
-							</div>
-							<div class="sender" style="margin-bottom: 5px;">
-								<p><strong>Feedback:</strong> {feedback.feedback}</p>
-							</div>
-							<div class="sender">
-								<p>
-									<strong>Resolved:</strong>
-									<Checkbox
-										bind:checked={feedback.resolved}
-										style="flex-basis: 0"
-										on:check={(e) => changeResolve(e, feedback)}
-									/>
-								</p>
+				<DataTable
+					sortable
+					size="compact"
+					headers={[
+						{ key: "id", value: "ID", width: "100px" },
+						{ key: "user", value: "User" },
+						{ key: "answer", value: "Answer" },
+						{ key: "feedback", value: "Feedback" },
+						{ key: "resolved", value: "Resolved" },
+					]}
+					rows={feedbackList}
+					{pageSize}
+					{page}
+				>
+					<Toolbar size="sm">
+						<ToolbarContent>
+							<ToolbarSearch persistent shouldFilterRows />
+						</ToolbarContent>
+					</Toolbar>
+
+					<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
+						<div>
+							<div style="overflow: hidden;">
+								{cell.value == null || cell.value == "" ? "None" : cell.value}
 							</div>
 						</div>
-					{/each}
-				</div>
+					</svelte:fragment>
+				</DataTable>
 			{/if}
 		{/if}
 	</div>

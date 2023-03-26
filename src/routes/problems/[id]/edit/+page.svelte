@@ -62,7 +62,6 @@
 			.update([payloadNoTopics])
 			.eq("id", $page.params.id);
 		if (error) alert(error.message);
-		console.log(data);
 		let { error2 } = await supabase
 			.from("problem_topics")
 			.delete()
@@ -99,8 +98,8 @@
 			body: JSON.stringify({
 				id: problem.id,
 				update: "edited",
-				updater: authorName
-			})
+				updater: authorName,
+			}),
 		});
 
 		fetchProblem();

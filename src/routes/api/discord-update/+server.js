@@ -25,7 +25,6 @@ export async function POST({ request }) {
 			headers: { "content-type": "application/text" },
 		});
 	} catch (e) {
-		console.log(e.message);
 		return new Response(e.message, {
 			status: 400,
 		});

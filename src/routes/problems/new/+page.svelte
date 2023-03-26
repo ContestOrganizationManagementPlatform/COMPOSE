@@ -28,8 +28,7 @@
 			.select("front_id")
 			.eq("problem_id", id)
 			.single();
-		
-		console.log(data.front_id);
+
 		if (error) throw error;
 		else return data.front_id;
 	}
@@ -64,14 +63,22 @@
 					});
 			}
 
-			let imageDownloadResult = await ImageBucket.downloadLatexImages(payload.problem_latex);
+			let imageDownloadResult = await ImageBucket.downloadLatexImages(
+				payload.problem_latex
+			);
 			let imageName = "";
 			if (imageDownloadResult.images.length > 0) {
-				imageName = await ImageBucket.getImageURL(imageDownloadResult.images[0].name);
+				imageName = await ImageBucket.getImageURL(
+					imageDownloadResult.images[0].name
+				);
 			} else {
-				imageDownloadResult = await ImageBucket.downloadLatexImages(payload.solution_latex);
+				imageDownloadResult = await ImageBucket.downloadLatexImages(
+					payload.solution_latex
+				);
 				if (imageDownloadResult.images.length > 0) {
-					imageName = await ImageBucket.getImageURL(imageDownloadResult.images[0].name);
+					imageName = await ImageBucket.getImageURL(
+						imageDownloadResult.images[0].name
+					);
 				}
 			}
 
@@ -83,8 +90,8 @@
 					id: problemId,
 					created_at: data[0].created_at,
 					front_id: await getFrontID(problemId),
-					image: imageName
-				})
+					image: imageName,
+				}),
 			});
 
 			openModal = true;
@@ -136,7 +143,13 @@
 			<br />
 			<Button href="/problems/{problem_id}" title="Visit Problem" />
 			<br /><br />
-			<Button action={async () => {await invalidate("/problems/new"); window.location.replace('/problems/new');}} title="Create New Problem" />
+			<Button
+				action={async () => {
+					await invalidate("/problems/new");
+					window.location.replace("/problems/new");
+				}}
+				title="Create New Problem"
+			/>
 			<br /><br />
 			<Button href="/problems" title="View All Problems" />
 			<br /><br />

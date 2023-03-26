@@ -36,7 +36,7 @@
 					name: x.test_name,
 					id: x.id,
 					solves: [],
-					completed: true
+					completed: true,
 				}));
 			}
 		} else {
@@ -52,7 +52,7 @@
 					name: x.tests.test_name,
 					id: x.test_id,
 					solves: [],
-					completed: true
+					completed: true,
 				}));
 			}
 		}
@@ -85,8 +85,6 @@
 		for (const solve of finishedSolves) {
 			let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
 			if (test) {
-				console.log(test);
-				console.log(solve);
 				test.solves.push(solve);
 				// if this solve is uncompleted
 				if (!solve.completed && solve.solver_id === supabase.auth.user().id) {
@@ -116,7 +114,8 @@
 					: "N/A",
 				person: solve.users.full_name + " (" + solve.users.initials + ")",
 				test: availableTestsolves.find((ts) => ts.id === solve.test_id).name,
-				status
+				status,
+				testVersion: solve.test_version,
 			});
 		}
 		loading = false;
@@ -173,6 +172,7 @@
 					{ key: "person", value: "Person" },
 					{ key: "test", value: "Test" },
 					{ key: "status", value: "Status" },
+					{ key: "testVersion", value: "Test Version" },
 				]}
 				rows={tableData}
 			>

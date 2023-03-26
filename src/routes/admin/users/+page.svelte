@@ -22,8 +22,8 @@
 		10: "No permissions",
 		20: "Problem Contributor",
 		30: "Problem Writer",
-		40: "Administrator"
-	}
+		40: "Administrator",
+	};
 
 	let roles = [];
 
@@ -38,7 +38,6 @@
 		}
 		let roles2 = [];
 		for (let user of users) {
-			console.log(user);
 			const curRole = user.user_roles?.role ?? 0;
 			roles2.push({
 				edit: user.id + "test",
@@ -48,7 +47,9 @@
 				initials: user.initials,
 			});
 		}
-		roles2.sort((a, b) => {return a.name.toLowerCase().localeCompare(b.name.toUpperCase());});
+		roles2.sort((a, b) => {
+			return a.name.toLowerCase().localeCompare(b.name.toUpperCase());
+		});
 		roles = roles2;
 		loading = false;
 	}
@@ -62,7 +63,6 @@
 {#if loading}
 	<p>Loading...</p>
 {:else}
-
 	{#if errorTrue}
 		<div style="position: fixed; bottom: 10px; left: 10px;">
 			<InlineNotification
@@ -75,7 +75,7 @@
 	{/if}
 
 	<div style="padding: 10px;">
-	<DataTable
+		<DataTable
 			sortable
 			size="compact"
 			headers={[
@@ -83,7 +83,7 @@
 				{ key: "name", value: "Name" },
 				{ key: "initials", value: "Initials", width: "100px" },
 				{ key: "role", value: "Role" },
-				{ key: "id", value: "ID"},
+				{ key: "id", value: "ID" },
 			]}
 			rows={roles}
 			{pageSize}
