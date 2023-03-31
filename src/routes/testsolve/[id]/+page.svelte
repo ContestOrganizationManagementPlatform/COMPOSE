@@ -5,6 +5,7 @@
 	import { InlineNotification } from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -13,15 +14,52 @@
 	let disallowed = true;
 
 	let answers = [];
+	let feedbackQuestions = {};
+	let feedbackAnswers = [];
 
 	let startTime = null;
 	let endTime = null;
 
 	let testsolve = null;
 	let timeElapsed;
-	$: timeElapsed = testsolve?.time_elapsed * 1000 ?? 
+	$: timeElapsed =
+		testsolve?.time_elapsed * 1000 ??
 		new Date(testsolve?.end_time).getTime() -
-		new Date(testsolve?.start_time).getTime();
+			new Date(testsolve?.start_time).getTime();
+
+	async function getFeedbackQuestions() {
+		try {
+			let { data: test_feedback_questions, error } = await supabase
+				.from("test_feedback_questions")
+				.select("*")
+				.eq("test_id", testsolve.test_id);
+			for (const x of test_feedback_questions) {
+				feedbackQuestions[x.id] = x;
+				feedbackAnswers.push({
+					feedback_question: x.id,
+					answer: "",
+				});
+			}
+		} catch (error) {
+			if (error.code !== "PGRST116") {
+				errorTrue = true;
+				errorMessage = error;
+			}
+		}
+	}
+
+	async function getFeedbackAnswers() {
+		let { data: data3, error: error3 } = await supabase
+			.from("testsolve_feedback_answers")
+			.select("*")
+			.eq("testsolve_id", $page.params.id);
+		if (error3) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else {
+			feedbackAnswers = data3;
+		}
+	}
 
 	async function permissionCheck() {
 		// check permission
@@ -62,6 +100,8 @@
 			loading = false;
 		} else {
 			getAnswers();
+			getFeedbackQuestions();
+			getFeedbackAnswers();
 		}
 	}
 
@@ -122,7 +162,22 @@
 					errorMessage = error.message;
 				} else {
 					loading = true;
+					for (const ans of feedbackAnswers) {
+						let { error: error2 } = await supabase
+							.from("testsolve_feedback_answers")
+							.update({
+								testsolve_id: $page.params.id,
+								feedback_question: ans.feedback_question,
+								answer: ans.answer,
+							})
+							.eq("id", ans.id);
+						if (error2) {
+							errorTrue = true;
+							errorMessage = error2.message;
+						}
+					}
 					getAnswers();
+					getFeedbackAnswers();
 				}
 			}
 		}
@@ -150,9 +205,11 @@
 		bind:answers
 		answerable
 		reviewing
-		submittable
 		on:submit={submitTestsolve}
+		{feedbackAnswers}
+		{feedbackQuestions}
 	/>
+	<Button action={submitTestsolve} title="Submit" />
 	<div class="timer">
 		<p>Time taken: {formatTime(timeElapsed, { hideHours: true })}</p>
 	</div>

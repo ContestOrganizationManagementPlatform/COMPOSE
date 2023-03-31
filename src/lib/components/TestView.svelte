@@ -4,6 +4,7 @@
 	import { Checkbox, TextArea, TextInput } from "carbon-components-svelte";
 	import { TestsolveAnswer } from "$lib/TestsolveAnswer";
 	import { createEventDispatcher } from "svelte";
+	import { page } from "$app/stores";
 	import Button from "$lib/components/Button.svelte";
 
 	const dispatch = createEventDispatcher();
@@ -13,6 +14,8 @@
 	export let answerable = false;
 	export let submittable = false;
 	export let answers = [];
+	export let feedbackAnswers = [];
+	export let feedbackQuestions = {};
 
 	let problems = [];
 	let answerTexts = {};
@@ -129,8 +132,23 @@
 				</div>
 			{/each}
 		{/if}
+		<br />
+		<div class="flex">
+			<div class="questionsDiv">
+				<p style="font-size: 20px">
+					<strong>General Testsolving Questions</strong>
+				</p>
+				<br />
+				{#each feedbackAnswers as { feedback_question }, i}
+					<p>{i + 1}. {feedbackQuestions[feedback_question].question}</p>
+					<TextInput bind:value={feedbackAnswers[i].answer} />
+					<br />
+				{/each}
+			</div>
+		</div>
+		<br />
 		{#if submittable}
-			<Button action={submitTest} title="Submit" />
+			<Button action={submitTest(true)} title="Submit" />
 		{/if}
 	</div>
 </div>
@@ -163,5 +181,13 @@
 	.inner-div {
 		width: 80%;
 		min-width: 400px;
+	}
+
+	.questionsDiv {
+		background-color: var(--white);
+		border: 2px solid black;
+		padding: 20px;
+		text-align: left;
+		width: 70%;
 	}
 </style>

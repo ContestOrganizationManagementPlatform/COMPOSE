@@ -94,6 +94,19 @@ CREATE TABLE IF NOT EXISTS testsolve_answers (
     resolved bool NOT NULL DEFAULT false
 );
 
+CREATE TABLE IF NOT EXISTS test_feedback_questions (
+    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    test_id int8 REFERENCES public.tests(id) ON DELETE CASCADE NOT NULL,
+    question text
+);
+
+CREATE TABLE IF NOT EXISTS testsolve_feedback_answers (
+    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    testsolve_id int8 REFERENCES public.testsolves(id) ON DELETE CASCADE NOT NULL,
+    feedback_question int8 REFERENCES public.test_feedback_questions(id) ON DELETE CASCADE NOT NULL,
+    answer text
+);
+
 -- add resolved, difficulty
 ALTER TABLE testsolve_answers
     ADD COLUMN IF NOT EXISTS difficulty int4,

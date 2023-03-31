@@ -4,11 +4,11 @@
 	import { Checkbox } from "carbon-components-svelte";
 	import {
 		DataTable,
-		Link,
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
 	} from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 
 	export let problemID;
 	let feedbackList = [];
@@ -18,6 +18,8 @@
 	let loaded = false;
 	let pageSize = 25;
 	let page = 1;
+	let showFeedbackPanel = false;
+	let feedbackInput;
 
 	async function loadFeedback() {
 		let { data, error } = await supabase
@@ -28,12 +30,17 @@
 		// filter empty feedback
 		const totalFeedbackList = data.filter((fd) => !!fd.feedback);
 
-		feedbackList = totalFeedbackList.map((e, i) => ({
-			id: i,
+		feedbackList = totalFeedbackList.map((e) => ({
+			id: e.id,
 			answer: e.answer,
 			feedback: e.feedback,
 			resolved: e.resolved,
-			user: e.testsolves.users.full_name ?? "",
+			user: e.testsolves ? e.testsolves.users.full_name : "N/A",
+			user_id: e.testsolves ? e.testsolves.users.id : "N/A",
+			user_amc_score: e.testsolves ? e.testsolves.users.amc_score : "N/A",
+			user_math_background: e.testsolves
+				? e.testsolves.users.math_comp_background
+				: "N/A",
 		}));
 
 		answerList = data
@@ -43,6 +50,7 @@
 				correct: fd.correct,
 			}));
 		groupAnswerList();
+
 		loaded = true;
 	}
 
@@ -80,7 +88,7 @@
 	}
 
 	// resolve or unresolve an answer
-	async function changeResolve(e, feedback) {
+	async function changeResolve(e, feedback_id) {
 		let newFeedback = {
 			resolved: e.detail,
 		};
@@ -88,9 +96,25 @@
 		let { error } = await supabase
 			.from("testsolve_answers")
 			.update(newFeedback)
-			.eq("id", feedback.id);
+			.eq("id", feedback_id);
 
 		if (error) alert(error.message);
+	}
+
+	async function addFeedback() {
+		const { data, error } = await supabase.from("testsolve_answers").insert([
+			{
+				problem_id: problemID,
+				feedback: feedbackInput,
+			},
+		]);
+
+		if (error) {
+			alert(error.message);
+		} else {
+			feedbackInput = "";
+			loadFeedback();
+		}
 	}
 
 	loadFeedback();
@@ -119,15 +143,37 @@
 			{#if feedbackList.length == 0}
 				<p>No feedback for this problem</p>
 			{:else}
+				<br />
+				<Button
+					action={() => {
+						showFeedbackPanel = true;
+					}}
+					title="Add Feedback"
+				/>
+				<br />
+				{#if showFeedbackPanel}
+					<br />
+					<textarea
+						bind:value={feedbackInput}
+						style="width: 100%; resize: vertical; min-height: 100px;"
+					/>
+					<br />
+					<br />
+					<Button action={addFeedback} title="Submit" />
+					<br />
+				{/if}
+				<br />
 				<DataTable
+					expandable
 					sortable
 					size="compact"
 					headers={[
-						{ key: "id", value: "ID", width: "100px" },
+						{ key: "id", value: "ID", width: "70px" },
 						{ key: "user", value: "User" },
+						{ key: "user_amc_score", value: "AMC Score" },
 						{ key: "answer", value: "Answer" },
 						{ key: "feedback", value: "Feedback" },
-						{ key: "resolved", value: "Resolved" },
+						{ key: "resolved", value: "Resolved", width: "100px" },
 					]}
 					rows={feedbackList}
 					{pageSize}
@@ -141,9 +187,26 @@
 
 					<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
 						<div>
-							<div style="overflow: hidden;">
-								{cell.value == null || cell.value == "" ? "None" : cell.value}
-							</div>
+							{#if cell.key == "resolved"}
+								<p>
+									<Checkbox
+										bind:checked={feedbackList[rowIndex].resolved}
+										style="flex-basis: 0"
+										on:check={(e) => changeResolve(e, row.id)}
+									/>
+								</p>
+							{:else}
+								<div style="overflow: hidden;">
+									{cell.value}
+								</div>
+							{/if}
+						</div>
+					</svelte:fragment>
+					<svelte:fragment slot="expanded-row" let:row>
+						<div style="padding: 10px;">
+							<pre><strong>Math Competition Background</strong
+								>: {row.math_comp_background}</pre>
+							<pre><strong>AMC Score</strong>: {row.amc_score}</pre>
 						</div>
 					</svelte:fragment>
 				</DataTable>
@@ -154,22 +217,14 @@
 <br />
 
 <style>
-	.sender {
-		background-color: rgb(234, 234, 234);
-		border-radius: 5px;
-		padding: 3px 10px;
-		width: 100%;
-	}
-
 	.feedback-container,
 	.answer-container {
 		width: 70%;
 		margin-bottom: 10px;
 	}
-	.feedback-box {
-		text-align: left;
-		border: 2px solid black;
-		margin-top: 5px;
-		padding: 5px;
+
+	:global(.bx--table-expand__button) {
+		width: 30px;
+		height: 20px;
 	}
 </style>
