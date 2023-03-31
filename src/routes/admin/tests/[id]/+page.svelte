@@ -18,8 +18,39 @@
 	let allUsers = [];
 	let selectRef;
 
+	let curQuestion = "";
+	let feedbackQuestions = [];
+
 	let errorTrue = false;
 	let errorMessage = "";
+
+	async function getFeedbackQuestions() {
+		try {
+			let { data: test_feedback_questions, error } = await supabase
+				.from("test_feedback_questions")
+				.select("*")
+				.eq("test_id", testId);
+			feedbackQuestions = test_feedback_questions;
+		} catch (error) {
+			if (error.code !== "PGRST116") {
+				errorTrue = true;
+				errorMessage = error.messsage;
+			}
+		}
+	}
+
+	async function addFeedbackQuestion() {
+		const { data, error } = await supabase
+			.from("test_feedback_questions")
+			.insert([{ test_id: testId, question: curQuestion }]);
+		if (error) {
+			errorTrue = true;
+			errorMessage = error.message;
+		} else {
+			await getFeedbackQuestions();
+			curQuestion = "";
+		}
+	}
 
 	async function getOneUser(id) {
 		let { data: user, error } = await supabase
@@ -55,6 +86,7 @@
 		testCoordinators = queriedCoordinators.map((tc) => tc.users);
 		loading = false;
 		await getAllUsers();
+		await getFeedbackQuestions();
 	}
 
 	async function getAllUsers() {
@@ -141,12 +173,21 @@
 		<h1>Test {testId}: {test.test_name}</h1>
 		<br />
 		<form on:submit|preventDefault>
+			<Modal runHeader="Delete Test" onSubmit={deleteTest} />
+		</form>
+		<br />
+		<br />
+		<form on:submit|preventDefault>
 			<TextInput label="Name" bind:value={test.test_name} />
 			<br />
 			<TextArea label="Description" bind:value={test.test_description} />
 			<br />
 			<Button action={editTest} title="Edit Test" />
 		</form>
+		<br />
+		<br />
+		<hr style="width: 60%;" />
+		<br />
 		<br />
 		<h3><strong>Current Test Coordinators</strong></h3>
 		{#if testCoordinators.length === 0}
@@ -173,7 +214,8 @@
 					{/each}
 				</div>
 			</div>
-		{/if} <br /> <br />
+		{/if}
+		<br /><br />
 		<h3><strong>Add Test Coordinators</strong></h3>
 		<form on:submit|preventDefault>
 			<div class="flex">
@@ -192,8 +234,36 @@
 			<Button action={addTestCoordinator} title="Add Test Coordinator" />
 		</form>
 		<br />
-		<form on:submit|preventDefault>
-			<Modal runHeader="Delete Test" onSubmit={deleteTest} />
-		</form>
+		<br />
+		<hr style="width: 60%;" />
+		<br />
+		<br />
+		<h3><strong>Current Feedback Questions</strong></h3>
+		<br />
+		<div class="flex">
+			<div style="width: 60%">
+				{#if feedbackQuestions.length > 0}
+					<ol style="text-align: left;">
+						{#each feedbackQuestions as question}
+							<li style="margin-bottom: 8px;">- {question.question}</li>
+						{/each}
+					</ol>
+				{:else}
+					<p>There are no current questions.</p>
+				{/if}
+			</div>
+		</div>
+
+		<br />
+		<h3><strong>Add Feedback Questions</strong></h3>
+		<div class="flex">
+			<div style="width: 60%">
+				<TextInput labelText="Feedback Question" bind:value={curQuestion} />
+			</div>
+		</div>
+		<br />
+		<Button action={addFeedbackQuestion} title="Submit" />
+		<br />
+		<br />
 	{/if}
 </div>

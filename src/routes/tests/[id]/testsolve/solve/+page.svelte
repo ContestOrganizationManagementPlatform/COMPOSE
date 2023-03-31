@@ -2,7 +2,12 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import { InlineNotification, TextArea } from "carbon-components-svelte";
+	import {
+		InlineNotification,
+		TextArea,
+		Form,
+		TextInput,
+	} from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
@@ -15,6 +20,8 @@
 	let disallowed = true;
 
 	let answers = [];
+	let feedbackQuestions = {};
+	let feedbackAnswers = [];
 
 	let startTime = null;
 	let timeOffset = 0; // seconds to add to timer
@@ -22,6 +29,27 @@
 
 	// if a user has a previously uncompleted testsolve, load it
 	let loadedTestsolve = null;
+
+	async function getFeedbackQuestions() {
+		try {
+			let { data: test_feedback_questions, error } = await supabase
+				.from("test_feedback_questions")
+				.select("*")
+				.eq("test_id", $page.params.id);
+			for (const x of test_feedback_questions) {
+				feedbackQuestions[x.id] = x;
+				feedbackAnswers.push({
+					feedback_question: x.id,
+					answer: "",
+				});
+			}
+		} catch (error) {
+			if (error.code !== "PGRST116") {
+				errorTrue = true;
+				errorMessage = error;
+			}
+		}
+	}
 
 	async function permissionCheck() {
 		// check permission
@@ -48,6 +76,8 @@
 	}
 
 	async function loadTestsolve() {
+		await getFeedbackQuestions();
+
 		// check if there is a prior testsolve
 
 		let { data, error } = await supabase
@@ -77,6 +107,18 @@
 				answers = data2;
 			}
 
+			// need to fetch all the previous feedback answers
+			let { data: data3, error: error3 } = await supabase
+				.from("testsolve_feedback_answers")
+				.select("*")
+				.eq("testsolve_id", loadedTestsolve.id);
+			if (error3) {
+				errorTrue = true;
+				errorMessage = error.message;
+			} else {
+				feedbackAnswers = data3;
+			}
+
 			// load in start time
 			timeOffset = loadedTestsolve.time_elapsed;
 		}
@@ -86,6 +128,7 @@
 	permissionCheck();
 
 	async function submitTestsolve(completedSolve) {
+		console.log("hi");
 		endTime = new Date();
 
 		// time elapsed in seconds
@@ -184,6 +227,39 @@
 			}
 		}
 
+		// update answer to feedback questions
+		if (loadedTestsolve) {
+			for (const ans of feedbackAnswers) {
+				let { error: error2 } = await supabase
+					.from("testsolve_feedback_answers")
+					.update({
+						testsolve_id: testsolveId,
+						feedback_question: ans.feedback_question,
+						answer: ans.answer,
+					})
+					.eq("id", ans.id);
+				if (error2) {
+					errorTrue = true;
+					errorMessage = error2.message;
+				}
+			}
+		} else {
+			let { error: error2 } = await supabase
+				.from("testsolve_feedback_answers")
+				.insert(
+					feedbackAnswers.map((ans) => ({
+						testsolve_id: testsolveId,
+						feedback_question: ans.feedback_question,
+						answer: ans.answer,
+					}))
+				);
+
+			if (error2) {
+				errorTrue = true;
+				errorMessage = error2.message;
+			}
+		}
+
 		if (!errorTrue) {
 			if (!completedSolve) {
 				window.location.href = "/testsolve";
@@ -231,8 +307,9 @@
 		testId={$page.params.id}
 		bind:answers
 		answerable
-		submittable
 		on:submit={submitTestsolve}
+		{feedbackAnswers}
+		{feedbackQuestions}
 	/>
 	<div class="timer">
 		<p>Time elapsed: {formatTime(timeElapsed, { hideHours: true })}</p>
