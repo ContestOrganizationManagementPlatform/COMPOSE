@@ -159,8 +159,6 @@
 					size="compact"
 					headers={[
 						{ key: "id", value: "ID", width: "70px" },
-						{ key: "user", value: "User" },
-						{ key: "user_amc_score", value: "AMC Score" },
 						{ key: "answer", value: "Answer" },
 						{ key: "feedback", value: "Feedback" },
 						{ key: "resolved", value: "Resolved", width: "100px" },
@@ -194,6 +192,8 @@
 					</svelte:fragment>
 					<svelte:fragment slot="expanded-row" let:row>
 						<div style="padding: 10px;">
+							<pre><strong>User</strong
+								>: {row.user}</pre>
 							<pre><strong>Math Competition Background</strong
 								>: {row.math_comp_background}</pre>
 							<pre><strong>AMC Score</strong>: {row.amc_score}</pre>
