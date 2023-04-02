@@ -18,7 +18,6 @@
 	let loaded = false;
 	let pageSize = 25;
 	let page = 1;
-	let showFeedbackPanel = false;
 	let feedbackInput;
 
 	async function loadFeedback() {
@@ -139,29 +138,20 @@
 <div class="flex">
 	<div class="feedback-container">
 		<h2>Feedback</h2>
+		<br />
+		<textarea
+			placeholder="Add feedback on problem here"
+			bind:value={feedbackInput}
+		/>
+		<br />
+		<br />
+		<Button action={addFeedback} title="Submit" />
+		<br />
+		<br />
 		{#if loaded}
 			{#if feedbackList.length == 0}
 				<p>No feedback for this problem</p>
 			{:else}
-				<br />
-				<Button
-					action={() => {
-						showFeedbackPanel = true;
-					}}
-					title="Add Feedback"
-				/>
-				<br />
-				{#if showFeedbackPanel}
-					<br />
-					<textarea
-						bind:value={feedbackInput}
-						style="width: 100%; resize: vertical; min-height: 100px;"
-					/>
-					<br />
-					<br />
-					<Button action={addFeedback} title="Submit" />
-					<br />
-				{/if}
 				<br />
 				<DataTable
 					expandable
@@ -226,5 +216,10 @@
 	:global(.bx--table-expand__button) {
 		width: 30px;
 		height: 20px;
+	}
+
+	textarea {
+		min-width: 500px;
+		min-height: 100px;
 	}
 </style>
