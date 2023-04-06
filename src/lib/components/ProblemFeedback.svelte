@@ -15,6 +15,7 @@
 	let answerList;
 	let allAnswers = [];
 	let noRepeatAnswers = [];
+	let showFeedbackPanel = false;
 	let loaded = false;
 	let pageSize = 25;
 	let page = 1;
@@ -139,14 +140,25 @@
 	<div class="feedback-container">
 		<h2>Feedback</h2>
 		<br />
-		<textarea
-			placeholder="Add feedback on problem here"
-			bind:value={feedbackInput}
+		<Button
+			action={() => {
+				showFeedbackPanel = true;
+			}}
+			title="Add Feedback"
 		/>
 		<br />
-		<br />
-		<Button action={addFeedback} title="Submit" />
-		<br />
+		{#if showFeedbackPanel}
+			<br />
+			<textarea
+				bind:value={feedbackInput}
+				placeholder="Add feedback"
+				style="width: 100%; resize: vertical; min-height: 100px;"
+			/>
+			<br />
+			<br />
+			<Button action={addFeedback} title="Submit" />
+			<br />
+		{/if}
 		<br />
 		{#if loaded}
 			{#if feedbackList.length == 0}
