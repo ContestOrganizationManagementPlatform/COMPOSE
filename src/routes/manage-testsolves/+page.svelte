@@ -67,7 +67,34 @@
 	}
 
 	getUpcomingTestsolves();
+
+	$: testsolvesSameWeek = testsolves
+		.filter((row) => {
+			var today = new Date();
+			var nextWeek = Date.parse(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7));
+
+			if (nextWeek > new Date(row.end_time)) {                     
+				return false;
+			} else{
+				return true;
+			}
+		})
+		.map((row) => row.id);
+
+	$: selectors = testsolvesSameWeek.map((id) => `[data-row="${id}"]`).join(",");
+
+	$: styles = `
+		<style>
+		${selectors} {
+			outline: 1.5px solid var(--green);
+		}
+		<\/style>
+	`;
 </script>
+
+<svelte:head>
+  {@html styles}
+</svelte:head>
 
 <br />
 <h1 style="margin-bottom: 5px;">Admin Testsolves</h1>
