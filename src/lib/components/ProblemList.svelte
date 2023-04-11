@@ -28,26 +28,28 @@
 	export let pageEnabled = true;
 	export let showUnresolved = true;
 
-	let showList = showUnresolved ? [
-		"front_id",
-		"full_name",
-		"unresolved_count",
-		"topics_short",
-		"sub_topics",
-		"difficulty",
-		"test_name",
-		"created_at",
-		"edited_at",
-	] : [
-		"front_id",
-		"full_name",
-		"topics_short",
-		"sub_topics",
-		"difficulty",
-		"test_name",
-		"created_at",
-		"edited_at",
-	];
+	let showList = showUnresolved
+		? [
+				"front_id",
+				"full_name",
+				"unresolved_count",
+				"topics_short",
+				"sub_topics",
+				"difficulty",
+				"problem_tests",
+				"created_at",
+				"edited_at",
+		  ]
+		: [
+				"front_id",
+				"full_name",
+				"topics_short",
+				"sub_topics",
+				"difficulty",
+				"problem_tests",
+				"created_at",
+				"edited_at",
+		  ];
 
 	const dispatch = createEventDispatcher();
 
@@ -90,9 +92,8 @@
 			value: width > 700 ? "Difficulty" : "Diff.",
 		},
 		{
-			key: "test_name",
-			width: "100px",
-			value: "Test",
+			key: "problem_tests",
+			value: "Test(s)",
 		},
 		{
 			key: "unresolved_count",
@@ -214,7 +215,7 @@
 				text: "Difficulty",
 			},
 			{
-				id: "test_name",
+				id: "problem_tests",
 				text: "Test Name",
 			},
 			{
