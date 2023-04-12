@@ -4,6 +4,7 @@
 	import { sortIDs } from "$lib/sortIDs";
 	import Button from "$lib/components/Button.svelte";
 	import { InlineNotification, Checkbox } from "carbon-components-svelte";
+	import { getFullProblems } from "$lib/getProblems";
 
 	let problems = [];
 	let problemCounts = [];
@@ -14,22 +15,12 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
-	let link = "";
 	let openModal = false;
-	let values = ["Problems", "Answers", "Solutions"];
+	let values = ["Problems", "Answers", "Solutions", "Comments"];
 	let group = values.slice(0, 1);
 
 	(async () => {
-		let { data: newProblems, error } = await supabase
-			.from("full_problems")
-			.select("*")
-			.order("front_id");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		problems = newProblems;
-		problems.sort((a, b) => sortIDs(a.front_id, b.front_id));
+		problems = await getFullProblems();
 
 		let { data: problemCountsData, error2 } = await supabase
 			.from("problem_counts")
@@ -45,30 +36,45 @@
 		loaded = true;
 	})();
 
-	function getProblemLink() {
-		const macros = {
-			"\\ans": "\\boxed{#1}",
-			"\\Abs": "\\left\\lVert #1 \\right\\rVert",
-			"\\ang": "\\left \\langle #1 \\right \\rangle",
-			"\\set": "\\left\\{#1\\right\\}",
-			"\\paren": "\\left(#1\\right)",
-			"\\floor": "\\left\\lfloor #1 \\right\\rfloor",
-			"\\ceil": "\\left\\lceil #1 \\right\\rceil",
-			"\\VEC": "\\overrightarrow{#1}",
-			"\\Mod": "\\enspace(\\text{mod}\\ #1)",
-		}; // unfortunately this only works for commands with exactly one parameter for now
-		let preamble = "";
-		const keys = Object.keys(macros);
-		for (var key of keys) {
-            preamble += "\\newcommand{" + key + "}[1]{" + macros[key] + "}"
+	async function getBucketPaths(path) {
+		const { data, error } = await supabase.storage
+			.from("problem-images")
+			.list(path);
+		if (error) throw error;
+		else {
+			let ans = [];
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].id != null) {
+					if (path === "") {
+						ans.push(data[i].name);
+					} else {
+						ans.push(path + "/" + data[i].name);
+					}
+				} else {
+					let x;
+					if (path === "") {
+						x = await getBucketPaths(data[i].name);
+					} else {
+						x = await getBucketPaths(path + "/" + data[i].name);
+					}
+					for (let j = 0; j < x.length; j++) {
+						ans.push(x[j]);
+					}
+				}
+			}
+			return ans;
 		}
-		
-		let l = import.meta.env.VITE_PDF_GENERATOR_LINK + "\\documentclass{article}\n\\usepackage[utf8]{inputenc}\\usepackage{amsmath,amsfonts,amssymb}\\usepackage[margin=1in]{geometry}" + preamble + "\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
+	}
+
+	async function openProblemsPDF() {
+		let l =
+			"\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
 
 		for (const problem of problems) {
 			l += "\\section*{Problem " + problem.front_id + "}";
 			if (group.includes("Problems")) {
-				l += "\\textbf{" + problem.problem_latex + "}\\newline\\newline";
+				l +=
+					"\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
 			}
 
 			if (group.includes("Answers") && problem.answer_latex != "") {
@@ -81,8 +87,45 @@
 					problem.solution_latex.replace("\\ans{", "\\boxed{") +
 					"\\newline\\newline";
 			}
+
+			if (group.includes("Comments") && problem.comment_latex != "") {
+				l +=
+					"\\textbf{Comment:} " +
+					problem.comment_latex.replace("\\ans{", "\\boxed{") +
+					"\\newline\\newline";
+			}
 		}
-		link = l + "\\end{document}";
+		l += "\\end{document}";
+
+		let images = await getBucketPaths("");
+
+		const resp = await fetch(
+			// make env variable before pushing
+			import.meta.env.VITE_PDF_GENERATOR_URL,
+			{
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					mode: "no-cors",
+				},
+				body: JSON.stringify({
+					latex: l,
+					images,
+				}),
+			}
+		);
+		const blob = await resp.blob();
+		const newBlob = new Blob([blob]);
+		const blobUrl = window.URL.createObjectURL(newBlob);
+		const link = document.createElement("a");
+		link.href = blobUrl;
+		link.setAttribute("download", "problems.pdf");
+		document.body.appendChild(link);
+		link.click();
+		link.parentNode.removeChild(link);
+
+		// clean up Url
+		window.URL.revokeObjectURL(blobUrl);
 	}
 </script>
 
@@ -164,20 +207,11 @@
 			<p><strong>PDF Options</strong></p>
 
 			{#each values as value}
-				<Checkbox
-					bind:group
-					on:click={() => {
-						setTimeout(function () {
-							getProblemLink();
-						}, 50);
-					}}
-					labelText={value}
-					{value}
-				/>
+				<Checkbox bind:group labelText={value} {value} />
 			{/each}
 
 			<br />
-			<a href={link} download="test.pdf">Download Problems</a>
+			<button on:click={openProblemsPDF}>Download Problems</button>
 			<br /><br />
 		</div>
 	</div>

@@ -6,6 +6,7 @@
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
 	import { InlineNotification, TextInput } from "carbon-components-svelte";
+	import { getFullProblems } from "$lib/getProblems";
 
 	let testId = $page.params.id;
 	let test;
@@ -64,10 +65,7 @@
 			...pb.full_problems,
 		}));
 		selectedTest = testProblems.map((pb) => pb.id);
-		let { data: allProblemList, error2 } = await supabase
-			.from("full_problems")
-			.select("*")
-			.order("front_id");
+		let allProblemList = await getFullProblems();
 		// prevent problems from appearing twice
 		allProblems = allProblemList.filter(
 			(pb) => !testProblems.find((tpb) => tpb.id === pb.id)

@@ -79,7 +79,14 @@
 			{#each problems as problem}
 				<div class="problem-container">
 					<div class="problem-div">
-						<h3>{problem.problem_number + 1}.</h3>
+						<p>
+							<span style="font-size: 30px;">
+								{problem.problem_number + 1}.
+							</span>
+							{#if reviewing}
+								({problem.full_problems.front_id})
+							{/if}
+						</p>
 						<Latex
 							style="font-size: 16px"
 							value={problem.full_problems.problem_latex}

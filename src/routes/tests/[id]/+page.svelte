@@ -259,6 +259,7 @@
 				title="Open Test"
 			/>
 			<br /><br />
+			<Button href={`/tests/${testId}/feedback`} title="Manage Feedback" />
 		{/if}
 		{#if loadingProblems}
 			<p>Loading problems...</p>

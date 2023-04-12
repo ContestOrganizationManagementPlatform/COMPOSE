@@ -1,9 +1,14 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { Select, SelectItem, ToastNotification } from "carbon-components-svelte";
-    import Button from '$lib/components/Button.svelte';
+	import {
+		Select,
+		SelectItem,
+		ToastNotification,
+	} from "carbon-components-svelte";
+	import Button from "$lib/components/Button.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import Problem from "../../../lib/components/Problem.svelte";
+	import { getFullProblems } from "$lib/getProblems";
 
 	let problems = [];
 	let loading = true;
@@ -13,10 +18,10 @@
 	let show = false;
 
 	async function getProblems() {
-		let { data: problemData, error } = await supabase
-			.from("problems")
-			.select("id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)");
-		if (error) throw error;
+		let problemData = await getFullProblems({
+			columns:
+				"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)",
+		});
 		for (let problem of problemData) {
 			problems.push({
 				id: problem.id,
@@ -30,7 +35,7 @@
 		}
 		problems.sort((book1, book2) => {
 			return book1.id > book2.id ? 1 : book1.id < book2.id ? -1 : 0;
-		})
+		});
 		getUsers();
 		loading = false;
 	}
@@ -48,9 +53,11 @@
 			.from("problems")
 			.update({ author_id: users[curUser].id })
 			.eq("id", problems[curProblem].id);
-        if (error) throw error;
+		if (error) throw error;
 		show = true;
-		setInterval(() => {show = false;}, 3000);
+		setInterval(() => {
+			show = false;
+		}, 3000);
 	}
 
 	getProblems();

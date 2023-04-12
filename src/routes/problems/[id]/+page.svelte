@@ -2,14 +2,17 @@
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import Problem from "$lib/components/Problem.svelte";
-	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
 	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
+	import { getThisUserRole } from "$lib/getUserRole";
+	import { getSingleProblem } from "$lib/getProblems";
 
 	let problem;
 	let loaded = false;
+
+	let isAdmin = false;
 
 	let errorTrue = false;
 	let errorMessage = "";
@@ -36,56 +39,27 @@
 	}
 
 	async function fetchProblem() {
-		let { data: problems, error } = await supabase
-			.from("full_problems")
-			.select("*")
-			.eq("id", $page.params.id)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			problem = problems;
-			await fetchTopic(problem.id);
+		isAdmin = (await getThisUserRole()) >= 40;
+		problem = await getSingleProblem({
+			id: $page.params.id,
+			archived: isAdmin,
+		});
+
+		if (!problem) {
+			// problem wasn't found
 			loaded = true;
+			return;
 		}
+
+		await fetchTopic(problem.id);
+		loaded = true;
 	}
 	fetchProblem();
-
-	// this is never used?
-	/* async function submitProblem(payload) {
-		const { topics, ...payloadNoTopics } = payload;
-		let { data, error } = await supabase
-			.from("problems")
-			.update([payloadNoTopics])
-			.eq("id", $page.params.id);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		console.log(data);
-		let { error2 } = await supabase
-			.from("problem_topics")
-			.delete()
-			.eq("problem_id", data[0].id);
-		let { error3 } = await supabase.from("problem_topics").insert(
-			payload.topics.map((tp) => ({
-				problem_id: data[0].id,
-				topic_id: tp,
-			}))
-		);
-		const res = await fetch("/api/discord", {
-			method: "POST",
-			body: JSON.stringify(payload),
-		});
-		fetchProblem();
-	} */
 
 	async function deleteProblem() {
 		const { data, error } = await supabase
 			.from("problems")
-			.delete()
+			.update({ archived: true })
 			.eq("id", problem.id);
 		if (error) {
 			errorTrue = true;
@@ -104,6 +78,15 @@
 			window.location.replace("/problems");
 		}
 	}
+
+	async function restoreProblem() {
+		const { data, error } = await supabase
+			.from("problems")
+			.update({ archived: false })
+			.eq("id", problem.id);
+
+		window.location.reload();
+	}
 </script>
 
 <br />
@@ -119,20 +102,30 @@
 {/if}
 
 {#if loaded}
-	<h1>Problem {problem.id} ({problem.front_id})</h1>
-	<br />
-	<Button href="/problems" title="Back to Problems" />
-	<br /><br />
-	<Button href={"/problems/" + problem.id + "/edit"} title="Edit Problem" />
-	<br />
-	<br />
-	<Modal runHeader="Delete Problem" onSubmit={deleteProblem} />
-	<br />
-	<br />
-	<Problem {problem} showMetadata={true} />
-	<br />
-	<br />
-	<ProblemFeedback problemID={$page.params.id} />
+	{#if problem}
+		<h1>Problem {problem.id} ({problem.front_id})</h1>
+		<br />
+		<Button href="/problems" title="Back to Problems" />
+		<br /><br />
+		<Button href={"/problems/" + problem.id + "/edit"} title="Edit Problem" />
+		<br />
+		<br />
+		{#if problem.archived && isAdmin}
+			<Modal runHeader="Restore Problem" onSubmit={restoreProblem} />
+			<br />
+			<br />
+		{:else if problem.author_id === supabase.auth.user().id || isAdmin}
+			<Modal runHeader="Delete Problem" onSubmit={deleteProblem} />
+			<br />
+			<br />
+		{/if}
+		<Problem {problem} showMetadata={true} />
+		<br />
+		<br />
+		<ProblemFeedback problemID={$page.params.id} />
+	{:else}
+		<h1>Problem not found!</h1>
+	{/if}
 {:else}
 	<p>Loading problem...</p>
 {/if}

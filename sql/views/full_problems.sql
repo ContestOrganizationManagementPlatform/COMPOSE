@@ -56,5 +56,4 @@ CREATE OR REPLACE VIEW full_problems WITH (security_invoker) AS
                 test_problems
                 JOIN tests ON test_problems.test_id = tests.id
             GROUP BY test_problems.problem_id
-        ) AS problem_test_list ON problems.id = problem_test_list.problem_id
-    WHERE NOT problems.archived;
+        ) AS problem_test_list ON problems.id = problem_test_list.problem_id;

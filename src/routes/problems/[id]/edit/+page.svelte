@@ -7,6 +7,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import { InlineNotification } from "carbon-components-svelte";
+	import { getSingleProblem } from "$lib/getProblems";
 
 	let problem;
 	let images = [];
@@ -37,21 +38,12 @@
 	}
 
 	async function fetchProblem() {
-		let { data: problems, error } = await supabase
-			.from("full_problems")
-			.select("*")
-			.eq("id", $page.params.id)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			problem = problems;
-			await fetchTopic(problem.id);
-			images = await getProblemImages(supabase, problem.id);
-			loaded = true;
-		}
+		problem = await getSingleProblem({
+			id: $page.params.id,
+		});
+		await fetchTopic(problem.id);
+		images = await getProblemImages(supabase, problem.id);
+		loaded = true;
 	}
 	fetchProblem();
 
