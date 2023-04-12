@@ -4,12 +4,9 @@ import { optimizeImports } from "carbon-preprocess-svelte";
 
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
-	preprocess: [
-		preprocess(),
-		optimizeImports()
-	],
+	preprocess: [preprocess(), optimizeImports()],
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
 	},
 };
 
