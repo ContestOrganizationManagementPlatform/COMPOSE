@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS problems (
     sub_topics text,
     nickname text,
     comment_latex text,
-    edited_at timestamptz
+    edited_at timestamptz,
+    archived bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS tournaments (
