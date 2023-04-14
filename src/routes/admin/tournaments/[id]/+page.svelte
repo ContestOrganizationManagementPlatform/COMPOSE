@@ -15,6 +15,8 @@
 	let errorTrue = false;
 	let errorMessage = "";
 
+	let showDownloadMsg = false;
+
 	async function getTournament() {
 		loading = true;
 		let { data: serverTournament, error } = await supabase
@@ -86,6 +88,7 @@
 	}
 
 	async function downloadTournament() {
+		showDownloadMsg = true;
 		let zip = new JSZip();
 
 		let { data: full_problems, error: err1 } = await supabase
@@ -188,6 +191,8 @@
 			}
 		}
 
+		showDownloadMsg = false;
+
 		zip.generateAsync({ type: "blob" }).then(
 			function (blob) {
 				// 1) generate the zip file
@@ -211,6 +216,17 @@
 			kind="error"
 			title="ERROR:"
 			subtitle={errorMessage}
+		/>
+	</div>
+{/if}
+
+{#if showDownloadMsg}
+	<div style="position: fixed; bottom: 10px; left: 10px;">
+		<InlineNotification
+			lowContrast
+			kind="success"
+			title="SUCCESS:"
+			subtitle="Currently downloading ZIP file, please wait..."
 		/>
 	</div>
 {/if}
