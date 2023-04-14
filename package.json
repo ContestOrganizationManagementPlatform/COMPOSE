@@ -27,6 +27,7 @@
 		"carbon-components-svelte": "^0.70.12",
 		"chart.js": "^3.9.1",
 		"discord.js": "^14.7.1",
+		"jszip": "^3.10.1",
 		"rehype-stringify": "^9.0.3",
 		"svelte-chartjs": "^3.0.1",
 		"svelte-drawer-component": "^1.2.2",

@@ -119,7 +119,8 @@
 		const { data, error } = await supabase
 			.from("test_coordinators")
 			.delete()
-			.eq("coordinator_id", testCoordinatorId);
+			.eq("coordinator_id", testCoordinatorId)
+			.eq("test_id", testId);
 		if (error) {
 			errorTrue = true;
 			errorMessage = error.message;
