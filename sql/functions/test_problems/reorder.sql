@@ -1,16 +1,15 @@
 
-CREATE OR REPLACE FUNCTION reorder_test_problem(p_problem_id bigint, p_new_number int)
+CREATE OR REPLACE FUNCTION reorder_test_problem(p_problem_id bigint, p_new_number int, cur_test_id bigint)
 RETURNS void
 LANGUAGE plpgsql
 AS $$
   DECLARE
-    cur_test_id bigint;
     old_problem_number int;
   BEGIN
-    SELECT test_id, problem_number
-    INTO cur_test_id, old_problem_number
+    SELECT problem_number
+    INTO old_problem_number
     FROM test_problems
-    WHERE problem_id = p_problem_id;
+    WHERE problem_id = p_problem_id AND test_id = cur_test_id;
 
     IF found THEN
       IF p_new_number > old_problem_number THEN
@@ -25,7 +24,7 @@ AS $$
       
       UPDATE test_problems
       SET problem_number = p_new_number
-      WHERE problem_id = p_problem_id;
+      WHERE problem_id = p_problem_id AND test_id = cur_test_id;
     END IF;
   END
 $$
