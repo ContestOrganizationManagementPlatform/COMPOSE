@@ -117,6 +117,7 @@
 		refreshingProblems = true;
 		let { error } = await supabase.rpc("delete_test_problem", {
 			p_problem_id: problem.id,
+			cur_test_id: testId,
 		});
 		if (error) alert(error.message);
 		refreshProblems();
