@@ -133,6 +133,7 @@
 		let { error } = await supabase.rpc("reorder_test_problem", {
 			p_problem_id: id,
 			p_new_number: to,
+			cur_test_id: testId,
 		});
 		if (error) alert(error.message);
 		refreshProblems();
