@@ -10,6 +10,7 @@
 		FileUploader,
 		FileUploaderItem,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 
 	import { displayLatex, checkLatex } from "$lib/latexStuff";
 	import { ProblemImage } from "$lib/getProblemImages";
@@ -89,84 +90,95 @@
 	}
 
 	function updateFields() {
-		errorList = [];
-		let failed = false;
-		doRender = false;
-		for (const field of fieldList) {
-			const fieldErrors = checkLatex(fields[field], field);
-			fieldErrors.forEach((x) => (x.field = field));
-			errorList.push(...fieldErrors);
-			for (const err of fieldErrors) {
-				if (err.sev === "err") failed = true;
-			}
-		}
-
-		if (failed) {
-			isDisabled = true;
-		} else {
+		try {
+			errorList = [];
+			let failed = false;
+			doRender = false;
 			for (const field of fieldList) {
-				latexes[field + "_latex"] = fields[field];
+				const fieldErrors = checkLatex(fields[field], field);
+				fieldErrors.forEach((x) => (x.field = field));
+				errorList.push(...fieldErrors);
+				for (const err of fieldErrors) {
+					if (err.sev === "err") failed = true;
+				}
 			}
-			// force reactivity
-			latexes = latexes;
 
-			doRender = true;
-			isDisabled = false;
+			if (failed) {
+				isDisabled = true;
+			} else {
+				for (const field of fieldList) {
+					latexes[field + "_latex"] = fields[field];
+				}
+				// force reactivity
+				latexes = latexes;
+
+				doRender = true;
+				isDisabled = false;
+			}
+		} catch (error) {
+			toast.error(error.message);
 		}
 	}
 	updateFields();
 
 	async function getTopics() {
-		loading = true;
-		let { data: global_topics, error } = await supabase
-			.from("global_topics")
-			.select("*");
-		if (error) alert(error.message);
-		all_topics = [];
-		for (const single_topic of global_topics) {
-			all_topics.push({
-				id: single_topic.id,
-				text: single_topic.topic,
-				text_short: single_topic.topic_short,
-			});
+		try {
+			loading = true;
+			let { data: global_topics, error } = await supabase
+				.from("global_topics")
+				.select("*");
+			if (error) throw error;
+			all_topics = [];
+			for (const single_topic of global_topics) {
+				all_topics.push({
+					id: single_topic.id,
+					text: single_topic.topic,
+					text_short: single_topic.topic_short,
+				});
+			}
+			all_topics = all_topics;
+			topics = topics;
+			loading = false;
+		} catch (error) {
+			toast.error(error.message);
 		}
-		all_topics = all_topics;
-		topics = topics;
-		loading = false;
 	}
 	getTopics();
 
 	async function submitPayload() {
-		if (
-			fields.problem &&
-			fields.comment &&
-			fields.answer &&
-			fields.solution &&
-			topics
-		) {
-			if (problemFiles.length > fileUploadLimit) {
-				error = "Too many files uploaded";
-			} else if (problemFiles.some((f) => f.size > fileSizeLimit)) {
-				error = "File too large";
+		try {
+			if (
+				fields.problem &&
+				fields.comment &&
+				fields.answer &&
+				fields.solution &&
+				topics
+			) {
+				if (problemFiles.length > fileUploadLimit) {
+					throw new Error("Too many files uploaded");
+				} else if (problemFiles.some((f) => f.size > fileSizeLimit)) {
+					throw new Error("File too large");
+				} else {
+					const payload = {
+						problem_latex: fields.problem,
+						comment_latex: fields.comment,
+						answer_latex: fields.answer,
+						solution_latex: fields.solution,
+						topics: topics,
+						sub_topics: subTopic,
+						difficulty: difficulty ? parseInt(difficulty) : 0,
+						edited_at: new Date().toISOString(),
+						problem_files: problemFiles,
+					};
+					submittedText = "Submitting problem...";
+					await onSubmit(payload);
+					submittedText = "Problem submitted.";
+				}
 			} else {
-				error = "";
-				const payload = {
-					problem_latex: fields.problem,
-					comment_latex: fields.comment,
-					answer_latex: fields.answer,
-					solution_latex: fields.solution,
-					topics: topics,
-					sub_topics: subTopic,
-					difficulty: difficulty ? parseInt(difficulty) : 0,
-					edited_at: new Date().toISOString(),
-					problem_files: problemFiles,
-				};
-				submittedText = "Submitting problem...";
-				await onSubmit(payload);
-				submittedText = "Problem submitted.";
+				throw new Error("Not all the fields have been filled out");
 			}
-		} else {
-			error = "Not all the fields have been filled out";
+		} catch (error) {
+			toast.error(error.message);
 		}
 	}
 </script>
@@ -211,9 +223,19 @@
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
 						{#if show}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11167;</span
+							>
 						{:else}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11165;</span
+							>
 						{/if}
 					</div>
 				</div>
@@ -235,9 +257,19 @@
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
 						{#if show}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11167;</span
+							>
 						{:else}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11165;</span
+							>
 						{/if}
 					</div>
 				</div>
@@ -247,7 +279,7 @@
 					</div>
 				{/if}
 				<br />
-				
+
 				<div style="position: relative;">
 					<TextArea
 						class="textArea"
@@ -259,9 +291,19 @@
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
 						{#if show}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11167;</span
+							>
 						{:else}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11165;</span
+							>
 						{/if}
 					</div>
 				</div>
@@ -271,7 +313,7 @@
 					</div>
 				{/if}
 				<br />
-				
+
 				<div style="position: relative;">
 					<TextArea
 						class="textArea"
@@ -283,9 +325,19 @@
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
 						{#if show}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11167;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11167;</span
+							>
 						{:else}
-							<span style="cursor: pointer;" on:click={() => {show = !show;}}>&#11165;</span>
+							<span
+								style="cursor: pointer;"
+								on:click={() => {
+									show = !show;
+								}}>&#11165;</span
+							>
 						{/if}
 					</div>
 				</div>
@@ -325,8 +377,6 @@
 				</div>
 			{/each}
 
-			<p style="color: red">{error != "" ? "Error: " + error : ""}</p>
-
 			{#if doRender}
 				<Problem
 					problem={latexes}
@@ -347,7 +397,7 @@
 
 	:global(.bx--label) {
 		font-weight: 700;
-		color: var(--green);
+		color: var(--primary);
 	}
 
 	:global(.bx--multi-select__wrapper) {
@@ -368,34 +418,34 @@
 	}
 
 	:global(.bx--file--label) {
-		color: var(--green) !important;
+		color: var(--primary) !important;
 	}
 
 	:global(.bx--list-box__field:focus) {
-		outline-color: var(--green) !important;
+		outline-color: var(--primary) !important;
 	}
 
 	:global(.bx--text-area:focus) {
-		border-color: var(--green) !important;
-		outline-color: var(--green) !important;
+		border-color: var(--primary) !important;
+		outline-color: var(--primary) !important;
 	}
 
 	:global(#button .bx--btn--primary),
 	:global(#button .bx--btn--primary:focus) {
 		border-color: transparent !important;
-		background-color: var(--green) !important;
+		background-color: var(--primary) !important;
 	}
 	:global(#button .bx--btn--primary p) {
-		color: var(--body) !important;
+		color: var(--primary-light) !important;
 	}
 	:global(#button .bx--btn--primary:hover) {
-		background-color: var(--body) !important;
+		background-color: var(--primary-light) !important;
 	}
 	:global(#button .bx--btn--primary:hover p) {
-		color: var(--white) !important;
+		color: var(--text-color-light) !important;
 	}
 	:global(#button .bx--btn--primary:focus) {
-		border-color: var(--body) !important;
+		border-color: var(--primary-light) !important;
 		outline: none !important;
 		box-shadow: none !important;
 	}

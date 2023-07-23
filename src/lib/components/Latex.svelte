@@ -5,6 +5,7 @@
 	import { unified } from "unified";
 	import { processLatexViaUnified } from "@unified-latex/unified-latex";
 	import rehypeStringify from "rehype-stringify";
+	import toast from "svelte-french-toast";
 
 	export let style = "";
 	export let value;
@@ -13,15 +14,20 @@
 	let rendered;
 
 	async function loadLatex() {
-		const imageDownloadResult = await ImageBucket.downloadLatexImages(value);
+		try {
+			const imageDownloadResult = await ImageBucket.downloadLatexImages(value);
 
-		rendered = await displayLatex(value, imageDownloadResult.images);
+			rendered = await displayLatex(value, imageDownloadResult.images);
 
-		let unifiedStr = processLatexViaUnified()
-			.use(unifiedLatexToHast)
-			.use(rehypeStringify)
-			.processSync(value).value;
+			let unifiedStr = processLatexViaUnified()
+				.use(unifiedLatexToHast)
+				.use(rehypeStringify)
+				.processSync(value).value;
+		} catch (error) {
+			toast.error(error.message);
+		}
 	}
+
 	loadLatex();
 </script>
 

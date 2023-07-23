@@ -3,7 +3,8 @@
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import { sortIDs } from "$lib/sortIDs";
 	import Button from "$lib/components/Button.svelte";
-	import { InlineNotification, Checkbox } from "carbon-components-svelte";
+	import { Checkbox } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import { getFullProblems } from "$lib/getProblems";
 
 	let problems = [];
@@ -11,9 +12,6 @@
 	let width = 0;
 	let loaded = false;
 	const userId = supabase.auth.user().id;
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];
@@ -26,8 +24,7 @@
 			.from("problem_counts")
 			.select("*");
 		if (error2) {
-			errorTrue = true;
-			errorMessage = error2.message;
+			toast.error(error2.message);
 		}
 		problemCounts = problemCountsData.sort(
 			(a, b) => b.problem_count - a.problem_count
@@ -218,30 +215,12 @@
 {/if}
 
 <style>
-	a {
-		margin-bottom: 10px;
-		border: 2px solid var(--green);
-		padding: 5px 10px;
-		font-weight: 600;
-		text-decoration: none;
-		color: black;
-	}
-
 	.stats {
 		background-color: white;
-		border: 1px solid var(--green);
+		border: 1px solid var(--primary);
 		width: 80%;
 		margin: 10px;
 		text-align: left;
 		padding: 10px;
-	}
-
-	:global(.bx--toolbar-content .bx--search .bx--search-input:focus) {
-		outline-color: var(--green);
-	}
-
-	:global(.pencil .link) {
-		border: none;
-		outline: none;
 	}
 </style>

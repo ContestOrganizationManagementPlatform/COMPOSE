@@ -1,19 +1,12 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import {
-		TextArea,
-		InlineNotification,
-		DataTable,
-		Link,
-	} from "carbon-components-svelte";
+	import { TextArea, DataTable, Link } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { formatDate } from "$lib/formatDate";
 	import Loading from "$lib/components/Loading.svelte";
+	import toast from "svelte-french-toast";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	let loading = true;
 	let isAdmin = false;
@@ -29,8 +22,7 @@
 				.from("tests")
 				.select("id,test_name");
 			if (error) {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			} else {
 				availableTestsolves = tests.map((x) => ({
 					name: x.test_name,
@@ -45,8 +37,7 @@
 				.select("test_id,tests(test_name)")
 				.eq("solver_id", supabase.auth.user().id);
 			if (error) {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			} else {
 				availableTestsolves = testsolves.map((x) => ({
 					name: x.tests.test_name,
@@ -67,8 +58,7 @@
 				.from("testsolves")
 				.select("*,users(full_name,initials)");
 			if (error) {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			}
 			finishedSolves = data;
 		} else {
@@ -77,8 +67,7 @@
 				.select("*,users(full_name,initials)")
 				.eq("solver_id", supabase.auth.user().id);
 			if (error) {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			}
 			finishedSolves = data;
 		}
@@ -124,17 +113,6 @@
 	getTestsolves();
 </script>
 
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
-
 <br />
 <h1>Testsolving</h1>
 <br />
@@ -145,7 +123,7 @@
 		<p>No available testsolves!</p>
 	{:else}
 		<h4><strong>Open testsolves:</strong></h4>
-		<div class="grid">
+		<div class="row">
 			{#each availableTestsolves as testsolve}
 				<div class="box">
 					<h3><strong>{testsolve.name}</strong></h3>
@@ -192,30 +170,10 @@
 </div>
 
 <style>
-	.grid {
-		display: grid;
-		grid-template-columns: 50% 50%;
-	}
-
 	.box {
-		background-color: var(--white);
-		border: 1px solid var(--green);
+		background-color: var(--text-color-light);
+		border: 1px solid var(--primary);
 		margin: 10px;
 		padding: 10px 20px;
-	}
-
-	:global(.bx--link) {
-		color: var(--green) !important;
-		outline: none !important;
-		border: none !important;
-	}
-
-	:global(.bx--link:focus) {
-		outline: none !important;
-		border: none !important;
-	}
-
-	:global(.bx--table-sort:focus) {
-		outline: none;
 	}
 </style>

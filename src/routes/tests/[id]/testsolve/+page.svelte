@@ -4,7 +4,6 @@
 	import {
 		Select,
 		SelectItem,
-		InlineNotification,
 		DataTable,
 		Link,
 	} from "carbon-components-svelte";
@@ -12,6 +11,7 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
 
 	let testId = $page.params.id;
 	let loading = true;
@@ -19,9 +19,6 @@
 	let testsolvers;
 	let test;
 	let allUsers = [];
-
-	let errorTrue = false;
-	let errorMessage;
 
 	let tableData = [];
 
@@ -33,8 +30,7 @@
 			.limit(1)
 			.single();
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		test = data;
 
@@ -47,8 +43,7 @@
 			.select("solver_id,users(full_name,initials)")
 			.eq("test_id", testId);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 
 		testsolvers = data;
@@ -72,8 +67,7 @@
 			.select("*,test_coordinators(*)")
 			.order("full_name");
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		allUsers = users.filter(
 			(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
@@ -90,8 +84,7 @@
 				returning: "minimal",
 			});
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		getTestsolvers();
 	}
@@ -102,23 +95,11 @@
 			.delete({ returning: "minimal" })
 			.eq("solver_id", id);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		getTestsolvers();
 	}
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <div style="padding: 10px">
 	{#if loading}
@@ -179,18 +160,3 @@
 		{/if}
 	{/if}
 </div>
-
-<style>
-	:global(.bx--table-sort:focus) {
-		outline: none;
-	}
-
-	:global(.bx--select-input:focus) {
-		border-color: var(--green) !important;
-		outline-color: var(--green) !important;
-	}
-
-	:global(.bx--link:visited) {
-		color: var(--green) !important;
-	}
-</style>

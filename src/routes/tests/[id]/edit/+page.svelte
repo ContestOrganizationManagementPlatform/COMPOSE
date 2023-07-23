@@ -5,8 +5,9 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
-	import { InlineNotification, TextInput } from "carbon-components-svelte";
+	import { TextInput } from "carbon-components-svelte";
 	import { getFullProblems } from "$lib/getProblems";
+	import toast from "svelte-french-toast";
 
 	let testId = $page.params.id;
 	let test;
@@ -18,63 +19,67 @@
 	let allProblems = [];
 	let userIsTestCoordinator = false;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	let testVersion = null;
 	let testVersionWasChanged = false;
 
 	async function getTest() {
-		let { data: tests, error } = await supabase
-			.from("tests")
-			.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
-			.eq("id", testId)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		test = tests;
-		testVersion = test.test_version;
+		try {
+			let { data: tests, error } = await supabase
+				.from("tests")
+				.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
+				.eq("id", testId)
+				.limit(1)
+				.single();
+			if (error) throw error;
+			test = tests;
+			testVersion = test.test_version;
 
-		testCoordinators = test.test_coordinators.map((x) => x.users);
-		userIsTestCoordinator =
-			!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
-			(await getThisUserRole()) >= 40;
-		loading = false;
-		getProblems();
+			testCoordinators = test.test_coordinators.map((x) => x.users);
+			userIsTestCoordinator =
+				!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
+				(await getThisUserRole()) >= 40;
+			loading = false;
+			getProblems();
+		} catch (error) {
+			toast.error(error.message);
+		}
 	}
 
 	async function getProblems() {
-		let { data: problemList, error } = await supabase
-			.from("test_problems")
-			.select("*,full_problems(*)")
-			.eq("test_id", testId)
-			.order("problem_number");
-		//console.log(problemList);
-		// filter duplicates ?? idk why they appear
-		problemList = problemList.filter(
-			(x, i) => problemList[i - 1]?.relation_id !== x.relation_id
-		);
-		//console.log(problemList);
-		testProblems = problemList.map((pb) => ({
-			problem_number: pb.problem_number,
-			relation_id: pb.relation_id,
-			test_id: pb.test_id,
-			...pb.full_problems,
-		}));
-		selectedTest = testProblems.map((pb) => pb.id);
-		let allProblemList = await getFullProblems();
-		// prevent problems from appearing twice
-		allProblems = allProblemList.filter(
-			(pb) => !testProblems.find((tpb) => tpb.id === pb.id)
-		);
-		//console.log(testProblems, allProblems);
-		selectedAll = [];
+		try {
+			let { data: problemList, error } = await supabase
+				.from("test_problems")
+				.select("*,full_problems(*)")
+				.eq("test_id", testId)
+				.order("problem_number");
+			if (error) throw error;
 
-		loadingProblems = false;
-		refreshingProblems = false;
+			//console.log(problemList);
+			// filter duplicates ?? idk why they appear
+			problemList = problemList.filter(
+				(x, i) => problemList[i - 1]?.relation_id !== x.relation_id
+			);
+			//console.log(problemList);
+			testProblems = problemList.map((pb) => ({
+				problem_number: pb.problem_number,
+				relation_id: pb.relation_id,
+				test_id: pb.test_id,
+				...pb.full_problems,
+			}));
+			selectedTest = testProblems.map((pb) => pb.id);
+			let allProblemList = await getFullProblems();
+			// prevent problems from appearing twice
+			allProblems = allProblemList.filter(
+				(pb) => !testProblems.find((tpb) => tpb.id === pb.id)
+			);
+			//console.log(testProblems, allProblems);
+			selectedAll = [];
+
+			loadingProblems = false;
+			refreshingProblems = false;
+		} catch (error) {
+			toast.error(error.message);
+		}
 	}
 
 	let selectedAll = [];
@@ -102,25 +107,33 @@
 	}
 
 	async function addProblemToTest(problem) {
-		selectedAll = [];
-		refreshingProblems = true;
-		let { error } = await supabase.rpc("add_test_problem", {
-			p_problem_id: problem.id,
-			p_test_id: testId,
-		});
-		if (error) alert(error.message);
-		refreshProblems();
+		try {
+			selectedAll = [];
+			refreshingProblems = true;
+			let { error } = await supabase.rpc("add_test_problem", {
+				p_problem_id: problem.id,
+				p_test_id: testId,
+			});
+			if (error) throw error;
+			refreshProblems();
+		} catch (e) {
+			toast.error(error.message);
+		}
 	}
 
 	async function removeProblemFromTest(problem) {
-		selectedAll = [];
-		refreshingProblems = true;
-		let { error } = await supabase.rpc("delete_test_problem", {
-			p_problem_id: problem.id,
-			cur_test_id: testId,
-		});
-		if (error) alert(error.message);
-		refreshProblems();
+		try {
+			selectedAll = [];
+			refreshingProblems = true;
+			let { error } = await supabase.rpc("delete_test_problem", {
+				p_problem_id: problem.id,
+				cur_test_id: testId,
+			});
+			if (error) throw error;
+			refreshProblems();
+		} catch (e) {
+			toast.error(error.message);
+		}
 	}
 
 	async function refreshProblems() {
@@ -128,50 +141,59 @@
 	}
 
 	async function handleReorder(e) {
-		refreshingProblems = true;
-		let { id, to } = e.detail;
-		let { error } = await supabase.rpc("reorder_test_problem", {
-			p_problem_id: id,
-			p_new_number: to,
-			cur_test_id: testId,
-		});
-		if (error) alert(error.message);
-		refreshProblems();
+		try {
+			refreshingProblems = true;
+			let { id, to } = e.detail;
+			let { error } = await supabase.rpc("reorder_test_problem", {
+				p_problem_id: id,
+				p_new_number: to,
+				cur_test_id: testId,
+			});
+			if (error) throw error;
+			refreshProblems();
+		} catch (e) {
+			toast.error(error.message);
+		}
 	}
 
 	// manually reset the problem numbers to 1, 2, ...
 	async function fixProblemOrder() {
-		// confirm first
-		let shouldReorder = confirm(
-			"Are you sure you want to fix problem numbers? Only do this if they are broken."
-		);
-		if (!shouldReorder) return;
+		try {
+			// confirm first
+			let shouldReorder = confirm(
+				"Are you sure you want to fix problem numbers? Only do this if they are broken."
+			);
+			if (!shouldReorder) return;
 
-		loadingProblems = true;
+			loadingProblems = true;
 
-		for (let i = 0; i < testProblems.length; i++) {
-			const curProblem = testProblems[i];
-			if (curProblem.problem_number !== i) {
-				// needs reordering
-				let { error } = await supabase
-					.from("test_problems")
-					.update({
-						problem_id: curProblem.id,
-						test_id: curProblem.test_id,
-						problem_number: i,
-					})
-					.eq("relation_id", curProblem.relation_id);
-				if (error) {
-					alert(error.message);
-					refreshProblems();
-					return;
+			for (let i = 0; i < testProblems.length; i++) {
+				const curProblem = testProblems[i];
+				if (curProblem.problem_number !== i) {
+					// needs reordering
+					let { error } = await supabase
+						.from("test_problems")
+						.update({
+							problem_id: curProblem.id,
+							test_id: curProblem.test_id,
+							problem_number: i,
+						})
+						.eq("relation_id", curProblem.relation_id);
+					if (error) {
+						throw error;
+						refreshProblems();
+						return;
+					}
 				}
 			}
+
+			loadingProblems = false;
+
+			refreshProblems();
+		} catch (error) {
+			toast.error(error.message);
+			refreshProblems();
 		}
-
-		loadingProblems = false;
-
-		refreshProblems();
 	}
 
 	function changeVersionInput() {
@@ -179,32 +201,21 @@
 	}
 
 	async function submitVersionChange() {
-		testVersionWasChanged = false; // hide button to prevent multiple tries
-		let { error } = await supabase
-			.from("tests")
-			.update({ test_version: testVersion })
-			.eq("id", testId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			alert("Test version changed successfully.");
+		try {
+			testVersionWasChanged = false; // hide button to prevent multiple tries
+			let { error } = await supabase
+				.from("tests")
+				.update({ test_version: testVersion })
+				.eq("id", testId);
+			if (error) throw error;
+			else toast.success("Test version changed successfully.");
+		} catch (error) {
+			toast.error(error.message);
 		}
 	}
 
 	getTest();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if loading}
 	<Loading />
@@ -291,9 +302,5 @@
 	.flex-col {
 		width: 100%;
 		padding: 10px;
-	}
-
-	:global(.bx--table-sort) {
-		outline-color: var(--green) !important;
 	}
 </style>

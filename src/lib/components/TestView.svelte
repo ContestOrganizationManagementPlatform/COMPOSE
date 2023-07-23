@@ -167,7 +167,7 @@
 
 	.problem-div,
 	.feedback-div {
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 2px solid black;
 		margin: 10px;
 		padding: 20px;
@@ -191,7 +191,7 @@
 	}
 
 	.questionsDiv {
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 2px solid black;
 		padding: 20px;
 		text-align: left;

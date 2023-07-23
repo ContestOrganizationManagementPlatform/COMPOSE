@@ -2,22 +2,18 @@
 	import { TextInput } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 
 	let tournaments = [];
 	let tournamentName = "";
 	let tournamentDate = "";
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	async function getTournaments() {
 		let { data: tournamentList, error } = await supabase
 			.from("tournaments")
 			.select("*");
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		tournaments = tournamentList;
 	}
@@ -37,17 +33,6 @@
 <br />
 <h1>Admin: View Tournaments</h1>
 <br />
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <div class="flex profileButtons">
 	<form on:submit|preventDefault class="tournamentForm">
@@ -110,11 +95,11 @@
 		transition: 0.4s ease-in-out;
 	}
 	a:hover div {
-		background-color: var(--tinted-green);
+		background-color: var(--primary-tint);
 	}
 	.box {
-		background-color: var(--white);
-		border: 1px solid var(--green);
+		background-color: var(--text-color-light);
+		border: 1px solid var(--primary);
 		margin: 10px;
 		padding: 10px 20px;
 	}
@@ -122,9 +107,5 @@
 	.grid {
 		display: grid;
 		grid-template-columns: 50% 50%;
-	}
-
-	:global(.tournamentForm) {
-		min-width: 400px;
 	}
 </style>

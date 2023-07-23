@@ -15,6 +15,7 @@
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
 	import { Filter } from "carbon-icons-svelte";
+	import toast from "svelte-french-toast";
 
 	export let problems = [];
 	export let condensed = false;
@@ -351,6 +352,6 @@
 	}
 
 	:global(.bx--list-box__field:focus) {
-		outline-color: var(--green);
+		outline-color: var(--primary);
 	}
 </style>

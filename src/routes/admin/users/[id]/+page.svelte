@@ -4,44 +4,53 @@
 	import { Select, SelectItem, FormGroup } from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Loading from "$lib/components/Loading.svelte";
+	import toast from "svelte-french-toast";
 
 	let userId = $page.params.id;
 	let user = {};
 	let loading = true;
 
 	async function fetchUser() {
-		let { data: userInfo, error } = await supabase
-			.from("users")
-			.select("*,user_roles(role)")
-			.eq("id", userId)
-			.single();
-		if (error) alert(error.message);
-		else {
-			user = {
-				full_name: userInfo.full_name,
-				discord: userInfo.discord,
-				email: userInfo.email,
-				initials: userInfo.initials,
-				role: (userInfo.user_roles?.role ?? 0) + "",
-			};
+		try {
+			let { data: userInfo, error } = await supabase
+				.from("users")
+				.select("*,user_roles(role)")
+				.eq("id", userId)
+				.single();
+			if (error) throw error;
+			else {
+				user = {
+					full_name: userInfo.full_name,
+					discord: userInfo.discord,
+					email: userInfo.email,
+					initials: userInfo.initials,
+					role: (userInfo.user_roles?.role ?? 0) + "",
+				};
+			}
+			loading = false;
+		} catch (error) {
+			toast.error(error.message);
 		}
-		loading = false;
 	}
 
 	async function addRoleToUser(role) {
-		if (role === "0") {
-			// special, delete role
-			let { error } = await supabase
-				.from("user_roles")
-				.delete()
-				.eq("user_id", userId);
-			if (error) alert(error.message);
-		} else {
-			let { error } = await supabase.from("user_roles").upsert({
-				user_id: userId,
-				role,
-			});
-			if (error) alert(error.message);
+		try {
+			if (role === "0") {
+				// special, delete role
+				let { error } = await supabase
+					.from("user_roles")
+					.delete()
+					.eq("user_id", userId);
+				if (error) throw error;
+			} else {
+				let { error } = await supabase.from("user_roles").upsert({
+					user_id: userId,
+					role,
+				});
+				if (error) throw error;
+			}
+		} catch (error) {
+			toast.error(error.message);
 		}
 	}
 
@@ -60,7 +69,8 @@
 		<p><strong>Initials:</strong> {user.initials}</p>
 		<p>
 			<strong>Email:</strong>
-			<a style="color: var(--green);" href="mailto:{user.email}">{user.email}</a
+			<a style="color: var(--primary);" href="mailto:{user.email}"
+				>{user.email}</a
 			>
 		</p>
 		<FormGroup disabled={userId === supabase.auth.user().id}>

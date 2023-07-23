@@ -1,7 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import {
-		InlineNotification,
 		DataTable,
 		Link,
 		Toolbar,
@@ -9,9 +8,8 @@
 		ToolbarSearch,
 		Pagination,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 
-	let errorTrue = false;
-	let errorMessage = "";
 	let pageSize = 25;
 	let page = 1;
 
@@ -33,8 +31,7 @@
 			.select("id,full_name,initials,user_roles(role)")
 			.order("full_name");
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		let roles2 = [];
 		for (let user of users) {
@@ -63,17 +60,6 @@
 {#if loading}
 	<p>Loading...</p>
 {:else}
-	{#if errorTrue}
-		<div style="position: fixed; bottom: 10px; left: 10px;">
-			<InlineNotification
-				lowContrast
-				kind="error"
-				title="ERROR:"
-				subtitle={errorMessage}
-			/>
-		</div>
-	{/if}
-
 	<div style="padding: 10px;">
 		<DataTable
 			sortable

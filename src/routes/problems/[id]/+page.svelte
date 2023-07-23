@@ -4,18 +4,15 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
 	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { getSingleProblem } from "$lib/getProblems";
+	import toast from "svelte-french-toast";
 
 	let problem;
 	let loaded = false;
 
 	let isAdmin = false;
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	async function getAuthorName() {
 		let { data: user, error } = await supabase
@@ -23,7 +20,7 @@
 			.select("full_name")
 			.eq("id", supabase.auth.user().id)
 			.single();
-		if (error) throw error;
+		if (error) toast.error(error.message);
 		else return user.full_name;
 	}
 
@@ -62,8 +59,7 @@
 			.update({ archived: true })
 			.eq("id", problem.id);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else {
 			const authorName = await getAuthorName();
 			await fetch("/api/discord-update", {
@@ -90,16 +86,6 @@
 </script>
 
 <br />
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if loaded}
 	{#if problem}

@@ -6,8 +6,8 @@
 		Select,
 		SelectItem,
 		TextArea,
-		InlineNotification,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import Modal from "$lib/components/Modal.svelte";
 	import Button from "$lib/components/Button.svelte";
 
@@ -21,9 +21,6 @@
 	let curQuestion = "";
 	let feedbackQuestions = [];
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getFeedbackQuestions() {
 		try {
 			let { data: test_feedback_questions, error } = await supabase
@@ -33,8 +30,7 @@
 			feedbackQuestions = test_feedback_questions;
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error.messsage;
+				toast.error(error.messsage);
 			}
 		}
 	}
@@ -44,8 +40,7 @@
 			.from("test_feedback_questions")
 			.insert([{ test_id: testId, question: curQuestion }]);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.erorr(error.message);
 		} else {
 			await getFeedbackQuestions();
 			curQuestion = "";
@@ -60,8 +55,7 @@
 			.limit(1)
 			.single();
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		return user;
 	}
@@ -74,8 +68,7 @@
 			.limit(1)
 			.single();
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		test = tests;
 
@@ -95,8 +88,7 @@
 			.select("*,test_coordinators(*)")
 			.order("full_name");
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		allUsers = users.filter(
 			(x) => !testCoordinators.some((tc) => tc.id === x.id)
@@ -109,8 +101,7 @@
 			.from("test_coordinators")
 			.insert({ coordinator_id: selectRef.value, test_id: testId });
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		getTest();
 	}
@@ -122,8 +113,7 @@
 			.eq("coordinator_id", testCoordinatorId)
 			.eq("test_id", testId);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		getTest();
 	}
@@ -137,8 +127,7 @@
 			})
 			.eq("id", testId);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 	}
 
@@ -148,24 +137,12 @@
 			.delete()
 			.eq("id", testId);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else window.location.replace("/admin/tests");
 	}
 
 	getTest();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <div style="padding: 10px">
 	{#if loading}

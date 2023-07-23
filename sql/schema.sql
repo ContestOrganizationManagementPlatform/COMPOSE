@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS tournaments (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     tournament_name text NOT NULL,
     tournament_date date
+    archived bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS tests (
@@ -40,7 +41,8 @@ CREATE TABLE IF NOT EXISTS tests (
     test_name text NOT NULL,
     test_description text,
     tournament_id int8 REFERENCES public.tournaments(id) ON DELETE CASCADE,
-    test_version text
+    test_version text,
+    archived bool NOT NULL DEFAULT false
 );
 
 CREATE TABLE IF NOT EXISTS test_problems (

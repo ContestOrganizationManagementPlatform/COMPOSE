@@ -5,7 +5,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { Loading, Checkbox } from "carbon-components-svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import { displayLatex } from "$lib/latexStuff";
 
 	let testId = $page.params.id;
@@ -17,9 +17,6 @@
 	let userIsTestCoordinator = false;
 
 	let feedback = [];
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	let openModal = false;
 	let values = [
@@ -42,8 +39,7 @@
 			.limit(1)
 			.single();
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		test = tests;
 
@@ -217,17 +213,6 @@
 	getTest();
 </script>
 
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
-
 <br />
 {#if loading}
 	<Loading />
@@ -305,19 +290,3 @@
 	{/if}
 {/if}
 <br />
-
-<style>
-	a {
-		margin-bottom: 10px;
-		border: 2px solid var(--green);
-		padding: 5px 10px;
-		font-weight: 600;
-		text-decoration: none;
-		color: black;
-	}
-
-	:global(.bx--checkbox-label:focus) {
-		outline: none !important;
-		border: none !important;
-	}
-</style>

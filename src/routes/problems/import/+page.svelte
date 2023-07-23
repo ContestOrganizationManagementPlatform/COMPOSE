@@ -1,13 +1,9 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import {
-		TextArea,
-		InlineNotification,
-		Select,
-		SelectItem,
-	} from "carbon-components-svelte";
+	import { TextArea, Select, SelectItem } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
+	import toast from "svelte-french-toast";
 
 	const regexes = {
 		topic: /\\ques\[(\w*)\]/s,
@@ -39,9 +35,6 @@
 	let userSelectRef;
 	let isAdmin = false;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	$: if (files) {
 		checkFiles();
 	}
@@ -65,8 +58,7 @@
 
 	function manualAdd() {
 		if (!importProblem(problemText)) {
-			errorTrue = true;
-			errorMessage = "Manual import failed due to improper format";
+			toast.error("Manual import failed due to improper format");
 		} else {
 			problemText = "";
 		}
@@ -106,83 +98,79 @@
 	}
 
 	async function submitProblems() {
-		success = false;
-		let payloadList = [];
-		for (const payload of payloads) {
-			const { topics, ...payloadNoTopics } = payload;
-			payloadNoTopics.author_id =
-				userSelectRef && userSelectRef != ""
-					? userSelectRef
-					: supabase.auth.user().id;
-			payloadList.push(payloadNoTopics);
-		}
-
-		let { data, error } = await supabase.from("problems").insert(payloadList);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			let topicList = [];
-
+		try {
+			success = false;
+			let payloadList = [];
 			for (const payload of payloads) {
-				const topics = payload.topics;
-				// find it in the list
-				const foundProblem = data.find((pb) =>
-					[
-						"problem_latex",
-						"comment_latex",
-						"answer_latex",
-						"solution_latex",
-					].every((field) => pb[field] === payload[field])
-				); // don't worry about it
+				const { topics, ...payloadNoTopics } = payload;
+				payloadNoTopics.author_id =
+					userSelectRef && userSelectRef != ""
+						? userSelectRef
+						: supabase.auth.user().id;
+				payloadList.push(payloadNoTopics);
+			}
 
-				if (!foundProblem) {
-					console.log("error: problem submitted but not found");
-				} else {
-					for (const tp of topics) {
-						if (!idMap[tp]) continue;
-						topicList.push({
-							problem_id: foundProblem.id,
-							topic_id: idMap[tp],
-						});
+			let { data, error } = await supabase.from("problems").insert(payloadList);
+			if (error) {
+				throw error;
+			} else {
+				let topicList = [];
+
+				for (const payload of payloads) {
+					const topics = payload.topics;
+					// find it in the list
+					const foundProblem = data.find((pb) =>
+						[
+							"problem_latex",
+							"comment_latex",
+							"answer_latex",
+							"solution_latex",
+						].every((field) => pb[field] === payload[field])
+					); // don't worry about it
+
+					if (!foundProblem) {
+						console.log("error: problem submitted but not found");
+					} else {
+						for (const tp of topics) {
+							if (!idMap[tp]) continue;
+							topicList.push({
+								problem_id: foundProblem.id,
+								topic_id: idMap[tp],
+							});
+						}
 					}
 				}
-			}
 
-			let { error2 } = await supabase.from("problem_topics").insert(topicList);
-			if (error2) {
-				errorTrue = true;
-				errorMessage = error2.message;
-			}
+				let { error2 } = await supabase
+					.from("problem_topics")
+					.insert(topicList);
+				if (error2) throw error2;
 
-			payloads = [];
-			success = true;
+				payloads = [];
+				success = true;
+			}
+		} catch (error) {
+			toast.error(error.message);
 		}
 	}
 
 	async function getAllUsers() {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("full_name,id");
-		if (error) throw error;
-		allUsers = users;
-		loadedUsers = true;
-		isAdmin = (await getThisUserRole()) >= 40;
+		try {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("full_name,id");
+			if (error) throw error;
+
+			allUsers = users;
+			loadedUsers = true;
+			isAdmin = (await getThisUserRole()) >= 40;
+		} catch (error) {
+			toast.error(error.message);
+		}
 	}
 
 	getAllUsers();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;z-index:100;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <br />
 <h1>Import Problems</h1>
@@ -242,8 +230,8 @@
 		display: none;
 	}
 	.custom-file-upload {
-		border: 2px solid var(--body);
-		color: var(--body);
+		border: 2px solid var(--primary-light);
+		color: var(--primary-light);
 		display: inline-block;
 		padding: 6px 12px;
 		cursor: pointer;
@@ -253,11 +241,7 @@
 	}
 
 	.custom-file-upload:hover {
-		background-color: var(--body);
-		color: var(--white);
-	}
-
-	:global(.bx--text-area:focus, .bx--text-area:active) {
-		outline-color: var(--green) !important;
+		background-color: var(--primary-light);
+		color: var(--text-color-light);
 	}
 </style>

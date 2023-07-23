@@ -4,16 +4,13 @@
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Loading from "../../../../lib/components/Loading.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import JSZip from "jszip";
 
 	let tournamentId = $page.params.id;
 	let tournament;
 	let tests = [];
 	let loading = false;
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	async function getTournament() {
 		loading = true;
@@ -23,8 +20,7 @@
 			.eq("id", tournamentId)
 			.single();
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		tournament = serverTournament;
 		loading = false;
@@ -37,8 +33,7 @@
 			.select("*")
 			.eq("tournament_id", tournamentId);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		tests = testList;
 		loading = false;
@@ -50,8 +45,7 @@
 			.delete()
 			.eq("id", tournamentId);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else window.location.replace("/admin/tournaments");
 	}
 
@@ -92,8 +86,7 @@
 			.from("full_problems")
 			.select("*");
 		if (err1) {
-			errorTrue = true;
-			errorMessage = err1.message;
+			toast.error(err1.message);
 		} else {
 			let problemFolder = zip.folder("Problems");
 			for (const x of full_problems) {
@@ -130,8 +123,7 @@
 			.from("test_problems")
 			.select("*");
 		if (err2) {
-			errorTrue = true;
-			errorMessage = err2.message;
+			toast.error(err2.message);
 		} else {
 			let testOverallFolder = zip.folder("Tests");
 
@@ -203,8 +195,7 @@
 				.from("problem-images")
 				.download(x);
 			if (err3) {
-				errorTrue = true;
-				errorMessage = err3.message;
+				toast.error(err3.message);
 			} else {
 				zip.file(x, imageX);
 			}
@@ -216,8 +207,7 @@
 				saveAs(blob, tournament.tournament_name + ".zip"); // 2) trigger the download
 			},
 			function (err) {
-				errorTrue = true;
-				errorMessage = err.message;
+				toast.error(err.message);
 			}
 		);
 	}
@@ -225,17 +215,6 @@
 	getTournament();
 	getTests();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if loading}
 	<Loading />

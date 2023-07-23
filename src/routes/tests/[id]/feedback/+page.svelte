@@ -4,15 +4,13 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import { TextInput } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
 
 	let testId = $page.params.id;
 	let feedbackQuestions = [];
 	let feedbackAnswers = {};
 	let loading = true;
 	let curQuestion = "";
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	async function getFeedbackQuestions() {
 		try {
@@ -31,8 +29,7 @@
 			loading = false;
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error.messsage;
+				toast.error(error.message);
 			}
 		}
 	}
@@ -55,8 +52,7 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			}
 		}
 	}
@@ -66,8 +62,7 @@
 			.from("test_feedback_questions")
 			.insert([{ test_id: testId, question: curQuestion }]);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else {
 			await getFeedbackQuestions();
 			curQuestion = "";

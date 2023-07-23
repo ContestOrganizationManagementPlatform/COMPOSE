@@ -2,13 +2,10 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	let loading = true;
 	let disallowed = true;
@@ -42,8 +39,7 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error;
+				toast.error(error);
 			}
 		}
 	}
@@ -54,8 +50,7 @@
 			.select("*")
 			.eq("testsolve_id", $page.params.id);
 		if (error3) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else {
 			feedbackAnswers = data3;
 		}
@@ -68,11 +63,9 @@
 			.select("*")
 			.eq("id", $page.params.id);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else if (data.length === 0) {
-			errorTrue = true;
-			errorMessage = "Testsolve with id " + $page.params.id + " doesn't exist!";
+			toast.error("Testsolve with id " + $page.params.id + " doesn't exist!");
 		} else {
 			testsolve = data[0];
 			if (
@@ -88,8 +81,7 @@
 					.eq("coordinator_id", supabase.auth.user().id)
 					.eq("test_id", testsolve.test_id);
 				if (error2) {
-					errorTrue = true;
-					errorMessage = error2.message;
+					toast.error(error2.message);
 				} else if (count > 0) {
 					disallowed = false;
 				}
@@ -112,8 +104,7 @@
 			.eq("testsolve_id", $page.params.id);
 
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else {
 			answers = data;
 
@@ -134,8 +125,7 @@
 			.eq("id", $page.params.id);
 
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else {
 			// delete old answers
 			let { error3 } = await supabase
@@ -144,8 +134,7 @@
 				.eq("testsolve_id", $page.params.id);
 
 			if (error3) {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			} else {
 				let { data2, error2 } = await supabase.from("testsolve_answers").insert(
 					answers.map((ans) => ({
@@ -158,8 +147,7 @@
 				);
 
 				if (error2) {
-					errorTrue = true;
-					errorMessage = error.message;
+					toast.error(error.message);
 				} else {
 					loading = true;
 					for (const ans of feedbackAnswers) {
@@ -172,8 +160,7 @@
 							})
 							.eq("id", ans.id);
 						if (error2) {
-							errorTrue = true;
-							errorMessage = error2.message;
+							toast.error(error2.message);
 						}
 					}
 					getAnswers();
@@ -183,17 +170,6 @@
 		}
 	}
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if loading}
 	<p>Loading...</p>
@@ -222,7 +198,7 @@
 		top: 0;
 		margin: 10px;
 		padding: 10px;
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 1px solid black;
 	}
 </style>

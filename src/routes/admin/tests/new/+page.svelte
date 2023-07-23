@@ -5,25 +5,21 @@
 		SelectItem,
 		TextInput,
 		TextArea,
-		InlineNotification,
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
 
 	let tournaments = [];
 	let name = "";
 	let description = "";
 	let selectItem;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getTournaments() {
 		let { data: tournamentList, error } = await supabase
 			.from("tournaments")
 			.select("*");
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 		tournaments = tournamentList;
 	}
@@ -38,8 +34,7 @@
 			},
 		]);
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		} else window.location.replace("/admin/tests/" + data[0].id);
 	}
 
@@ -48,17 +43,6 @@
 
 <br />
 <h1>Admin: Add Test</h1>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <form on:submit|preventDefault style="padding: 20px;">
 	<Select bind:ref={selectItem}>

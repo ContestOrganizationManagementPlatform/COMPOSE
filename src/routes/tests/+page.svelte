@@ -4,28 +4,24 @@
 	import {
 		DataTable,
 		Link,
-		InlineNotification,
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
 		Pagination,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 
 	let rows = [];
 	let pageSize = 25;
 	let page = 1;
 	let tournaments = {};
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getTests() {
 		let { data: testList, error } = await supabase
 			.from("tests")
 			.select("*,tournaments(tournament_name)");
 		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+			toast.error(error.message);
 		}
 
 		let rowValues = [];
@@ -53,17 +49,6 @@
 
 	getTests();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <br />
 <h1>View Tests</h1>
@@ -114,9 +99,3 @@
 		pageSizeInputDisabled
 	/>
 </div>
-
-<style>
-	:global(.bx--search-input:focus:not([disabled])) {
-		outline: none !important;
-	}
-</style>

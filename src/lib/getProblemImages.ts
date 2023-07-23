@@ -41,7 +41,7 @@ export class ProblemImage {
 	async loadDimensions() {
 		let tempImage = new Image();
 		tempImage.src = this.url;
-		await tempImage.decode()
+		await tempImage.decode();
 		this.dimensions = {
 			width: tempImage.naturalWidth,
 			height: tempImage.naturalHeight,
@@ -96,13 +96,13 @@ export async function getProblemImages(
 	const { data: fileList, error } = await supabase.storage
 		.from("problem-images")
 		.list(`pb${problem_id}/problem`);
-	if (error) alert(error.message);
+	if (error) throw error;
 
 	for (const img of fileList) {
 		const { data: imageFile, error } = await supabase.storage
 			.from("problem-images")
 			.download(`pb${problem_id}/problem/${img.name}`);
-		if (error) alert(error.message);
+		if (error) throw error;
 		images.push(ProblemImage.fromSupabase(img, imageFile));
 	}
 

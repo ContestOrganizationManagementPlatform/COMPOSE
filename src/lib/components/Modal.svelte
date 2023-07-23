@@ -70,8 +70,8 @@
 		width: 40% !important;
 	}
 	:global(.bx--modal-container .bx--modal-close) {
-		outline-color: var(--green) !important;
-		border-color: var(--green) !important;
+		outline-color: var(--primary) !important;
+		border-color: var(--primary) !important;
 		outline: none !important;
 		border: none !important;
 	}
@@ -80,7 +80,7 @@
 		font-weight: 700 !important;
 	}
 	:global(.bx--modal-container .bx--btn--primary) {
-		background-color: var(--green) !important;
+		background-color: var(--primary) !important;
 		font-weight: 700 !important;
 	}
 </style>

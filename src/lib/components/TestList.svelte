@@ -13,6 +13,7 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
+	import toast from "svelte-french-toast";
 
 	export let tests = [];
 	export let condensed = false;
@@ -39,20 +40,23 @@
 	let pageSize = 10;
 	let page = 1;
 	(async () => {
-		// let { data: newProblems, error } = await supabase
-		// 	.from("full_problems")
-		// 	.select("*")
-		// 	.order("front_id");
-		// if (error) alert(error.message);
-		// problems = newProblems;
+		try {
+			// let { data: newProblems, error } = await supabase
+			// 	.from("full_problems")
+			// 	.select("*")
+			// 	.order("front_id");
+			// problems = newProblems;
 
-		let { data: problemCountsData, error2 } = await supabase
-			.from("problem_counts")
-			.select("*");
-		if (error2) alert(error2.message);
-		problemCounts = problemCountsData.sort(
-			(a, b) => b.problem_count - a.problem_count
-		);
+			let { data: problemCountsData, error2 } = await supabase
+				.from("problem_counts")
+				.select("*");
+			if (error2) throw error2;
+			problemCounts = problemCountsData.sort(
+				(a, b) => b.problem_count - a.problem_count
+			);
+		} catch (error) {
+			toast.error(error.message);
+		}
 	})();
 	let editHeader = { key: "edit", value: "", width: "20px" };
 

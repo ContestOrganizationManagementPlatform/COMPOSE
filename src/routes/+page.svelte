@@ -4,26 +4,22 @@
 	import {
 		Form,
 		TextInput,
-		InlineNotification,
 		NumberInput,
 		TextArea,
 	} from "carbon-components-svelte";
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
 
-    export let data; 
+	export let data;
 
 	let loading = false;
-	let updatedProfile = false;
 	let full_name;
 	let discord;
 	let initials;
 	let quote;
 	let math_comp_background;
 	let amc_score;
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	const getProfile = async () => {
 		try {
@@ -50,8 +46,7 @@
 				amc_score = "";
 				math_comp_background = "";
 			} else {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			}
 		} finally {
 			loading = false;
@@ -63,33 +58,25 @@
 		try {
 			// client side validation... endpoints are too hard :( :P
 			if (full_name.length > 100) {
-				errorTrue = true;
-				errorMessage =
-					"Full name is too long (if this is an actual issue, please notify us)";
+				toast.error(
+					"Full name is too long (if this is an actual issue, please notify us)"
+				);
 			} else if (full_name.length <= 0) {
-				errorTrue = true;
-				errorMessage = "You must enter a full name";
+				toast.error("You must enter a full name");
 			} else if (discord.length > 50) {
-				errorTrue = true;
-				errorMessage = "Discord is too long";
+				toast.error("Discord is too long");
 			} else if (!/^[^#]+#\d{4}$/.test(discord)) {
-				errorTrue = true;
-				errorMessage = "Discord format is invalid";
+				toast.error("Discord format is invalid");
 			} else if (initials.length > 5) {
-				errorTrue = true;
-				errorMessage = "Initials are too long";
+				toast.error("Initials are too long");
 			} else if (!/^[A-Z]+$/.test(initials)) {
-				errorTrue = true;
-				errorMessage = "Initials must be all uppercase letters";
+				toast.error("Initials must be all uppercase letters");
 			} else if (amc_score < 0 || amc_score > 150) {
-				errorTrue = true;
-				errorMessage = "AMC Score needs to be valid";
+				toast.error("AMC Score needs to be valid");
 			} else if (math_comp_background.length <= 0) {
-				errorTrue = true;
-				errorMessage = "Math competition background cannot be empty";
+				toast.error("Math competition background cannot be empty");
 			} else {
 				loading = true;
-				updatedProfile = false;
 				const user = supabase.auth.user();
 
 				const updates = {
@@ -108,16 +95,15 @@
 
 				if (error) throw error;
 
-				updatedProfile = true;
+				toast.success("Successfully updated profile.");
 			}
 		} catch (error) {
 			if (error.code === "23505") {
-				errorTrue = true;
-				errorMessage =
-					"You must enter a unique set of initials (try adding another letter)";
+				toast.error(
+					"You must enter a unique set of initials (try adding another letter)"
+				);
 			} else {
-				errorTrue = true;
-				errorMessage = error.message;
+				toast.error(error.message);
 			}
 		} finally {
 			loading = false;
@@ -126,28 +112,6 @@
 
 	getProfile();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
-
-{#if updatedProfile}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="success"
-			title="SUCCESS:"
-			subtitle="Successfully updated profile!"
-		/>
-	</div>
-{/if}
 
 <br />
 <h1 style="font-size: 5em;">Welcome, {full_name}</h1>
@@ -204,28 +168,3 @@
 		<br />
 	</div>
 </div>
-
-<style>
-	h3 {
-		text-decoration: underline;
-	}
-
-	:global(.bx--number input[type="number"]) {
-		border: none !important;
-		border-bottom: 1px solid gray !important;
-		outline: none !important;
-	}
-
-	:global(.bx--text-area) {
-		min-height: 100px;
-	}
-
-	:global(.bx--text-area:focus, .bx--text-area:active) {
-		outline-color: var(--green) !important;
-	}
-
-	:global(.bx--number__control-btn:focus) {
-		border: none !important;
-		outline: none !important;
-	}
-</style>
