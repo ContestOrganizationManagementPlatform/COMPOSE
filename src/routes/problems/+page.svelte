@@ -134,17 +134,6 @@
 	<p>Loading problems...</p>
 {/if}
 
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
-
 <div style="margin-top: 10px;">
 	<Button title="Create a new problem" href="/problems/new" />
 </div>
