@@ -17,6 +17,7 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import LatexKeyboard from "$lib/components/editor/LatexKeyboard.svelte";
 	import ImageManager from "$lib/components/images/ImageManager.svelte";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let originalProblem = null;
 	export let originalImages = [];
@@ -116,6 +117,7 @@
 				isDisabled = false;
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -140,6 +142,7 @@
 			topics = topics;
 			loading = false;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -178,6 +181,7 @@
 				throw new Error("Not all the fields have been filled out");
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

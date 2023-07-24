@@ -6,6 +6,7 @@
 	import { formatDate } from "$lib/formatDate";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
 
 	let loading = true;
@@ -15,99 +16,104 @@
 	let tableData = [];
 
 	async function getTestsolves() {
-		if ((await getThisUserRole()) >= 40) {
-			isAdmin = true;
-			// admin can testsolve anything
-			let { data: tests, error } = await supabase
-				.from("tests")
-				.select("id,test_name");
-			if (error) {
-				toast.error(error.message);
+		try {
+			if ((await getThisUserRole()) >= 40) {
+				isAdmin = true;
+				// admin can testsolve anything
+				let { data: tests, error } = await supabase
+					.from("tests")
+					.select("id,test_name");
+				if (error) {
+					throw error;
+				} else {
+					availableTestsolves = tests.map((x) => ({
+						name: x.test_name,
+						id: x.id,
+						solves: [],
+						completed: true,
+					}));
+				}
 			} else {
-				availableTestsolves = tests.map((x) => ({
-					name: x.test_name,
-					id: x.id,
-					solves: [],
-					completed: true,
-				}));
+				let { data: testsolves, error } = await supabase
+					.from("testsolvers")
+					.select("test_id,tests(test_name)")
+					.eq("solver_id", supabase.auth.user().id);
+				if (error) {
+					throw error;
+				} else {
+					availableTestsolves = testsolves.map((x) => ({
+						name: x.tests.test_name,
+						id: x.test_id,
+						solves: [],
+						completed: true,
+					}));
+				}
 			}
-		} else {
-			let { data: testsolves, error } = await supabase
-				.from("testsolvers")
-				.select("test_id,tests(test_name)")
-				.eq("solver_id", supabase.auth.user().id);
-			if (error) {
-				toast.error(error.message);
-			} else {
-				availableTestsolves = testsolves.map((x) => ({
-					name: x.tests.test_name,
-					id: x.test_id,
-					solves: [],
-					completed: true,
-				}));
-			}
+			getFinishedSolves();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-
-		getFinishedSolves();
 	}
 
 	async function getFinishedSolves() {
-		let finishedSolves;
-		if (isAdmin) {
-			let { data, error } = await supabase
-				.from("testsolves")
-				.select("*,users(full_name,initials)");
-			if (error) {
-				toast.error(error.message);
+		try {
+			let finishedSolves;
+			if (isAdmin) {
+				let { data, error } = await supabase
+					.from("testsolves")
+					.select("*,users(full_name,initials)");
+				if (error) throw error;
+				finishedSolves = data;
+			} else {
+				let { data, error } = await supabase
+					.from("testsolves")
+					.select("*,users(full_name,initials)")
+					.eq("solver_id", supabase.auth.user().id);
+				if (error) throw error;
+				finishedSolves = data;
 			}
-			finishedSolves = data;
-		} else {
-			let { data, error } = await supabase
-				.from("testsolves")
-				.select("*,users(full_name,initials)")
-				.eq("solver_id", supabase.auth.user().id);
-			if (error) {
-				toast.error(error.message);
-			}
-			finishedSolves = data;
-		}
-		for (const solve of finishedSolves) {
-			let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
-			if (test) {
-				test.solves.push(solve);
-				// if this solve is uncompleted
-				if (!solve.completed && solve.solver_id === supabase.auth.user().id) {
-					test.completed = false;
+			for (const solve of finishedSolves) {
+				let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
+				if (test) {
+					test.solves.push(solve);
+					// if this solve is uncompleted
+					if (!solve.completed && solve.solver_id === supabase.auth.user().id) {
+						test.completed = false;
+					}
 				}
 			}
-		}
-		availableTestsolves = availableTestsolves;
+			availableTestsolves = availableTestsolves;
 
-		for (var solve of finishedSolves) {
-			let status;
-			if (!solve.start_time) {
-				status = "Not started";
-			} else if (!solve.completed) {
-				status = "Incomplete";
-			} else {
-				status = "Completed";
+			for (var solve of finishedSolves) {
+				let status;
+				if (!solve.start_time) {
+					status = "Not started";
+				} else if (!solve.completed) {
+					status = "Incomplete";
+				} else {
+					status = "Completed";
+				}
+
+				tableData.push({
+					id: solve.id,
+					date: solve.end_time
+						? formatDate(new Date(solve.end_time)).split(",")[0]
+						: "N/A",
+					time: solve.end_time
+						? formatDate(new Date(solve.end_time)).split(",")[1]
+						: "N/A",
+					person: solve.users.full_name + " (" + solve.users.initials + ")",
+					test: availableTestsolves.find((ts) => ts.id === solve.test_id).name,
+					status,
+					testVersion: solve.test_version,
+				});
 			}
-
-			tableData.push({
-				id: solve.id,
-				date: solve.end_time
-					? formatDate(new Date(solve.end_time)).split(",")[0]
-					: "N/A",
-				time: solve.end_time
-					? formatDate(new Date(solve.end_time)).split(",")[1]
-					: "N/A",
-				person: solve.users.full_name + " (" + solve.users.initials + ")",
-				test: availableTestsolves.find((ts) => ts.id === solve.test_id).name,
-				status,
-				testVersion: solve.test_version,
-			});
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		loading = false;
 	}
 
 	getTestsolves();

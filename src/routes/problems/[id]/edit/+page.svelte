@@ -8,6 +8,7 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import toast from "svelte-french-toast";
 	import { getSingleProblem } from "$lib/getProblems";
+	import { handleError } from "$lib/handleError.ts";
 
 	let problem;
 	let images = [];
@@ -23,6 +24,7 @@
 			if (error) throw error;
 			else return user.full_name;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -40,6 +42,7 @@
 				(x) => x.global_topics?.topic ?? "Unknown Topic"
 			);
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -53,6 +56,7 @@
 			images = await getProblemImages(supabase, problem.id);
 			loaded = true;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -116,6 +120,7 @@
 
 			fetchProblem();
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

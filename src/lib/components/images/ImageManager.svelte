@@ -15,6 +15,7 @@
 	import { fail } from "@sveltejs/kit";
 	import Modal from "../Modal.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let add: any;
 
@@ -102,6 +103,7 @@
 			fileList = [];
 			loadFolder();
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -151,6 +153,7 @@
 
 			loadFolder();
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -166,6 +169,7 @@
 			}
 			loadFolder();
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

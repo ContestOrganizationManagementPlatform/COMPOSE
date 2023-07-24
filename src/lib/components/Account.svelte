@@ -4,6 +4,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import { Form, TextInput, PasswordInput } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let logIn;
 	let loading = false;
@@ -21,6 +22,7 @@
 			});
 			if (error) throw error;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.error_description || error.message);
 		} finally {
 			loading = false;
@@ -47,6 +49,7 @@
 				throw new Error("Passwords do not match");
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	};

@@ -3,28 +3,44 @@
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let tournaments = [];
+	let tournamentsArchive = [];
 	let tournamentName = "";
 	let tournamentDate = "";
 
 	async function getTournaments() {
-		let { data: tournamentList, error } = await supabase
-			.from("tournaments")
-			.select("*");
-		if (error) {
+		try {
+			let { data: tournamentList, error } = await supabase
+				.from("tournaments")
+				.select("*");
+			if (error) throw error;
+			tournaments = tournamentList.filter((tournament) => {
+				return !tournament.archived;
+			});
+			tournamentsArchive = tournamentList.filter((tournament) => {
+				return tournament.archived;
+			});
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		tournaments = tournamentList;
 	}
 
 	async function createTournament() {
-		const { data, error } = await supabase
-			.from("tournaments")
-			.insert([
-				{ tournament_name: tournamentName, tournament_date: tournamentDate },
-			]);
-		getTournaments();
+		try {
+			const { data, error } = await supabase
+				.from("tournaments")
+				.insert([
+					{ tournament_name: tournamentName, tournament_date: tournamentDate },
+				]);
+			if (error) throw error;
+			getTournaments();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTournaments();
@@ -59,6 +75,31 @@
 </div>
 <div style="padding: 10px;" class="grid">
 	{#each tournaments as tournament}
+		<a href={"/admin/tournaments/" + tournament.id}>
+			<div class="box">
+				<h3>
+					<strong>{tournament.id}: {tournament.tournament_name}</strong>
+				</h3>
+				<h3 style="margin-bottom: 10px;">
+					{tournament.tournament_date ?? "None"}
+				</h3>
+				<!--<div class="miniGrid">
+				{#each tournament.tests as test, i}
+					<div class="miniBox">
+						<h5>Test {i}</h5>
+						<p><strong>Name:</strong> {test.test_name}</p>
+						<p><strong>Description:</strong> {test.test_description}</p>
+					</div>
+				{/each}
+			</div>-->
+			</div>
+		</a>
+	{/each}
+</div>
+<br />
+<h2>Archived Tournaments</h2>
+<div style="padding: 10px;" class="grid">
+	{#each tournamentsArchive as tournament}
 		<a href={"/admin/tournaments/" + tournament.id}>
 			<div class="box">
 				<h3>

@@ -6,6 +6,7 @@
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	$: path = $page.route.id;
 
@@ -39,6 +40,7 @@
 			let { error } = await supabase.auth.signOut();
 			if (error) throw error;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		} finally {
 			loading = false;

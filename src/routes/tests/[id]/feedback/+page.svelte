@@ -5,6 +5,7 @@
 	import { TextInput } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let testId = $page.params.id;
 	let feedbackQuestions = [];
@@ -19,6 +20,8 @@
 				.from("test_feedback_questions")
 				.select("*")
 				.eq("test_id", testId);
+			if (error) throw error;
+
 			feedbackQuestions = test_feedback_questions;
 			if (feedbackQuestions !== []) {
 				for (const i of feedbackQuestions) {
@@ -29,6 +32,7 @@
 			loading = false;
 		} catch (error) {
 			if (error.code !== "PGRST116") {
+				handleError(error);
 				toast.error(error.message);
 			}
 		}
@@ -43,6 +47,8 @@
 					"feedback_question",
 					feedbackQuestions.map((el) => el.id)
 				);
+			if (error) throw error;
+
 			for (const i of testsolve_feedback_answers) {
 				feedbackAnswers[i.feedback_question].push({
 					id: i.id,
@@ -52,22 +58,27 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
+				handleError(error);
 				toast.error(error.message);
 			}
 		}
 	}
 
 	async function addFeedbackQuestion() {
-		const { data, error } = await supabase
-			.from("test_feedback_questions")
-			.insert([{ test_id: testId, question: curQuestion }]);
-		if (error) {
-			toast.error(error.message);
-		} else {
+		try {
+			const { data, error } = await supabase
+				.from("test_feedback_questions")
+				.insert([{ test_id: testId, question: curQuestion }]);
+			if (error) throw error;
+			else {
+				await getFeedbackQuestions();
+				curQuestion = "";
+			}
 			await getFeedbackQuestions();
-			curQuestion = "";
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		await getFeedbackQuestions();
 	}
 
 	getFeedbackQuestions();

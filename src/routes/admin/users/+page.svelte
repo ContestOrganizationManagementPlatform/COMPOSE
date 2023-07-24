@@ -9,6 +9,7 @@
 		Pagination,
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let pageSize = 25;
 	let page = 1;
@@ -26,29 +27,32 @@
 	let roles = [];
 
 	async function roleManager() {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("id,full_name,initials,user_roles(role)")
-			.order("full_name");
-		if (error) {
+		try {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("id,full_name,initials,user_roles(role)")
+				.order("full_name");
+			if (error) throw error;
+			let roles2 = [];
+			for (let user of users) {
+				const curRole = user.user_roles?.role ?? 0;
+				roles2.push({
+					edit: user.id + "test",
+					id: user.id,
+					role: roleDictionary[curRole],
+					name: user.full_name,
+					initials: user.initials,
+				});
+			}
+			roles2.sort((a, b) => {
+				return a.name.toLowerCase().localeCompare(b.name.toUpperCase());
+			});
+			roles = roles2;
+			loading = false;
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		let roles2 = [];
-		for (let user of users) {
-			const curRole = user.user_roles?.role ?? 0;
-			roles2.push({
-				edit: user.id + "test",
-				id: user.id,
-				role: roleDictionary[curRole],
-				name: user.full_name,
-				initials: user.initials,
-			});
-		}
-		roles2.sort((a, b) => {
-			return a.name.toLowerCase().localeCompare(b.name.toUpperCase());
-		});
-		roles = roles2;
-		loading = false;
 	}
 
 	roleManager();

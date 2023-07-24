@@ -6,6 +6,7 @@
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loading = true;
 	let disallowed = true;
@@ -30,6 +31,8 @@
 				.from("test_feedback_questions")
 				.select("*")
 				.eq("test_id", testsolve.test_id);
+			if (error) throw error;
+
 			for (const x of test_feedback_questions) {
 				feedbackQuestions[x.id] = x;
 				feedbackAnswers.push({
@@ -39,134 +42,155 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
+				handleError(error);
 				toast.error(error);
 			}
 		}
 	}
 
 	async function getFeedbackAnswers() {
-		let { data: data3, error: error3 } = await supabase
-			.from("testsolve_feedback_answers")
-			.select("*")
-			.eq("testsolve_id", $page.params.id);
-		if (error3) {
+		try {
+			let { data: data3, error: error3 } = await supabase
+				.from("testsolve_feedback_answers")
+				.select("*")
+				.eq("testsolve_id", $page.params.id);
+			if (error3) throw error3;
+			else feedbackAnswers = data3;
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
-		} else {
-			feedbackAnswers = data3;
 		}
 	}
 
 	async function permissionCheck() {
-		// check permission
-		let { data, error } = await supabase
-			.from("testsolves")
-			.select("*")
-			.eq("id", $page.params.id);
-		if (error) {
-			toast.error(error.message);
-		} else if (data.length === 0) {
-			toast.error("Testsolve with id " + $page.params.id + " doesn't exist!");
-		} else {
-			testsolve = data[0];
-			if (
-				(await getThisUserRole()) === 40 ||
-				testsolve.solver_id === supabase.auth.user().id
-			) {
-				disallowed = false;
+		try {
+			// check permission
+			let { data, error } = await supabase
+				.from("testsolves")
+				.select("*")
+				.eq("id", $page.params.id);
+			if (error) {
+				throw error;
+			} else if (data.length === 0) {
+				throw new Error(
+					"Testsolve with id " + $page.params.id + " doesn't exist!"
+				);
 			} else {
-				// check if test coordinator
-				let { data2, error2, count } = await supabase
-					.from("test_coordinators")
-					.select("*", { count: "exact", head: true })
-					.eq("coordinator_id", supabase.auth.user().id)
-					.eq("test_id", testsolve.test_id);
-				if (error2) {
-					toast.error(error2.message);
-				} else if (count > 0) {
+				testsolve = data[0];
+				if (
+					(await getThisUserRole()) === 40 ||
+					testsolve.solver_id === supabase.auth.user().id
+				) {
 					disallowed = false;
+				} else {
+					// check if test coordinator
+					let { data2, error2, count } = await supabase
+						.from("test_coordinators")
+						.select("*", { count: "exact", head: true })
+						.eq("coordinator_id", supabase.auth.user().id)
+						.eq("test_id", testsolve.test_id);
+					if (error2) {
+						throw error2;
+					} else if (count > 0) {
+						disallowed = false;
+					}
 				}
 			}
-		}
 
-		if (disallowed) {
-			loading = false;
-		} else {
-			getAnswers();
-			getFeedbackQuestions();
-			getFeedbackAnswers();
+			if (disallowed) {
+				loading = false;
+			} else {
+				getAnswers();
+				getFeedbackQuestions();
+				getFeedbackAnswers();
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function getAnswers() {
-		let { data, error } = await supabase
-			.from("testsolve_answers")
-			.select("*")
-			.eq("testsolve_id", $page.params.id);
+		try {
+			let { data, error } = await supabase
+				.from("testsolve_answers")
+				.select("*")
+				.eq("testsolve_id", $page.params.id);
 
-		if (error) {
+			if (error) {
+				throw error;
+			} else {
+				answers = data;
+				loading = false;
+			}
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
-		} else {
-			answers = data;
-
-			loading = false;
 		}
 	}
 
 	permissionCheck();
 
 	async function submitTestsolve() {
-		endTime = new Date();
+		try {
+			endTime = new Date();
 
-		let { data, error } = await supabase
-			.from("testsolves")
-			.update({
-				feedback: "", // TODO: allow feedback update
-			})
-			.eq("id", $page.params.id);
+			let { data, error } = await supabase
+				.from("testsolves")
+				.update({
+					feedback: "", // TODO: allow feedback update
+				})
+				.eq("id", $page.params.id);
 
-		if (error) {
-			toast.error(error.message);
-		} else {
-			// delete old answers
-			let { error3 } = await supabase
-				.from("testsolve_answers")
-				.delete()
-				.eq("testsolve_id", $page.params.id);
-
-			if (error3) {
-				toast.error(error.message);
+			if (error) {
+				throw error;
 			} else {
-				let { data2, error2 } = await supabase.from("testsolve_answers").insert(
-					answers.map((ans) => ({
-						testsolve_id: $page.params.id,
-						problem_id: ans.problem_id,
-						answer: ans.answer,
-						feedback: ans.feedback,
-						correct: ans.correct,
-					}))
-				);
+				// delete old answers
+				let { error3 } = await supabase
+					.from("testsolve_answers")
+					.delete()
+					.eq("testsolve_id", $page.params.id);
 
-				if (error2) {
-					toast.error(error.message);
+				if (error3) {
+					throw error3;
 				} else {
-					loading = true;
-					for (const ans of feedbackAnswers) {
-						let { error: error2 } = await supabase
-							.from("testsolve_feedback_answers")
-							.update({
+					let { data2, error2 } = await supabase
+						.from("testsolve_answers")
+						.insert(
+							answers.map((ans) => ({
 								testsolve_id: $page.params.id,
-								feedback_question: ans.feedback_question,
+								problem_id: ans.problem_id,
 								answer: ans.answer,
-							})
-							.eq("id", ans.id);
-						if (error2) {
-							toast.error(error2.message);
+								feedback: ans.feedback,
+								correct: ans.correct,
+							}))
+						);
+
+					if (error2) {
+						throw error2;
+					} else {
+						loading = true;
+						for (const ans of feedbackAnswers) {
+							let { error: error2 } = await supabase
+								.from("testsolve_feedback_answers")
+								.update({
+									testsolve_id: $page.params.id,
+									feedback_question: ans.feedback_question,
+									answer: ans.answer,
+								})
+								.eq("id", ans.id);
+							if (error2) {
+								toast.error(error2.message);
+							}
 						}
+						getAnswers();
+						getFeedbackAnswers();
 					}
-					getAnswers();
-					getFeedbackAnswers();
 				}
 			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 </script>

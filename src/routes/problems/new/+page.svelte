@@ -5,6 +5,7 @@
 	import { ImageBucket } from "$lib/ImageBucket";
 	import Button from "$lib/components/Button.svelte";
 	import { invalidate } from "$app/navigation";
+	import { handleError } from "$lib/handleError.ts";
 
 	let authorName = "";
 	let openModal = false;
@@ -20,6 +21,7 @@
 			if (error) throw error;
 			else authorName = user.full_name;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -35,6 +37,7 @@
 			if (error) throw error;
 			else return data.front_id;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -58,6 +61,7 @@
 						topic_id: tp,
 					}))
 				);
+				if (error2) throw error2;
 
 				for (const file of problem_files) {
 					let { error3 } = await supabase.storage
@@ -103,6 +107,7 @@
 				//window.location.replace(`/problems/${problemId}`);
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

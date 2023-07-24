@@ -6,6 +6,7 @@
 	import { Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { getFullProblems } from "$lib/getProblems";
+	import { handleError } from "$lib/handleError.ts";
 
 	let problems = [];
 	let problemCounts = [];
@@ -18,111 +19,127 @@
 	let group = values.slice(0, 1);
 
 	(async () => {
-		problems = await getFullProblems();
+		try {
+			problems = await getFullProblems();
 
-		let { data: problemCountsData, error2 } = await supabase
-			.from("problem_counts")
-			.select("*");
-		if (error2) {
-			toast.error(error2.message);
+			let { data: problemCountsData, error2 } = await supabase
+				.from("problem_counts")
+				.select("*");
+			if (error2) throw error2;
+			problemCounts = problemCountsData.sort(
+				(a, b) => b.problem_count - a.problem_count
+			);
+			//getProblemLink();
+			loaded = true;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		problemCounts = problemCountsData.sort(
-			(a, b) => b.problem_count - a.problem_count
-		);
-		//getProblemLink();
-		loaded = true;
 	})();
 
 	async function getBucketPaths(path) {
-		const { data, error } = await supabase.storage
-			.from("problem-images")
-			.list(path);
-		if (error) throw error;
-		else {
-			let ans = [];
-			for (let i = 0; i < data.length; i++) {
-				if (data[i].id != null) {
-					if (path === "") {
-						ans.push(data[i].name);
+		try {
+			const { data, error } = await supabase.storage
+				.from("problem-images")
+				.list(path);
+			if (error) throw error;
+			else {
+				let ans = [];
+				for (let i = 0; i < data.length; i++) {
+					if (data[i].id != null) {
+						if (path === "") {
+							ans.push(data[i].name);
+						} else {
+							ans.push(path + "/" + data[i].name);
+						}
 					} else {
-						ans.push(path + "/" + data[i].name);
-					}
-				} else {
-					let x;
-					if (path === "") {
-						x = await getBucketPaths(data[i].name);
-					} else {
-						x = await getBucketPaths(path + "/" + data[i].name);
-					}
-					for (let j = 0; j < x.length; j++) {
-						ans.push(x[j]);
+						let x;
+						if (path === "") {
+							x = await getBucketPaths(data[i].name);
+						} else {
+							x = await getBucketPaths(path + "/" + data[i].name);
+						}
+						for (let j = 0; j < x.length; j++) {
+							ans.push(x[j]);
+						}
 					}
 				}
+				return ans;
 			}
-			return ans;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function openProblemsPDF() {
-		let l =
-			"\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
+		try {
+			let l =
+				"\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
 
-		for (const problem of problems) {
-			l += "\\section*{Problem " + problem.front_id + "}";
-			if (group.includes("Problems")) {
-				l +=
-					"\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
-			}
+			for (const problem of problems) {
+				l += "\\section*{Problem " + problem.front_id + "}";
+				if (group.includes("Problems")) {
+					l +=
+						"\\textbf{Problem:} " +
+						problem.problem_latex +
+						"\\newline\\newline";
+				}
 
-			if (group.includes("Answers") && problem.answer_latex != "") {
-				l += "\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
-			}
+				if (group.includes("Answers") && problem.answer_latex != "") {
+					l +=
+						"\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
+				}
 
-			if (group.includes("Solutions") && problem.solution_latex != "") {
-				l +=
-					"\\textbf{Solution:} " +
-					problem.solution_latex.replace("\\ans{", "\\boxed{") +
-					"\\newline\\newline";
-			}
+				if (group.includes("Solutions") && problem.solution_latex != "") {
+					l +=
+						"\\textbf{Solution:} " +
+						problem.solution_latex.replace("\\ans{", "\\boxed{") +
+						"\\newline\\newline";
+				}
 
-			if (group.includes("Comments") && problem.comment_latex != "") {
-				l +=
-					"\\textbf{Comment:} " +
-					problem.comment_latex.replace("\\ans{", "\\boxed{") +
-					"\\newline\\newline";
+				if (group.includes("Comments") && problem.comment_latex != "") {
+					l +=
+						"\\textbf{Comment:} " +
+						problem.comment_latex.replace("\\ans{", "\\boxed{") +
+						"\\newline\\newline";
+				}
 			}
+			l += "\\end{document}";
+
+			let images = await getBucketPaths("");
+
+			const resp = await fetch(
+				// make env variable before pushing
+				import.meta.env.VITE_PDF_GENERATOR_URL,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						mode: "no-cors",
+					},
+					body: JSON.stringify({
+						latex: l,
+						images,
+					}),
+				}
+			);
+			const blob = await resp.blob();
+			const newBlob = new Blob([blob]);
+			const blobUrl = window.URL.createObjectURL(newBlob);
+			const link = document.createElement("a");
+			link.href = blobUrl;
+			link.setAttribute("download", "problems.pdf");
+			document.body.appendChild(link);
+			link.click();
+			link.parentNode.removeChild(link);
+
+			// clean up Url
+			window.URL.revokeObjectURL(blobUrl);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		l += "\\end{document}";
-
-		let images = await getBucketPaths("");
-
-		const resp = await fetch(
-			// make env variable before pushing
-			import.meta.env.VITE_PDF_GENERATOR_URL,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					mode: "no-cors",
-				},
-				body: JSON.stringify({
-					latex: l,
-					images,
-				}),
-			}
-		);
-		const blob = await resp.blob();
-		const newBlob = new Blob([blob]);
-		const blobUrl = window.URL.createObjectURL(newBlob);
-		const link = document.createElement("a");
-		link.href = blobUrl;
-		link.setAttribute("download", "problems.pdf");
-		document.body.appendChild(link);
-		link.click();
-		link.parentNode.removeChild(link);
-
-		// clean up Url
-		window.URL.revokeObjectURL(blobUrl);
 	}
 </script>
 

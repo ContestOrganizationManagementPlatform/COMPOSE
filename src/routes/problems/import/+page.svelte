@@ -4,6 +4,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	const regexes = {
 		topic: /\\ques\[(\w*)\]/s,
@@ -40,61 +41,77 @@
 	}
 
 	async function checkFiles() {
-		for (const file of files) {
-			const extension = file.name.split(".").pop();
-			if (extension !== "tex") {
-				errorMessages.push(
-					`Skipped file ${file.name} because it is not a .tex file`
-				);
-			} else {
-				const text = await file.text();
-				importProblem(text, file.name);
+		try {
+			for (const file of files) {
+				const extension = file.name.split(".").pop();
+				if (extension !== "tex") {
+					errorMessages.push(
+						`Skipped file ${file.name} because it is not a .tex file`
+					);
+				} else {
+					const text = await file.text();
+					importProblem(text, file.name);
+				}
 			}
-		}
 
-		payloads = payloads;
-		errorMessages = errorMessages;
+			payloads = payloads;
+			errorMessages = errorMessages;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function manualAdd() {
-		if (!importProblem(problemText)) {
-			toast.error("Manual import failed due to improper format");
-		} else {
-			problemText = "";
+		try {
+			if (!importProblem(problemText)) {
+				throw new Error("Manual import failed due to improper format");
+			} else {
+				problemText = "";
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	function importProblem(text, name) {
-		const user = supabase.auth.user();
-		const getResult = (regex) => {
-			const res = text.match(regex);
-			if (!res) return null;
-			return res[1];
-		};
+		try {
+			const user = supabase.auth.user();
+			const getResult = (regex) => {
+				const res = text.match(regex);
+				if (!res) return null;
+				return res[1];
+			};
 
-		const multisolutionResult = [...text.matchAll(regexes.multisolution)];
-		let newSolution = null;
-		if (multisolutionResult.length > 0) {
-			newSolution = "";
-			for (const res of multisolutionResult) {
-				let [_, solNum, solText] = res;
-				newSolution += `\nSolution ${solNum}:\n\n${solText}\n`;
+			const multisolutionResult = [...text.matchAll(regexes.multisolution)];
+			let newSolution = null;
+			if (multisolutionResult.length > 0) {
+				newSolution = "";
+				for (const res of multisolutionResult) {
+					let [_, solNum, solText] = res;
+					newSolution += `\nSolution ${solNum}:\n\n${solText}\n`;
+				}
 			}
-		}
 
-		const payload = {
-			problem_latex: getResult(regexes.question) ?? "",
-			comment_latex: getResult(regexes.comment) ?? "",
-			answer_latex: getResult(regexes.answer) ?? "",
-			solution_latex: newSolution ?? getResult(regexes.solution) ?? "",
-			topics: [getResult(regexes.topic) ?? ""],
-			sub_topics: "",
-			difficulty: 0,
-			edited_at: new Date().toISOString(),
-			author_id: userSelectRef && userSelectRef != "" ? userSelectRef : user.id,
-		};
-		payloads = [...payloads, payload];
-		return true;
+			const payload = {
+				problem_latex: getResult(regexes.question) ?? "",
+				comment_latex: getResult(regexes.comment) ?? "",
+				answer_latex: getResult(regexes.answer) ?? "",
+				solution_latex: newSolution ?? getResult(regexes.solution) ?? "",
+				topics: [getResult(regexes.topic) ?? ""],
+				sub_topics: "",
+				difficulty: 0,
+				edited_at: new Date().toISOString(),
+				author_id:
+					userSelectRef && userSelectRef != "" ? userSelectRef : user.id,
+			};
+			payloads = [...payloads, payload];
+			return true;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function submitProblems() {
@@ -150,6 +167,7 @@
 				success = true;
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -165,6 +183,7 @@
 			loadedUsers = true;
 			isAdmin = (await getThisUserRole()) >= 40;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

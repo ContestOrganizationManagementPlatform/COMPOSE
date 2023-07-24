@@ -11,6 +11,7 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import toast from "svelte-french-toast";
 	import Button from "$lib/components/Button.svelte";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loading = true;
 	let testsolves = [];
@@ -48,7 +49,7 @@
 			let { data: testsolveInfo2, error2 } = await supabase
 				.from("testsolvers")
 				.select("*,users(full_name,initials),tests(test_name)");
-			if (error2) throw error;
+			if (error2) throw error2;
 			else {
 				testsolves2 = testsolveInfo2.map((e) => ({
 					id: e.id,
@@ -67,6 +68,7 @@
 			testsolves = testsolves1.concat(testsolves2);
 			loading = false;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

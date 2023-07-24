@@ -10,6 +10,7 @@
 	import toast from "svelte-french-toast";
 	import Modal from "$lib/components/Modal.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import { handleError } from "$lib/handleError.ts";
 
 	let testId = $page.params.id;
 	let test;
@@ -27,118 +28,148 @@
 				.from("test_feedback_questions")
 				.select("*")
 				.eq("test_id", testId);
+			if (error) throw error;
+
 			feedbackQuestions = test_feedback_questions;
 		} catch (error) {
 			if (error.code !== "PGRST116") {
+				handleError(error);
 				toast.error(error.messsage);
 			}
 		}
 	}
 
 	async function addFeedbackQuestion() {
-		const { data, error } = await supabase
-			.from("test_feedback_questions")
-			.insert([{ test_id: testId, question: curQuestion }]);
-		if (error) {
-			toast.erorr(error.message);
-		} else {
+		try {
+			const { data, error } = await supabase
+				.from("test_feedback_questions")
+				.insert([{ test_id: testId, question: curQuestion }]);
+			if (error) throw error;
+
 			await getFeedbackQuestions();
 			curQuestion = "";
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function getOneUser(id) {
-		let { data: user, error } = await supabase
-			.from("users")
-			.select("*")
-			.eq("id", id)
-			.limit(1)
-			.single();
-		if (error) {
+		try {
+			let { data: user, error } = await supabase
+				.from("users")
+				.select("*")
+				.eq("id", id)
+				.limit(1)
+				.single();
+			if (error) throw error;
+			return user;
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		return user;
 	}
 
 	async function getTest() {
-		let { data: tests, error } = await supabase
-			.from("tests")
-			.select("*")
-			.eq("id", testId)
-			.limit(1)
-			.single();
-		if (error) {
+		try {
+			let { data: tests, error } = await supabase
+				.from("tests")
+				.select("*")
+				.eq("id", testId)
+				.limit(1)
+				.single();
+			if (error) throw error;
+			test = tests;
+
+			let { data: queriedCoordinators, error2 } = await supabase
+				.from("test_coordinators")
+				.select("*,users(*)")
+				.eq("test_id", testId);
+			if (error2) throw error2;
+
+			testCoordinators = queriedCoordinators.map((tc) => tc.users);
+			loading = false;
+			await getAllUsers();
+			await getFeedbackQuestions();
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		test = tests;
-
-		let { data: queriedCoordinators, error2 } = await supabase
-			.from("test_coordinators")
-			.select("*,users(*)")
-			.eq("test_id", testId);
-		testCoordinators = queriedCoordinators.map((tc) => tc.users);
-		loading = false;
-		await getAllUsers();
-		await getFeedbackQuestions();
 	}
 
 	async function getAllUsers() {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("*,test_coordinators(*)")
-			.order("full_name");
-		if (error) {
+		try {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("*,test_coordinators(*)")
+				.order("full_name");
+			if (error) throw error;
+			allUsers = users.filter(
+				(x) => !testCoordinators.some((tc) => tc.id === x.id)
+			);
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		allUsers = users.filter(
-			(x) => !testCoordinators.some((tc) => tc.id === x.id)
-		);
 	}
 
 	async function addTestCoordinator(e) {
-		e.preventDefault(); // stop form from submitting
-		const { data, error } = await supabase
-			.from("test_coordinators")
-			.insert({ coordinator_id: selectRef.value, test_id: testId });
-		if (error) {
+		try {
+			e.preventDefault(); // stop form from submitting
+			const { data, error } = await supabase
+				.from("test_coordinators")
+				.insert({ coordinator_id: selectRef.value, test_id: testId });
+			if (error) throw error;
+			getTest();
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		getTest();
 	}
 
 	async function deleteTestCoordinator(testCoordinatorId) {
-		const { data, error } = await supabase
-			.from("test_coordinators")
-			.delete()
-			.eq("coordinator_id", testCoordinatorId)
-			.eq("test_id", testId);
-		if (error) {
+		try {
+			const { data, error } = await supabase
+				.from("test_coordinators")
+				.delete()
+				.eq("coordinator_id", testCoordinatorId)
+				.eq("test_id", testId);
+			if (error) throw error;
+			getTest();
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		getTest();
 	}
 
 	async function editTest() {
-		const { data, error } = await supabase
-			.from("tests")
-			.update({
-				test_name: test.test_name,
-				test_description: test.test_description,
-			})
-			.eq("id", testId);
-		if (error) {
+		try {
+			const { data, error } = await supabase
+				.from("tests")
+				.update({
+					test_name: test.test_name,
+					test_description: test.test_description,
+				})
+				.eq("id", testId);
+			if (error) throw error;
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
 
 	async function deleteTest() {
-		const { data, error } = await supabase
-			.from("tests")
-			.delete()
-			.eq("id", testId);
-		if (error) {
+		try {
+			const { data, error } = await supabase
+				.from("tests")
+				.delete()
+				.eq("id", testId);
+			if (error) throw error;
+			else window.location.replace("/admin/tests");
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
-		} else window.location.replace("/admin/tests");
+		}
 	}
 
 	getTest();

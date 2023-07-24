@@ -12,7 +12,7 @@ export interface TournamentRequest {
  * @param tournament_id number
  * @returns tournament info from database
  */
-async function getTournamentInfo(tournament_id: number) {
+export async function getTournamentInfo(tournament_id: number) {
 	let { data, error } = await supabase
 		.from("tournaments")
 		.select("*")
@@ -28,7 +28,7 @@ async function getTournamentInfo(tournament_id: number) {
  * @param tournament_id number
  * @returns list of test info objects
  */
-async function getTournamentTests(tournament_id: number) {
+export async function getTournamentTests(tournament_id: number) {
 	let { data, error } = await supabase
 		.from("tests")
 		.select("*")
@@ -43,17 +43,30 @@ async function getTournamentTests(tournament_id: number) {
  * @param tournament_id number
  * @returns tournament object
  */
-async function getTournament(tournament_id: number) {
+export async function getTournament(tournament_id: number) {
 	let tournament = await getTournamentInfo(tournament_id);
 	tournament.tests = await getTournamentTests(tournament_id);
 	return tournament;
 }
 
-async function archiveTournament(tournament_id: number) {
-	const { error } = await supabase
+/**
+ * Archives the tournament, all tests, and all problems associated with the tournament id. Returns nothing.
+ *
+ * @param tournament_id number
+ */
+export async function archiveTournament(tournament_id: number) {
+	const { error: error1 } = await supabase
+		.from("tournaments")
+		.update({ archived: true })
+		.eq("id", tournament_id);
+	if (error1) throw error1;
+
+	const { error: error2 } = await supabase
 		.from("tests")
 		.update({ archived: true })
 		.eq("tournament_id", tournament_id);
+	if (error2) throw error2;
+
 	let tests = await getTournamentTests(tournament_id);
 	for (let i of tests) {
 		archiveTest(i.id);

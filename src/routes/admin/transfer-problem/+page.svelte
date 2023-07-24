@@ -9,6 +9,8 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import Problem from "../../../lib/components/Problem.svelte";
 	import { getFullProblems } from "$lib/getProblems";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let problems = [];
 	let loading = true;
@@ -18,46 +20,61 @@
 	let show = false;
 
 	async function getProblems() {
-		let problemData = await getFullProblems({
-			columns:
-				"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)",
-		});
-		for (let problem of problemData) {
-			problems.push({
-				id: problem.id,
-				problem_latex: problem.problem_latex,
-				answer_latex: problem.answer_latex,
-				solution_latex: problem.solution_latex,
-				comment_latex: problem.comment_latex,
-				author_id: problem.author_id,
-				author_name: problem.users.full_name,
+		try {
+			let problemData = await getFullProblems({
+				columns:
+					"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)",
 			});
+			for (let problem of problemData) {
+				problems.push({
+					id: problem.id,
+					problem_latex: problem.problem_latex,
+					answer_latex: problem.answer_latex,
+					solution_latex: problem.solution_latex,
+					comment_latex: problem.comment_latex,
+					author_id: problem.author_id,
+					author_name: problem.users.full_name,
+				});
+			}
+			problems.sort((book1, book2) => {
+				return book1.id > book2.id ? 1 : book1.id < book2.id ? -1 : 0;
+			});
+			getUsers();
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		problems.sort((book1, book2) => {
-			return book1.id > book2.id ? 1 : book1.id < book2.id ? -1 : 0;
-		});
-		getUsers();
-		loading = false;
 	}
 
 	async function getUsers() {
-		let { data: userInfo, error } = await supabase
-			.from("users")
-			.select("id,full_name");
-		if (error) throw error;
-		users = userInfo;
+		try {
+			let { data: userInfo, error } = await supabase
+				.from("users")
+				.select("id,full_name");
+			if (error) throw error;
+			users = userInfo;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function transferProblem() {
-		const { data, error } = await supabase
-			.from("problems")
-			.update({ author_id: users[curUser].id })
-			.eq("id", problems[curProblem].id);
-		if (error) throw error;
-		show = true;
-		setInterval(() => {
-			show = false;
-		}, 3000);
+		try {
+			const { data, error } = await supabase
+				.from("problems")
+				.update({ author_id: users[curUser].id })
+				.eq("id", problems[curProblem].id);
+			if (error) throw error;
+			show = true;
+			setInterval(() => {
+				show = false;
+			}, 3000);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getProblems();

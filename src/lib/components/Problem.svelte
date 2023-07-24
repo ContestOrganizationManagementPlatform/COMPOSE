@@ -8,6 +8,7 @@
 	import { processLatexViaUnified } from "@unified-latex/unified-latex";
 	import rehypeStringify from "rehype-stringify";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let problem; // whole object from database
 	export let showMetadata = false;
@@ -33,6 +34,7 @@
 				author = users[0].full_name;
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 		loaded = true;
@@ -75,6 +77,7 @@
 				errorList = errorList;
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

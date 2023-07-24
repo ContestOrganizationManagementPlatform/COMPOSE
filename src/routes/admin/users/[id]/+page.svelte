@@ -5,6 +5,7 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let userId = $page.params.id;
 	let user = {};
@@ -29,6 +30,7 @@
 			}
 			loading = false;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -50,6 +52,7 @@
 				if (error) throw error;
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

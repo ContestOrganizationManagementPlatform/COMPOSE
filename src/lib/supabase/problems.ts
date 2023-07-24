@@ -156,10 +156,13 @@ export async function getAllRelevantTests() {
 	if (error) throw error;
 	let ans = {};
 	for (let i of data) {
-		if (i in Object.keys(ans)) {
-			ans[i].append({ test_id: i.test_id, test_name: i.name.test_name });
+		if (i.problem_id in ans) {
+			ans[i.problem_id].push({
+				test_id: i.test_id,
+				test_name: i.name.test_name,
+			});
 		} else {
-			ans[i] = [{ test_id: i.test_id, test_name: i.name.test_name }];
+			ans[i.problem_id] = [{ test_id: i.test_id, test_name: i.name.test_name }];
 		}
 	}
 	return ans;

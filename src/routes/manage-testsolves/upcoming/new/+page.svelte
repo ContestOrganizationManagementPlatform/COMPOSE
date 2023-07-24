@@ -4,6 +4,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let finalUser = "";
 	let finalTest = "";
@@ -18,6 +19,7 @@
 			if (error) throw error;
 			else users = usersInfo;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -29,6 +31,7 @@
 			else tests = testsInfo;
 			loading = false;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -73,6 +76,7 @@
 						message = "Success! Added testsolve.";
 					}
 				} catch (error) {
+					handleError(error);
 					toast.error(error.message);
 				}
 			}}

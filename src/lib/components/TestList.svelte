@@ -27,6 +27,7 @@
 	export let pageEnabled = true;
 	export let problemCounts = {};
 	const dispatch = createEventDispatcher();
+	import { handleError } from "$lib/handleError.ts";
 
 	let width = 0;
 	let mobileFriendly = {
@@ -55,6 +56,7 @@
 				(a, b) => b.problem_count - a.problem_count
 			);
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	})();
@@ -95,14 +97,19 @@
 
 	let listeners = {};
 	$: if (draggable && tableContainerDiv && !draggingRow) {
-		for (let i = 0; i < tests.length; i++) {
-			const row = tests[i];
-			let elem = getRowElement(row.id);
-			if (row.id in listeners) {
-				elem?.removeEventListener("dragenter", listeners[row.id]);
+		try {
+			for (let i = 0; i < tests.length; i++) {
+				const row = tests[i];
+				let elem = getRowElement(row.id);
+				if (row.id in listeners) {
+					elem?.removeEventListener("dragenter", listeners[row.id]);
+				}
+				listeners[row.id] = (e) => handleDragEnter(e, row);
+				elem?.addEventListener("dragenter", listeners[row.id]);
 			}
-			listeners[row.id] = (e) => handleDragEnter(e, row);
-			elem?.addEventListener("dragenter", listeners[row.id]);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -111,35 +118,50 @@
 	let lastDraggedInd = null;
 
 	function startDrag(e, row) {
-		if (!draggable) return;
-		draggingRow = true;
-		draggedRow = row;
+		try {
+			if (!draggable) return;
+			draggingRow = true;
+			draggedRow = row;
+		} catch (error) {
+			handleError(error);
+			toast.error(erorr.message);
+		}
 	}
 
 	function handleDragEnter(e, row) {
-		if (!draggable) return;
-		if (!draggingRow) return;
-		if (row === draggedRow) return;
+		try {
+			if (!draggable) return;
+			if (!draggingRow) return;
+			if (row === draggedRow) return;
 
-		e.preventDefault();
-		const ind = tests.indexOf(row);
-		lastDraggedInd = ind;
-		tests.splice(tests.indexOf(draggedRow), 1);
-		tests.splice(ind, 0, draggedRow);
-		tests = tests;
+			e.preventDefault();
+			const ind = tests.indexOf(row);
+			lastDraggedInd = ind;
+			tests.splice(tests.indexOf(draggedRow), 1);
+			tests.splice(ind, 0, draggedRow);
+			tests = tests;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function endDrag(e) {
-		if (!draggable) return;
-		if (lastDraggedInd !== null) {
-			dispatch("reorder", {
-				id: draggedRow.id,
-				to: lastDraggedInd,
-			});
+		try {
+			if (!draggable) return;
+			if (lastDraggedInd !== null) {
+				dispatch("reorder", {
+					id: draggedRow.id,
+					to: lastDraggedInd,
+				});
+			}
+			draggingRow = false;
+			draggedRow = null;
+			lastDraggedInd = null;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		draggingRow = false;
-		draggedRow = null;
-		lastDraggedInd = null;
 	}
 </script>
 

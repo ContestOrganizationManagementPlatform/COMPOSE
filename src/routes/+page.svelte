@@ -10,6 +10,7 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let data;
 
@@ -46,6 +47,7 @@
 				amc_score = "";
 				math_comp_background = "";
 			} else {
+				handleError(error);
 				toast.error(error.message);
 			}
 		} finally {
@@ -58,23 +60,23 @@
 		try {
 			// client side validation... endpoints are too hard :( :P
 			if (full_name.length > 100) {
-				toast.error(
+				throw new Error(
 					"Full name is too long (if this is an actual issue, please notify us)"
 				);
 			} else if (full_name.length <= 0) {
-				toast.error("You must enter a full name");
+				throw new Error("You must enter a full name");
 			} else if (discord.length > 50) {
-				toast.error("Discord is too long");
+				throw new Error("Discord is too long");
 			} else if (!/^[^#]+#\d{4}$/.test(discord)) {
-				toast.error("Discord format is invalid");
+				throw new Error("Discord format is invalid");
 			} else if (initials.length > 5) {
-				toast.error("Initials are too long");
+				throw new Error("Initials are too long");
 			} else if (!/^[A-Z]+$/.test(initials)) {
-				toast.error("Initials must be all uppercase letters");
+				throw new Error("Initials must be all uppercase letters");
 			} else if (amc_score < 0 || amc_score > 150) {
-				toast.error("AMC Score needs to be valid");
+				throw new Error("AMC Score needs to be valid");
 			} else if (math_comp_background.length <= 0) {
-				toast.error("Math competition background cannot be empty");
+				throw new Error("Math competition background cannot be empty");
 			} else {
 				loading = true;
 				const user = supabase.auth.user();
@@ -103,6 +105,7 @@
 					"You must enter a unique set of initials (try adding another letter)"
 				);
 			} else {
+				handleError(error);
 				toast.error(error.message);
 			}
 		} finally {

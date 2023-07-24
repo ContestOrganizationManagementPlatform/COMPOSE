@@ -10,6 +10,7 @@
 		Pagination,
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let rows = [];
 	let pageSize = 25;
@@ -17,34 +18,38 @@
 	let tournaments = {};
 
 	async function getTests() {
-		let { data: testList, error } = await supabase
-			.from("tests")
-			.select("*,tournaments(tournament_name)");
-		if (error) {
+		try {
+			let { data: testList, error } = await supabase
+				.from("tests")
+				.select("*,tournaments(tournament_name)")
+				.eq("archived", false);
+			if (error) throw error;
+
+			let rowValues = [];
+
+			for (const test of testList) {
+				if (!tournaments[test.tournament_id]) {
+					tournaments[test.tournament_id] = {
+						name: test.tournaments.tournament_name,
+						tests: [],
+					};
+				}
+				tournaments[test.tournament_id].tests.push(test);
+				rowValues.push({
+					id: test.id,
+					edit: test.id,
+					competition: test.tournaments.tournament_name,
+					name: test.test_name,
+					description: test.test_description,
+					version: test.test_version,
+				});
+			}
+
+			rows = rowValues;
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-
-		let rowValues = [];
-
-		for (const test of testList) {
-			if (!tournaments[test.tournament_id]) {
-				tournaments[test.tournament_id] = {
-					name: test.tournaments.tournament_name,
-					tests: [],
-				};
-			}
-			tournaments[test.tournament_id].tests.push(test);
-			rowValues.push({
-				id: test.id,
-				edit: test.id,
-				competition: test.tournaments.tournament_name,
-				name: test.test_name,
-				description: test.test_description,
-				version: test.test_version,
-			});
-		}
-
-		rows = rowValues;
 	}
 
 	getTests();

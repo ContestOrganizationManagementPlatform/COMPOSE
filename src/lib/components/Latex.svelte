@@ -6,6 +6,7 @@
 	import { processLatexViaUnified } from "@unified-latex/unified-latex";
 	import rehypeStringify from "rehype-stringify";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let style = "";
 	export let value;
@@ -24,6 +25,7 @@
 				.use(rehypeStringify)
 				.processSync(value).value;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

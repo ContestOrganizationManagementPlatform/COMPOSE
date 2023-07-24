@@ -8,6 +8,7 @@
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let tournaments = [];
 	let name = "";
@@ -15,27 +16,34 @@
 	let selectItem;
 
 	async function getTournaments() {
-		let { data: tournamentList, error } = await supabase
-			.from("tournaments")
-			.select("*");
-		if (error) {
+		try {
+			let { data: tournamentList, error } = await supabase
+				.from("tournaments")
+				.select("*");
+			if (error) throw error;
+			tournaments = tournamentList;
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-		tournaments = tournamentList;
 	}
 
 	async function createTest(e) {
-		e.preventDefault();
-		const { data, error } = await supabase.from("tests").insert([
-			{
-				test_name: name,
-				test_description: description,
-				tournament_id: selectItem.value,
-			},
-		]);
-		if (error) {
+		try {
+			e.preventDefault();
+			const { data, error } = await supabase.from("tests").insert([
+				{
+					test_name: name,
+					test_description: description,
+					tournament_id: selectItem.value,
+				},
+			]);
+			if (error) throw error;
+			else window.location.replace("/admin/tests/" + data[0].id);
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
-		} else window.location.replace("/admin/tests/" + data[0].id);
+		}
 	}
 
 	getTournaments();

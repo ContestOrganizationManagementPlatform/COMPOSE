@@ -2,6 +2,7 @@
 	import { latexLayout } from "$lib/latexKeyboardLayout.js";
 	import KeyboardButton from "$lib/components/editor/KeyboardButton.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let onClick = () => {};
 	function handleClick(beforeText, afterText) {
@@ -25,6 +26,7 @@
 			el.dispatchEvent(new Event("input")); // make it update
 			onClick();
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

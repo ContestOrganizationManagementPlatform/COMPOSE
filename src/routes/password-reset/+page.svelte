@@ -5,6 +5,7 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let hash = $page.url.hash;
 	let type = "";
@@ -53,6 +54,7 @@
 				toast.error("Your email is not valid!");
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -63,39 +65,44 @@
 	}
 
 	async function updateUser(payload) {
-		clearInterval();
-		if (validatePassword(password)) {
-			if (password == newPassword) {
-				showPasswordReset = true;
-				setInterval(() => {
-					showPasswordReset = false;
-				}, 5000);
+		try {
+			clearInterval();
+			if (validatePassword(password)) {
+				if (password == newPassword) {
+					showPasswordReset = true;
+					setInterval(() => {
+						showPasswordReset = false;
+					}, 5000);
 
-				const { error, data } = await supabase.auth.api.updateUser(
-					accessToken,
-					{
-						password,
+					const { data, error } = await supabase.auth.api.updateUser(
+						accessToken,
+						{
+							password,
+						}
+					);
+					if (error) {
+						throw error;
 					}
-				);
-				if (error) {
-					throw error.message;
+					window.location.href = "/";
+				} else {
+					throw new Error("Your passwords should match.");
+
+					setInterval(() => {
+						error = false;
+					}, 5000);
 				}
-				window.location.href = "/";
 			} else {
-				toast.error("Your passwords should match.");
+				throw new Error(
+					"Your password should contain 8 characters, an uppercase and lowercase letter, and a number."
+				);
 
 				setInterval(() => {
 					error = false;
 				}, 5000);
 			}
-		} else {
-			toast.error(
-				"Your password should contain 8 characters, an uppercase and lowercase letter, and a number."
-			);
-
-			setInterval(() => {
-				error = false;
-			}, 5000);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 </script>

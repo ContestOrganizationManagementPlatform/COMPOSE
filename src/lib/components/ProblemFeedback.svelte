@@ -10,6 +10,7 @@
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let problemID;
 	let feedbackList = [];
@@ -55,6 +56,7 @@
 
 			loaded = true;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -87,6 +89,7 @@
 				}
 			});
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -110,6 +113,7 @@
 
 			if (error) throw error;
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}
@@ -130,6 +134,7 @@
 				loadFeedback();
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

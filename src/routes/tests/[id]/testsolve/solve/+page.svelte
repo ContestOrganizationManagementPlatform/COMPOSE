@@ -8,6 +8,7 @@
 	import { onDestroy } from "svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loading = true;
 	let disallowed = true;
@@ -38,82 +39,90 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
+				handleError(error);
 				toast.error(error);
 			}
 		}
 	}
 
 	async function permissionCheck() {
-		// check permission
-		if ((await getThisUserRole()) >= 40) {
-			disallowed = false;
-		} else {
-			let { data, error, count } = await supabase
-				.from("testsolvers")
-				.select("*", { count: "exact", head: true })
-				.eq("test_id", $page.params.id)
-				.eq("solver_id", supabase.auth.user().id);
-			if (error) {
-				loading = false;
-				toast.error(error.message);
-			} else if (count > 0) {
+		try {
+			// check permission
+			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
+			} else {
+				let { data, error, count } = await supabase
+					.from("testsolvers")
+					.select("*", { count: "exact", head: true })
+					.eq("test_id", $page.params.id)
+					.eq("solver_id", supabase.auth.user().id);
+				if (error) {
+					loading = false;
+					throw error;
+				} else if (count > 0) {
+					disallowed = false;
+				}
 			}
+
+			await loadTestsolve();
+
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-
-		await loadTestsolve();
-
-		loading = false;
 	}
 
 	async function loadTestsolve() {
-		await getFeedbackQuestions();
+		try {
+			await getFeedbackQuestions();
 
-		// check if there is a prior testsolve
+			// check if there is a prior testsolve
 
-		let { data, error } = await supabase
-			.from("testsolves")
-			.select("*")
-			.eq("test_id", $page.params.id)
-			.eq("solver_id", supabase.auth.user().id)
-			.eq("completed", false);
+			let { data, error } = await supabase
+				.from("testsolves")
+				.select("*")
+				.eq("test_id", $page.params.id)
+				.eq("solver_id", supabase.auth.user().id)
+				.eq("completed", false);
 
-		if (error) {
+			if (error) throw error;
+
+			if (data.length > 0) {
+				loadedTestsolve = data[0];
+
+				//console.log(loadedTestsolve);
+
+				// need to fetch all the previous answers
+				let { data: data2, error: error2 } = await supabase
+					.from("testsolve_answers")
+					.select("*")
+					.eq("testsolve_id", loadedTestsolve.id);
+
+				if (error2) throw error2;
+				else {
+					answers = data2;
+				}
+
+				// need to fetch all the previous feedback answers
+				let { data: data3, error: error3 } = await supabase
+					.from("testsolve_feedback_answers")
+					.select("*")
+					.eq("testsolve_id", loadedTestsolve.id);
+				if (error3) {
+					throw error3;
+				} else {
+					feedbackAnswers = data3;
+				}
+
+				// load in start time
+				timeOffset = loadedTestsolve.time_elapsed;
+			}
+			startTime = new Date();
+		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
-
-		if (data.length > 0) {
-			loadedTestsolve = data[0];
-
-			//console.log(loadedTestsolve);
-
-			// need to fetch all the previous answers
-			let { data: data2, error: error2 } = await supabase
-				.from("testsolve_answers")
-				.select("*")
-				.eq("testsolve_id", loadedTestsolve.id);
-
-			if (error2) {
-				toast.error(error2.message);
-			} else {
-				answers = data2;
-			}
-
-			// need to fetch all the previous feedback answers
-			let { data: data3, error: error3 } = await supabase
-				.from("testsolve_feedback_answers")
-				.select("*")
-				.eq("testsolve_id", loadedTestsolve.id);
-			if (error3) {
-				toast.error(error3.message);
-			} else {
-				feedbackAnswers = data3;
-			}
-
-			// load in start time
-			timeOffset = loadedTestsolve.time_elapsed;
-		}
-		startTime = new Date();
 	}
 
 	permissionCheck();
@@ -134,6 +143,7 @@
 				.eq("id", $page.params.id)
 				.limit(1)
 				.single();
+			if (testError) throw testError;
 
 			// check if this is a resubmission
 			if (loadedTestsolve) {
@@ -193,7 +203,7 @@
 						})
 						.eq("id", ans.id);
 
-					if (error2) throw error;
+					if (error2) throw error2;
 					2;
 				}
 			} else {
@@ -243,6 +253,7 @@
 				window.location.href = "/testsolve/" + testsolveId;
 			}
 		} catch (error) {
+			handleError(error);
 			toast.error(error.message);
 		}
 	}

@@ -3,6 +3,7 @@
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loaded = false;
 	let isPW;
@@ -16,8 +17,9 @@
 				isPW = false;
 			}
 			loaded = true;
-		} catch (err) {
-			toast.error(err.message);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 			isPW = false;
 		}
 	}

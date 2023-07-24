@@ -16,6 +16,7 @@
 	import { createEventDispatcher } from "svelte";
 	import { Filter } from "carbon-icons-svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let problems = [];
 	export let condensed = false;
@@ -28,6 +29,7 @@
 	export let draggable = false;
 	export let pageEnabled = true;
 	export let showUnresolved = true;
+	export let showProblemTests = false;
 
 	let showList = showUnresolved
 		? [
@@ -40,6 +42,7 @@
 				"problem_tests",
 				"created_at",
 				"edited_at",
+				"test_names",
 		  ]
 		: [
 				"front_id",
@@ -50,6 +53,7 @@
 				"problem_tests",
 				"created_at",
 				"edited_at",
+				"test_names",
 		  ];
 
 	const dispatch = createEventDispatcher();
@@ -119,6 +123,17 @@
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 	];
 
+	if (showProblemTests) {
+		headers.push({
+			key: "test_names",
+			value: "tests",
+		});
+		headersCondensed.push({
+			key: "test_names",
+			value: "tests",
+		});
+	}
+
 	$: headersF = headers.filter((row) => showList.includes(row.key));
 	$: headersCondensedF = headersCondensed.filter((row) =>
 		showList.includes(row.key)
@@ -139,14 +154,19 @@
 
 	let listeners = {};
 	$: if (draggable && tableContainerDiv && !draggingRow) {
-		for (let i = 0; i < problems.length; i++) {
-			const row = problems[i];
-			let elem = getRowElement(row.id);
-			if (row.id in listeners) {
-				elem?.removeEventListener("dragenter", listeners[row.id]);
+		try {
+			for (let i = 0; i < problems.length; i++) {
+				const row = problems[i];
+				let elem = getRowElement(row.id);
+				if (row.id in listeners) {
+					elem?.removeEventListener("dragenter", listeners[row.id]);
+				}
+				listeners[row.id] = (e) => handleDragEnter(e, row);
+				elem?.addEventListener("dragenter", listeners[row.id]);
 			}
-			listeners[row.id] = (e) => handleDragEnter(e, row);
-			elem?.addEventListener("dragenter", listeners[row.id]);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -155,35 +175,50 @@
 	let lastDraggedInd = null;
 
 	function startDrag(e, row) {
-		if (!draggable) return;
-		draggingRow = true;
-		draggedRow = row;
+		try {
+			if (!draggable) return;
+			draggingRow = true;
+			draggedRow = row;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function handleDragEnter(e, row) {
-		if (!draggable) return;
-		if (!draggingRow) return;
-		if (row === draggedRow) return;
+		try {
+			if (!draggable) return;
+			if (!draggingRow) return;
+			if (row === draggedRow) return;
 
-		e.preventDefault();
-		const ind = problems.indexOf(row);
-		lastDraggedInd = ind;
-		problems.splice(problems.indexOf(draggedRow), 1);
-		problems.splice(ind, 0, draggedRow);
-		problems = problems;
+			e.preventDefault();
+			const ind = problems.indexOf(row);
+			lastDraggedInd = ind;
+			problems.splice(problems.indexOf(draggedRow), 1);
+			problems.splice(ind, 0, draggedRow);
+			problems = problems;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function endDrag(e) {
-		if (!draggable) return;
-		if (lastDraggedInd !== null) {
-			dispatch("reorder", {
-				id: draggedRow.id,
-				to: lastDraggedInd,
-			});
+		try {
+			if (!draggable) return;
+			if (lastDraggedInd !== null) {
+				dispatch("reorder", {
+					id: draggedRow.id,
+					to: lastDraggedInd,
+				});
+			}
+			draggingRow = false;
+			draggedRow = null;
+			lastDraggedInd = null;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		draggingRow = false;
-		draggedRow = null;
-		lastDraggedInd = null;
 	}
 </script>
 
@@ -230,6 +265,10 @@
 			{
 				id: "edited_at",
 				text: "Edited on",
+			},
+			{
+				id: "test_names",
+				text: "tests",
 			},
 		]}
 	/>
