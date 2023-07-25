@@ -1,7 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient.ts";
 	import toast from "svelte-french-toast";
-	import Menu from "$lib/components/Menu.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import TestList from "$lib/components/TestList.svelte";
 	import { handleError } from "$lib/handleError.ts";

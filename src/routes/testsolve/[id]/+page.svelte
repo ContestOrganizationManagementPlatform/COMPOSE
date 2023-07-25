@@ -17,6 +17,7 @@
 
 	let startTime = null;
 	let endTime = null;
+	let isAdmin;
 
 	let testsolve = null;
 	let timeElapsed;
@@ -56,6 +57,24 @@
 				.eq("testsolve_id", $page.params.id);
 			if (error3) throw error3;
 			else feedbackAnswers = data3;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	}
+
+	async function deleteTestsolve() {
+		try {
+			if (isAdmin) {
+				let { error } = await supabase
+					.from("testsolves")
+					.delete()
+					.eq("id", $page.params.id);
+				if (error) throw error;
+
+				toast.success("Successfully deleted testsolve!");
+				window.location.href = "/manage-testsolves";
+			}
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -193,6 +212,23 @@
 			toast.error(error.message);
 		}
 	}
+
+	async function loadIsAdmin() {
+		try {
+			const role = await getThisUserRole();
+			if (role >= 40) {
+				isAdmin = true;
+			} else {
+				isAdmin = false;
+			}
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+			isAdmin = false;
+		}
+	}
+	loadIsAdmin();
 </script>
 
 {#if loading}
@@ -200,6 +236,12 @@
 {:else if disallowed}
 	<p>You are not a testsolver for this test!</p>
 {:else}
+	<br />
+	{#if isAdmin}
+		<Button action={deleteTestsolve} title="Delete Testsolve" />
+	{/if}
+	<br />
+
 	<TestView
 		testId={testsolve.test_id}
 		bind:answers
@@ -210,6 +252,7 @@
 		{feedbackQuestions}
 	/>
 	<Button action={submitTestsolve} title="Submit" />
+	<br />
 	<div class="timer">
 		<p>Time taken: {formatTime(timeElapsed, { hideHours: true })}</p>
 	</div>

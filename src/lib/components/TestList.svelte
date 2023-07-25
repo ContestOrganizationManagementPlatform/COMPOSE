@@ -60,7 +60,7 @@
 			toast.error(error.message);
 		}
 	})();
-	let editHeader = { key: "edit", value: "", width: "20px" };
+	let editHeader = { key: "edit", value: "", width: "25px" };
 
 	let headers = [
 		{ key: "id", value: "ID", width: "80px" },
@@ -197,7 +197,7 @@
 				{#if cell.key === "edit"}
 					<div class="pencil">
 						<Link class="link" href={"/admin/tests/" + row.id}
-							><i class="ri-pencil-fill" /></Link
+							><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 						>
 					</div>
 				{:else if cell.key === "drag"}

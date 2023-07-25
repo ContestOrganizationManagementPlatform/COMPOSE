@@ -8,7 +8,6 @@
 	import { TextInput } from "carbon-components-svelte";
 	import { getFullProblems } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
-	import { getAllRelevantTests } from "$lib/supabase/problems";
 	import { handleError } from "$lib/handleError.ts";
 
 	let testId = $page.params.id;
@@ -76,24 +75,6 @@
 				(pb) => !testProblems.find((tpb) => tpb.id === pb.id)
 			);
 			//console.log(testProblems, allProblems);
-
-			let relevantTests = await getAllRelevantTests();
-			for (let i of testProblems) {
-				let tmp_test_names = relevantTests[i.id].map((obj) => {
-					return obj.test_name;
-				});
-				i.test_names = tmp_test_names.join(", ");
-			}
-			for (let i of allProblems) {
-				if (relevantTests[i.id] !== undefined) {
-					let tmp_test_names = relevantTests[i.id].map((obj) => {
-						return obj.test_name;
-					});
-					i.test_names = tmp_test_names.join(", ");
-				} else {
-					i.test_names = "None";
-				}
-			}
 
 			selectedAll = [];
 
@@ -291,11 +272,9 @@
 					problems={allProblems}
 					condensed
 					selectable
-					showUnresolved={false}
 					editable={false}
 					bind:selectedItems={selectedAll}
 					disableAll={refreshingProblems}
-					showProblemTests
 				/>
 			</div>
 			<div class="flex-col">
@@ -305,7 +284,6 @@
 					condensed
 					selectable
 					draggable
-					showUnresolved={false}
 					editable={false}
 					pageEnabled={false}
 					bind:selectedItems={selectedTest}
@@ -315,7 +293,6 @@
 						{ key: "problem_number", value: "#" },
 					]}
 					on:reorder={handleReorder}
-					showProblemTests
 				/>
 			</div>
 		</div>

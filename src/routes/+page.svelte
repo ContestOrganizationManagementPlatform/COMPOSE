@@ -11,6 +11,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import Header from "$lib/components/styles/Header.svelte";
 
 	export let data;
 
@@ -38,6 +39,10 @@
 
 			({ full_name, discord, initials, math_comp_background, amc_score } =
 				data);
+
+			if (discord.includes("#")) {
+				throw new Error("Must update discord username from discriminator");
+			}
 		} catch (error) {
 			if (error.code === "PGRST116") {
 				// no user
@@ -58,7 +63,6 @@
 	async function updateProfile(e) {
 		e.preventDefault();
 		try {
-			// client side validation... endpoints are too hard :( :P
 			if (full_name.length > 100) {
 				throw new Error(
 					"Full name is too long (if this is an actual issue, please notify us)"
@@ -67,8 +71,8 @@
 				throw new Error("You must enter a full name");
 			} else if (discord.length > 50) {
 				throw new Error("Discord is too long");
-			} else if (!/^[^#]+#\d{4}$/.test(discord)) {
-				throw new Error("Discord format is invalid");
+			} else if (discord.includes("#")) {
+				throw new Error("Must update discord username from discriminator");
 			} else if (initials.length > 5) {
 				throw new Error("Initials are too long");
 			} else if (!/^[A-Z]+$/.test(initials)) {
@@ -92,7 +96,7 @@
 				};
 
 				let { error } = await supabase.from("users").upsert(updates, {
-					returning: "minimal", // Don't return the value after inserting
+					returning: "minimal",
 				});
 
 				if (error) throw error;
@@ -116,10 +120,8 @@
 	getProfile();
 </script>
 
-<br />
-<h1 style="font-size: 5em;">Welcome, {full_name}</h1>
-<br />
-<h4 style="margin-bottom: 30px;font-style:italic;">
+<Header fontSize="5em" type="level1">Welcome, {full_name}</Header>
+<h4 class="quote">
 	{#if data.quote}
 		"{data.quote.q}" - {data.quote.a}
 	{:else}
@@ -128,32 +130,28 @@
 </h4>
 <div class="flex profileButtons">
 	<div>
-		<h3>Profile</h3>
-		<br />
+		<Header type="level3">Profile</Header>
 
 		<Form on:submit={updateProfile}>
-			<div class="row" style="column-gap: 10px;">
+			<div class="row">
 				<TextInput
 					placeholder="Full Name"
-					style="width: 100%"
+					class="inputField"
 					bind:value={full_name}
 				/>
 				<TextInput
 					placeholder="Initials"
-					style="width: 100%"
+					class="inputField"
 					bind:value={initials}
 				/>
-			</div>
-			<br />
-			<div class="row" style="column-gap: 10px;">
 				<TextInput
 					placeholder="Discord"
-					style="width: 100%"
+					class="inputField"
 					bind:value={discord}
 				/>
 				<NumberInput
 					placeholder="Best AMC 10/12 score (optional)"
-					style="width: 100%"
+					class="inputField"
 					min={0}
 					max={150}
 					step={0.1}
@@ -163,7 +161,7 @@
 			<br />
 			<TextArea
 				placeholder="Math Competition Background"
-				style="width: 100%"
+				class="inputField"
 				bind:value={math_comp_background}
 			/> <br />
 			<Button title="Submit" fontSize="1.5em" />
@@ -171,3 +169,14 @@
 		<br />
 	</div>
 </div>
+
+<style>
+	.quote {
+		margin-bottom: var(--large-gap);
+		font-style: italic;
+	}
+
+	.inputField {
+		width: 100%;
+	}
+</style>

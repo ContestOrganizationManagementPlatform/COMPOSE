@@ -97,6 +97,7 @@
 		</div>
 	{:else}
 		<Menu />
+		<br />
 		<slot />
 	{/if}
 </main>
@@ -120,6 +121,10 @@
 		--secondary-light: #1b9aaa;
 		--secondary-dark: #061333;
 		--secondary-tint: #b9c6d2;
+
+		--large-gap: 30px;
+		--medium-gap: 20px;
+		--small-gap: 10px;
 	}
 
 	:global(::placeholder) {
@@ -136,19 +141,12 @@
 		color: black;
 	}
 
-	:global(h1) {
-		color: var(--secondary-dark);
-		font-weight: 700 !important;
-	}
-
-	:global(h3) {
-		text-decoration: underline;
-	}
-
 	/* Different grid types */
 	:global(.row) {
 		display: grid;
 		grid-template-columns: 50% auto;
+		column-gap: 10px;
+		row-gap: 10px;
 	}
 
 	:global(.grid) {

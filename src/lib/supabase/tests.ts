@@ -2,10 +2,21 @@ import { supabase } from "../supabaseClient";
 import { archiveProblem } from "./problems";
 
 export interface TestRequest {
+	test_name: string;
+	test_description?: string;
+	tournament_id: number;
+}
+
+export interface TestEditRequest {
 	test_name?: string;
 	test_description?: string;
 	test_version?: string;
 	tournament_id?: number;
+}
+
+export interface TestFeedbackQuestionRequest {
+	test_id: number;
+	question: string;
 }
 
 /**
@@ -76,11 +87,8 @@ export async function getTest(test_id: number) {
  */
 export async function createTest(test: TestRequest) {
 	const { data, error } = await supabase.from("tests").insert([test]).select();
-	if (error) {
-		throw error;
-	} else {
-		return data[0];
-	}
+	if (error) throw error;
+	return data[0];
 }
 
 /**
@@ -91,11 +99,8 @@ export async function createTest(test: TestRequest) {
  */
 export async function bulkTests(tests: TestRequest[]) {
 	const { data, error } = await supabase.from("tests").insert(tests).select();
-	if (error) {
-		throw error;
-	} else {
-		return data;
-	}
+	if (error) throw error;
+	return data;
 }
 
 /**
@@ -105,17 +110,14 @@ export async function bulkTests(tests: TestRequest[]) {
  * @param test_id  number
  * @returns test data from database
  */
-export async function editTestInfo(test: TestRequest, test_id: number) {
+export async function editTestInfo(test: TestEditRequest, test_id: number) {
 	const { data, error } = await supabase
 		.from("tests")
 		.update(test)
 		.eq("id", test_id)
 		.select();
-	if (error) {
-		throw error;
-	} else {
-		return data;
-	}
+	if (error) throw error;
+	return data;
 }
 
 /**
@@ -133,11 +135,8 @@ export async function addTestCoordinator(
 		.from("test_coordinators")
 		.insert([{ test_id, coordinator_id }])
 		.select();
-	if (error) {
-		throw error;
-	} else {
-		return data;
-	}
+	if (error) throw error;
+	return data;
 }
 
 /**
@@ -155,9 +154,7 @@ export async function removeTestCoordinator(
 		.delete()
 		.eq("test_id", test_id)
 		.eq("coordinator_id", coordinator_id);
-	if (error) {
-		throw error;
-	}
+	if (error) throw error;
 }
 
 /**
@@ -170,25 +167,44 @@ export async function archiveTest(test_id: number) {
 		.from("tests")
 		.update({ archived: true })
 		.eq("id", test_id);
-	if (error1) {
-		throw error1;
-	}
+	if (error1) throw error1;
 
 	let { data, error: error2 } = await supabase
 		.from("test_problems")
 		.select("problem_id")
 		.eq("test_id", test_id);
-	if (error2) {
-		throw error2;
-	}
+	if (error2) throw error2;
 	for (let i of data) {
 		archiveProblem(i.problem_id);
 	}
 }
 
-/*
-
-TODO: add functionality to add/edit/remove test problems.
-Make sure this corresponds with Conor's format
-
+/**
+ * Creates a test feedback question given its data
+ *
+ * @param question object
+ * @returns object in database, including id
  */
+export async function addTestFeedbackQuestion(
+	question: TestFeedbackQuestionRequest
+) {
+	const { data, error } = await supabase
+		.from("test_feedback_questions")
+		.insert([question])
+		.select();
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Removes a test feedback question given its id. Returns nothing.
+ *
+ * @param question_id number
+ */
+export async function removeTestFeedbackQuestion(question_id: number) {
+	const { error } = await supabase
+		.from("test_feedback_questions")
+		.delete()
+		.eq("id", question_id);
+	if (error) throw error;
+}

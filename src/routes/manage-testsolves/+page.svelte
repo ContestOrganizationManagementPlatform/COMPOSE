@@ -139,7 +139,7 @@
 					{#if row.status == "Past"}
 						<div class="pencil">
 							<Link class="link" href={"/testsolve/" + row.id}
-								><i class="ri-pencil-fill" /></Link
+								><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 							>
 						</div>
 					{:else}

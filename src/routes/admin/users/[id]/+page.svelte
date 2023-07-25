@@ -51,6 +51,8 @@
 				});
 				if (error) throw error;
 			}
+			toast.success("Successfully updated role.");
+			window.location.replace("/admin/users");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

@@ -2,6 +2,11 @@ import { supabase } from "../supabaseClient";
 import { archiveTest } from "./tests";
 
 export interface TournamentRequest {
+	tournament_name: string;
+	tournament_date?: string;
+}
+
+export interface TournamentEditRequest {
 	tournament_name?: string;
 	tournament_date?: string;
 }
@@ -47,6 +52,41 @@ export async function getTournament(tournament_id: number) {
 	let tournament = await getTournamentInfo(tournament_id);
 	tournament.tests = await getTournamentTests(tournament_id);
 	return tournament;
+}
+
+/**
+ * Creates a tournament given the name and date in an object
+ *
+ * @param tournament object
+ * @returns tournament object in database, including id
+ */
+export async function createTournament(tournament: TournamentRequest) {
+	const { data, error } = await supabase
+		.from("tournaments")
+		.insert([tournament])
+		.select();
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Edits a tournament given the updated info and tournament id
+ *
+ * @param tournament object
+ * @param tournament_id number
+ * @returns tournament object in database
+ */
+export async function editTournament(
+	tournament: TournamentEditRequest,
+	tournament_id: number
+) {
+	const { data, error } = await supabase
+		.from("tournaments")
+		.update(tournament)
+		.eq("id", tournament_id)
+		.select();
+	if (error) throw error;
+	return data;
 }
 
 /**

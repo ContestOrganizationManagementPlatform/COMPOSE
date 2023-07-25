@@ -85,7 +85,7 @@
 				{#if cell.key === "edit"}
 					<div class="pencil">
 						<Link class="link" href={"/tests/" + row.id}
-							><i class="ri-pencil-fill" /></Link
+							><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 						>
 					</div>
 				{:else}

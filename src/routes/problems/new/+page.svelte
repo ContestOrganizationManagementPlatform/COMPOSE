@@ -90,7 +90,7 @@
 					}
 				}
 
-				await fetch("/api/discord", {
+				await fetch("/api/discord-create", {
 					method: "POST",
 					body: JSON.stringify({
 						problem: payload,
@@ -104,7 +104,7 @@
 
 				openModal = true;
 				problem_id = problemId;
-				//window.location.replace(`/problems/${problemId}`);
+				window.location.replace(`/problems/${problemId}`);
 			}
 		} catch (error) {
 			handleError(error);

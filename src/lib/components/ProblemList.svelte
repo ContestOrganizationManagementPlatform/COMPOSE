@@ -29,7 +29,6 @@
 	export let draggable = false;
 	export let pageEnabled = true;
 	export let showUnresolved = true;
-	export let showProblemTests = false;
 
 	let showList = showUnresolved
 		? [
@@ -42,7 +41,6 @@
 				"problem_tests",
 				"created_at",
 				"edited_at",
-				"test_names",
 		  ]
 		: [
 				"front_id",
@@ -53,7 +51,6 @@
 				"problem_tests",
 				"created_at",
 				"edited_at",
-				"test_names",
 		  ];
 
 	const dispatch = createEventDispatcher();
@@ -70,7 +67,7 @@
 	let pageSize = 25;
 	let page = 1;
 
-	let editHeader = { key: "edit", value: "", width: "20px" };
+	let editHeader = { key: "edit", value: "", width: "30px" };
 
 	let headers = [
 		{
@@ -121,18 +118,8 @@
 		{ key: "topics_short", value: "Topics" },
 		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
+		{ key: "problem_tests", value: "Test(s)" },
 	];
-
-	if (showProblemTests) {
-		headers.push({
-			key: "test_names",
-			value: "tests",
-		});
-		headersCondensed.push({
-			key: "test_names",
-			value: "tests",
-		});
-	}
 
 	$: headersF = headers.filter((row) => showList.includes(row.key));
 	$: headersCondensedF = headersCondensed.filter((row) =>
@@ -266,10 +253,6 @@
 				id: "edited_at",
 				text: "Edited on",
 			},
-			{
-				id: "test_names",
-				text: "tests",
-			},
 		]}
 	/>
 </div>
@@ -304,7 +287,7 @@
 				{#if cell.key === "edit"}
 					<div class="pencil">
 						<Link class="link" href={"/problems/" + row.id}
-							><i class="ri-pencil-fill" /></Link
+							><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 						>
 					</div>
 				{:else if cell.key === "drag"}

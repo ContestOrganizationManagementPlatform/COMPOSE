@@ -1,6 +1,19 @@
 import { supabase } from "../supabaseClient";
+import { getAuthorName } from "./users";
 
 export interface ProblemRequest {
+	problem_latex: string;
+	answer_latex: string;
+	solution_latex: string;
+	comment_latex?: string;
+	author_id: string;
+	difficulty?: number;
+	nickname?: string;
+	sub_topics?: string;
+	image_name?: string;
+}
+
+export interface ProblemEditRequest {
 	problem_latex?: string;
 	answer_latex?: string;
 	solution_latex?: string;
@@ -9,6 +22,7 @@ export interface ProblemRequest {
 	difficulty?: number;
 	nickname?: string;
 	sub_topics?: string;
+	image_name?: string;
 }
 
 /**
@@ -19,12 +33,29 @@ export interface ProblemRequest {
  */
 export async function getProblem(problem_id: number) {
 	let { data, error } = await supabase
-		.from("problems")
+		.from("full_problems")
 		.select("*")
 		.eq("id", problem_id)
 		.single();
 	if (error) throw error;
 	return data;
+}
+
+/**
+ * Get front id of problem from id
+ *
+ * @param problem_id
+ * @returns front_id string
+ */
+async function getFrontID(problem_id: number) {
+	let { data, error } = await supabase
+		.from("front_ids")
+		.select("front_id")
+		.eq("problem_id", problem_id)
+		.single();
+
+	if (error) throw error;
+	return data.front_id;
 }
 
 /**
@@ -40,13 +71,13 @@ export async function getAllProblems(
 	archived: boolean = false
 ) {
 	if (normal && archived) {
-		let { data, error } = await supabase.from("problems").select("*");
+		let { data, error } = await supabase.from("full_problems").select("*");
 		if (error) throw error;
 		return data;
 	}
 	if (normal && !archived) {
 		let { data, error } = await supabase
-			.from("problems")
+			.from("full_problems")
 			.select("*")
 			.eq("archived", false);
 		if (error) throw error;
@@ -54,7 +85,7 @@ export async function getAllProblems(
 	}
 	if (!normal && archived) {
 		let { data, error } = await supabase
-			.from("problems")
+			.from("full_problems")
 			.select("*")
 			.eq("archived", true);
 		if (error) throw error;
@@ -77,6 +108,19 @@ export async function createProblem(problem: ProblemRequest) {
 		.insert([problem])
 		.select();
 	if (error) throw error;
+
+	await fetch("/api/discord-create", {
+		method: "POST",
+		body: JSON.stringify({
+			problem: problem,
+			authorName: getAuthorName(problem.author_id),
+			id: data[0]?.id,
+			created_at: data[0].created_at,
+			front_id: await getFrontID(data[0]?.id),
+			image: problem.image_name,
+		}),
+	});
+
 	return data[0];
 }
 
@@ -99,16 +143,29 @@ export async function bulkProblems(problems: ProblemRequest[]) {
  * Edits a specific problem from the database
  *
  * @param problem object
- * @param problem_id  number
+ * @param problem_id number
  * @returns problem data from database
  */
-export async function editProblem(problem: ProblemRequest, problem_id: number) {
+export async function editProblem(
+	problem: ProblemEditRequest,
+	problem_id: number
+) {
 	const { data, error } = await supabase
 		.from("problems")
 		.update(problem)
 		.eq("id", problem_id)
 		.select();
 	if (error) throw error;
+
+	await fetch("/api/discord-update", {
+		method: "POST",
+		body: JSON.stringify({
+			id: problem_id,
+			update: "edited",
+			updater: getAuthorName(problem.author_id),
+		}),
+	});
+
 	return data;
 }
 
@@ -123,47 +180,4 @@ export async function archiveProblem(problem_id: number) {
 		.update({ archived: true })
 		.eq("id", problem_id);
 	if (error) throw error;
-}
-
-/**
- * Given a problem id, this returns all tests in which this problem appears
- *
- * @param problem_id number
- * @returns list of tests
- */
-export async function getRelevantTests(problem_id: number) {
-	// TEST THIS PLEASE
-	let { data, error } = await supabase
-		.from("test_problems")
-		.select("test_id,name:test_id(test_name)")
-		.eq("problem_id", problem_id);
-	if (error) throw error;
-	return data.map((obj) => {
-		return { test_id: obj.test_id, test_name: obj.name.test_name };
-	});
-}
-
-/**
- * Does getRelevantTests for all problems, with a single query
- *
- * @returns object containing all relevant tests for all problems
- */
-export async function getAllRelevantTests() {
-	// TEST THIS TOO
-	let { data, error } = await supabase
-		.from("test_problems")
-		.select("problem_id,test_id,name:test_id(test_name)");
-	if (error) throw error;
-	let ans = {};
-	for (let i of data) {
-		if (i.problem_id in ans) {
-			ans[i.problem_id].push({
-				test_id: i.test_id,
-				test_name: i.name.test_name,
-			});
-		} else {
-			ans[i.problem_id] = [{ test_id: i.test_id, test_name: i.name.test_name }];
-		}
-	}
-	return ans;
 }
