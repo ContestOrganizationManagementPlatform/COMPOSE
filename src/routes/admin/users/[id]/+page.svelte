@@ -1,33 +1,28 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
+	import { getUser, updateUserRole, getThisUser } from "$lib/supabase/users";
 	import { page } from "$app/stores";
 	import { Select, SelectItem, FormGroup } from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import Button from "$lib/components/Button.svelte";
 
 	let userId = $page.params.id;
 	let user = {};
 	let loading = true;
+	let thisUser = getThisUser();
 
 	async function fetchUser() {
 		try {
-			let { data: userInfo, error } = await supabase
-				.from("users")
-				.select("*,user_roles(role)")
-				.eq("id", userId)
-				.single();
-			if (error) throw error;
-			else {
-				user = {
-					full_name: userInfo.full_name,
-					discord: userInfo.discord,
-					email: userInfo.email,
-					initials: userInfo.initials,
-					role: (userInfo.user_roles?.role ?? 0) + "",
-				};
-			}
+			let userInfo = await getUser(userId);
+			user = {
+				full_name: userInfo.full_name,
+				discord: userInfo.discord,
+				email: userInfo.email,
+				initials: userInfo.initials,
+				role: userInfo.role + "",
+			};
 			loading = false;
 		} catch (error) {
 			handleError(error);
@@ -37,20 +32,7 @@
 
 	async function addRoleToUser(role) {
 		try {
-			if (role === "0") {
-				// special, delete role
-				let { error } = await supabase
-					.from("user_roles")
-					.delete()
-					.eq("user_id", userId);
-				if (error) throw error;
-			} else {
-				let { error } = await supabase.from("user_roles").upsert({
-					user_id: userId,
-					role,
-				});
-				if (error) throw error;
-			}
+			updateUserRole(userId, role);
 			toast.success("Successfully updated role.");
 			window.location.replace("/admin/users");
 		} catch (error) {
@@ -78,7 +60,7 @@
 				>{user.email}</a
 			>
 		</p>
-		<FormGroup disabled={userId === supabase.auth.user().id}>
+		<FormGroup disabled={userId === getThisUser().id}>
 			<Select labelText="Role" bind:selected={user.role}>
 				<SelectItem value="0" text="No role assigned (0)" />
 				<SelectItem value="10" text="No permissions (10)" />
@@ -93,6 +75,8 @@
 					addRoleToUser(user.role);
 				}}
 			/>
+			<br /><br />
+			<Button title="View All Users" href="/admin/users" />
 		</FormGroup>
 	</div>
 {/if}

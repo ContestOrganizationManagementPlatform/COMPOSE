@@ -4,6 +4,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { createTournament } from "$lib/supabase/tournaments";
 
 	let tournaments = [];
 	let tournamentsArchive = [];
@@ -28,14 +29,12 @@
 		}
 	}
 
-	async function createTournament() {
+	async function createTournamentSubmit() {
 		try {
-			const { data, error } = await supabase
-				.from("tournaments")
-				.insert([
-					{ tournament_name: tournamentName, tournament_date: tournamentDate },
-				]);
-			if (error) throw error;
+			await createTournament({
+				tournament_name: tournamentName,
+				tournament_date: tournamentDate,
+			});
 			getTournaments();
 		} catch (error) {
 			handleError(error);
@@ -54,7 +53,7 @@
 	<form on:submit|preventDefault class="tournamentForm">
 		<TextInput
 			on:keyup={(e) => {
-				if (e.key === "Enter") createTournament();
+				if (e.key === "Enter") createTournamentSubmit();
 			}}
 			bind:value={tournamentName}
 			label="Name"
@@ -63,14 +62,14 @@
 		<br />
 		<TextInput
 			on:keyup={(e) => {
-				if (e.key === "Enter") createTournament();
+				if (e.key === "Enter") createTournamentSubmit();
 			}}
 			bind:value={tournamentDate}
 			label="Date"
 			placeholder="Date"
 		/>
 		<br />
-		<Button action={createTournament} title="Create New Tournament" />
+		<Button action={createTournamentSubmit} title="Create New Tournament" />
 	</form>
 </div>
 <div style="padding: 10px;" class="grid">

@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import {
@@ -10,7 +10,17 @@
 	import toast from "svelte-french-toast";
 	import Modal from "$lib/components/Modal.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { handleError } from "$lib/handleError.ts";
+
+	import { handleError } from "$lib/handleError";
+	import {
+		addTestFeedbackQuestion,
+		getTestInfo,
+		addTestCoordinator,
+		getTestCoordinators,
+		removeTestCoordinator,
+		editTestInfo,
+	} from "$lib/supabase/tests";
+	import { getUser } from "$lib/supabase/users";
 
 	let testId = $page.params.id;
 	let test;
@@ -41,11 +51,10 @@
 
 	async function addFeedbackQuestion() {
 		try {
-			const { data, error } = await supabase
-				.from("test_feedback_questions")
-				.insert([{ test_id: testId, question: curQuestion }]);
-			if (error) throw error;
-
+			await addTestFeedbackQuestion({
+				test_id: Number(testId),
+				question: curQuestion,
+			});
 			await getFeedbackQuestions();
 			curQuestion = "";
 		} catch (error) {
@@ -54,15 +63,9 @@
 		}
 	}
 
-	async function getOneUser(id) {
+	async function getOneUser(id: string) {
 		try {
-			let { data: user, error } = await supabase
-				.from("users")
-				.select("*")
-				.eq("id", id)
-				.limit(1)
-				.single();
-			if (error) throw error;
+			const user = await getUser(id);
 			return user;
 		} catch (error) {
 			handleError(error);
@@ -72,22 +75,11 @@
 
 	async function getTest() {
 		try {
-			let { data: tests, error } = await supabase
-				.from("tests")
-				.select("*")
-				.eq("id", testId)
-				.limit(1)
-				.single();
-			if (error) throw error;
-			test = tests;
+			test = await getTestInfo(Number(testId));
 
-			let { data: queriedCoordinators, error2 } = await supabase
-				.from("test_coordinators")
-				.select("*,users(*)")
-				.eq("test_id", testId);
-			if (error2) throw error2;
-
+			let queriedCoordinators = await getTestCoordinators(Number(testId));
 			testCoordinators = queriedCoordinators.map((tc) => tc.users);
+
 			loading = false;
 			await getAllUsers();
 			await getFeedbackQuestions();
@@ -113,13 +105,9 @@
 		}
 	}
 
-	async function addTestCoordinator(e) {
+	async function addTestCoordinatorSubmit(e) {
 		try {
-			e.preventDefault(); // stop form from submitting
-			const { data, error } = await supabase
-				.from("test_coordinators")
-				.insert({ coordinator_id: selectRef.value, test_id: testId });
-			if (error) throw error;
+			await addTestCoordinator(Number(testId), selectRef.value);
 			getTest();
 		} catch (error) {
 			handleError(error);
@@ -127,14 +115,9 @@
 		}
 	}
 
-	async function deleteTestCoordinator(testCoordinatorId) {
+	async function deleteTestCoordinator(testCoordinatorId: number) {
 		try {
-			const { data, error } = await supabase
-				.from("test_coordinators")
-				.delete()
-				.eq("coordinator_id", testCoordinatorId)
-				.eq("test_id", testId);
-			if (error) throw error;
+			await removeTestCoordinator(Number(testId), testCoordinatorId);
 			getTest();
 		} catch (error) {
 			handleError(error);
@@ -144,14 +127,13 @@
 
 	async function editTest() {
 		try {
-			const { data, error } = await supabase
-				.from("tests")
-				.update({
+			await editTestInfo(
+				{
 					test_name: test.test_name,
 					test_description: test.test_description,
-				})
-				.eq("id", testId);
-			if (error) throw error;
+				},
+				Number(testId)
+			);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -240,7 +222,7 @@
 				</div>
 			</div>
 			<br />
-			<Button action={addTestCoordinator} title="Add Test Coordinator" />
+			<Button action={addTestCoordinatorSubmit} title="Add Test Coordinator" />
 		</form>
 		<br />
 		<br />

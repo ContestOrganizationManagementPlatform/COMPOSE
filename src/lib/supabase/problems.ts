@@ -62,23 +62,25 @@ async function getFrontID(problem_id: number) {
  * Returns all problems from the database.
  * It includes non-archived problems if normal is true, and it includes archived problems if archived is true
  *
+ * @param columns string
  * @param normal boolean
  * @param archived boolean
  * @returns problem list
  */
 export async function getAllProblems(
+	columns: string = "*",
 	normal: boolean = true,
 	archived: boolean = false
 ) {
 	if (normal && archived) {
-		let { data, error } = await supabase.from("full_problems").select("*");
+		let { data, error } = await supabase.from("full_problems").select(columns);
 		if (error) throw error;
 		return data;
 	}
 	if (normal && !archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select("*")
+			.select(columns)
 			.eq("archived", false);
 		if (error) throw error;
 		return data;
@@ -86,7 +88,7 @@ export async function getAllProblems(
 	if (!normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select("*")
+			.select(columns)
 			.eq("archived", true);
 		if (error) throw error;
 		return data;

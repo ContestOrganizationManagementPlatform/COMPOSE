@@ -21,7 +21,7 @@ export async function getTournamentInfo(tournament_id: number) {
 	let { data, error } = await supabase
 		.from("tournaments")
 		.select("*")
-		.eq("tournament_id", tournament_id)
+		.eq("id", tournament_id)
 		.single();
 	if (error) throw error;
 	return data;

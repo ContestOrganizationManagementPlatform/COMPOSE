@@ -1,5 +1,6 @@
-<script>
-	import { supabase } from "$lib/supabaseClient";
+<script lang="ts">
+	import { getAllProblems, editProblem } from "$lib/supabase/problems";
+	import { getAllUsers } from "$lib/supabase/users";
 	import {
 		Select,
 		SelectItem,
@@ -7,10 +8,9 @@
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import Problem from "../../../lib/components/Problem.svelte";
-	import { getFullProblems } from "$lib/getProblems";
+	import Problem from "$lib/components/Problem.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 
 	let problems = [];
 	let loading = true;
@@ -21,10 +21,9 @@
 
 	async function getProblems() {
 		try {
-			let problemData = await getFullProblems({
-				columns:
-					"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)",
-			});
+			let problemData = await getAllProblems(
+				"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)"
+			);
 			for (let problem of problemData) {
 				problems.push({
 					id: problem.id,
@@ -49,11 +48,7 @@
 
 	async function getUsers() {
 		try {
-			let { data: userInfo, error } = await supabase
-				.from("users")
-				.select("id,full_name");
-			if (error) throw error;
-			users = userInfo;
+			users = await getAllUsers();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -62,11 +57,10 @@
 
 	async function transferProblem() {
 		try {
-			const { data, error } = await supabase
-				.from("problems")
-				.update({ author_id: users[curUser].id })
-				.eq("id", problems[curProblem].id);
-			if (error) throw error;
+			await editProblem(
+				{ author_id: users[curUser].id },
+				problems[curProblem].id
+			);
 			show = true;
 			setInterval(() => {
 				show = false;

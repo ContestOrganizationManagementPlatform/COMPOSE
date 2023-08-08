@@ -6,8 +6,14 @@
 	import Loading from "../../../../lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import JSZip from "jszip";
-	import { archiveTournament } from "$lib/supabase/tournaments";
+	import {
+		archiveTournament,
+		getTournamentInfo,
+		getTournamentTests,
+	} from "$lib/supabase/tournaments";
+	import { getTestProblems } from "$lib/supabase/tests";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAllProblems } from "$lib/supabase/problems.ts";
 
 	let tournamentId = $page.params.id;
 	let tournament;
@@ -17,13 +23,7 @@
 	async function getTournament() {
 		try {
 			loading = true;
-			let { data: serverTournament, error } = await supabase
-				.from("tournaments")
-				.select("*")
-				.eq("id", tournamentId)
-				.single();
-			if (error) throw error;
-			tournament = serverTournament;
+			tournament = await getTournamentInfo(tournamentId);
 			loading = false;
 		} catch (error) {
 			handleError(error);
@@ -34,12 +34,7 @@
 	async function getTests() {
 		try {
 			loading = true;
-			let { data: testList, error } = await supabase
-				.from("tests")
-				.select("*")
-				.eq("tournament_id", tournamentId);
-			if (error) throw error;
-			tests = testList;
+			tests = await getTournamentTests(tournamentId);
 			loading = false;
 		} catch (error) {
 			handleError(error);
@@ -99,93 +94,70 @@
 	async function downloadTournament() {
 		try {
 			let zip = new JSZip();
+			let full_problems = await getAllProblems();
 
-			let { data: full_problems, error: err1 } = await supabase
-				.from("full_problems")
-				.select("*");
-			if (err1) {
-				throw err1;
-			} else {
-				let problemFolder = zip.folder("Problems");
-				for (const x of full_problems) {
-					let s = "";
-					s +=
-						"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{filecontents*} {Problem.tex}\n";
-					s += "%<*Tag>" + x.front_id + "%</Tag>\n\n";
-					s += "%<*Author>" + x.full_name + "%</Author>\n\n";
-					s += "%<*Problem>" + x.problem_latex + "%</Problem>\n\n";
-					let finalAnsLatex = x.answer_latex.trim(); // stripping $ from both sides of answer latex because Yuuki said so
-					if (finalAnsLatex.substring(0, 1) === "$") {
-						finalAnsLatex = finalAnsLatex.substring(1);
-					}
-					if (finalAnsLatex.substring(finalAnsLatex.length - 1) === "$") {
-						finalAnsLatex = finalAnsLatex.substring(
-							0,
-							finalAnsLatex.length - 1
-						);
-					}
-					s += "%<*Answer>" + finalAnsLatex + "%</Answer>\n\n";
-					s += "%<*Solution>" + x.solution_latex + "%</Solution>\n";
-					s += "\\end{filecontents*}\n\n\\begin{document}\n";
-					s += "    \\large\n";
-					s +=
-						"    \\textbf{\\ExecuteMetaData[Problem.tex]{Tag}}\\ExecuteMetaData[Problem.tex]{Problem}\\\\\\\\ \n";
-					s +=
-						"    \\textit{Written by:} \\textit{\\ExecuteMetaData[Problem.tex]{Author}}\\\\[0.5cm]\n";
-					s +=
-						"    \\textbf{Answer: } $\\boxed{\\ExecuteMetaData[Problem.tex]{Answer}}$\\\\\\\\ \n";
-					s += "    \\ExecuteMetaData[Problem.tex]{Solution}\n";
-					s += "\\end{document}";
-					problemFolder.file(x.front_id + ".tex", s);
+			let problemFolder = zip.folder("Problems");
+			for (const x of full_problems) {
+				let s = "";
+				s +=
+					"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{filecontents*} {Problem.tex}\n";
+				s += "%<*Tag>" + x.front_id + "%</Tag>\n\n";
+				s += "%<*Author>" + x.full_name + "%</Author>\n\n";
+				s += "%<*Problem>" + x.problem_latex + "%</Problem>\n\n";
+				let finalAnsLatex = x.answer_latex.trim(); // stripping $ from both sides of answer latex because Yuuki said so
+				if (finalAnsLatex.substring(0, 1) === "$") {
+					finalAnsLatex = finalAnsLatex.substring(1);
 				}
+				if (finalAnsLatex.substring(finalAnsLatex.length - 1) === "$") {
+					finalAnsLatex = finalAnsLatex.substring(0, finalAnsLatex.length - 1);
+				}
+				s += "%<*Answer>" + finalAnsLatex + "%</Answer>\n\n";
+				s += "%<*Solution>" + x.solution_latex + "%</Solution>\n";
+				s += "\\end{filecontents*}\n\n\\begin{document}\n";
+				s += "    \\large\n";
+				s +=
+					"    \\textbf{\\ExecuteMetaData[Problem.tex]{Tag}}\\ExecuteMetaData[Problem.tex]{Problem}\\\\\\\\ \n";
+				s +=
+					"    \\textit{Written by:} \\textit{\\ExecuteMetaData[Problem.tex]{Author}}\\\\[0.5cm]\n";
+				s +=
+					"    \\textbf{Answer: } $\\boxed{\\ExecuteMetaData[Problem.tex]{Answer}}$\\\\\\\\ \n";
+				s += "    \\ExecuteMetaData[Problem.tex]{Solution}\n";
+				s += "\\end{document}";
+				problemFolder.file(x.front_id + ".tex", s);
 			}
 
-			let { data: testProblems, error: err2 } = await supabase
-				.from("test_problems")
-				.select("*");
-			if (err2) {
-				throw err2;
-			} else {
-				let testOverallFolder = zip.folder("Tests");
+			let testOverallFolder = zip.folder("Tests");
 
-				for (const test of tests) {
-					let testFolder = testOverallFolder.folder(test.test_name);
+			for (const test of tests) {
+				let testFolder = testOverallFolder.folder(test.test_name);
+				let problemList = "\\def\\List{";
 
-					let problemList = "\\def\\List{";
-
-					for (const problem of testProblems) {
-						if (problem.test_id == test.id) {
-							for (const problemInfo of full_problems) {
-								if (problemInfo.id == problem.problem_id) {
-									problemList += problemInfo.front_id + ",";
-									break;
-								}
-							}
-						}
-					}
-
-					if (problemList.charAt(problemList.length - 1) == ",") {
-						problemList = problemList.substring(0, problemList.length - 1);
-					}
-
-					problemList += "}";
-					testFolder.file("ProblemList.tex", problemList);
-					let problemTex =
-						"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{document}\n\\input{Tests/" +
-						test.test_name +
-						"/ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\ProblemBlurb{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}";
-					testFolder.file("Problems.tex", problemTex);
-					let solutionTex =
-						"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{document}\n\\input{Tests/" +
-						test.test_name +
-						"/ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\SolutionBlurb{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}\n";
-					testFolder.file("Solutions.tex", solutionTex);
-					let answerTex =
-						"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{document}\n\\input{Tests/" +
-						test.test_name +
-						"ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\UnboxedAnswer{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}\n";
-					testFolder.file("Answers.tex", answerTex);
+				let testProblems = await getTestProblems(test.id);
+				for (const problem of testProblems) {
+					problemList += problem.front_id + ",";
 				}
+
+				if (problemList.charAt(problemList.length - 1) == ",") {
+					problemList = problemList.substring(0, problemList.length - 1);
+				}
+
+				problemList += "}";
+				testFolder.file("ProblemList.tex", problemList);
+				let problemTex =
+					"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{document}\n\\input{Tests/" +
+					test.test_name +
+					"/ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\ProblemBlurb{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}";
+				testFolder.file("Problems.tex", problemTex);
+				let solutionTex =
+					"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{document}\n\\input{Tests/" +
+					test.test_name +
+					"/ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\SolutionBlurb{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}\n";
+				testFolder.file("Solutions.tex", solutionTex);
+				let answerTex =
+					"\\documentclass{article}\n\\usepackage{Miscellaneous/MustangMath}\n\n\\begin{document}\n\\input{Tests/" +
+					test.test_name +
+					"ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\UnboxedAnswer{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}\n";
+				testFolder.file("Answers.tex", answerTex);
 			}
 
 			let miscellaneousFolder = zip.folder("Miscellaneous");

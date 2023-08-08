@@ -1,12 +1,12 @@
-<script>
-	import { getThisUserRole } from "$lib/getUserRole.js";
+<script lang="ts">
+	import { getThisUserRole } from "$lib/supabase/users";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 
 	let loaded = false;
-	let isAdmin;
+	let isAdmin: boolean;
 
 	async function loadIsAdmin() {
 		try {

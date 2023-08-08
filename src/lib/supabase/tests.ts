@@ -29,7 +29,7 @@ export async function getTestInfo(test_id: number) {
 	let { data, error } = await supabase
 		.from("tests")
 		.select("*")
-		.eq("test_id", test_id)
+		.eq("id", test_id)
 		.single();
 	if (error) throw error;
 	return data;

@@ -127,6 +127,11 @@
 		--small-gap: 10px;
 	}
 
+	:global(h1) {
+		font-weight: 700;
+		color: var(--secondary-dark);
+	}
+
 	:global(::placeholder) {
 		font-family: var(--font-family);
 	}

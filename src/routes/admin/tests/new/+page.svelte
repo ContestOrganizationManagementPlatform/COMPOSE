@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
 	import {
 		Select,
@@ -8,7 +8,8 @@
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import { createTest } from "$lib/supabase/tests";
 
 	let tournaments = [];
 	let name = "";
@@ -28,18 +29,15 @@
 		}
 	}
 
-	async function createTest(e) {
+	async function createTestSubmit(e) {
 		try {
 			e.preventDefault();
-			const { data, error } = await supabase.from("tests").insert([
-				{
-					test_name: name,
-					test_description: description,
-					tournament_id: selectItem.value,
-				},
-			]);
-			if (error) throw error;
-			else window.location.replace("/admin/tests/" + data[0].id);
+			const data = await createTest({
+				test_name: name,
+				test_description: description,
+				tournament_id: selectItem.value,
+			});
+			window.location.replace("/admin/tests/" + data[0].id);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -76,5 +74,5 @@
 		placeholder="Test Description"
 	/>
 	<br />
-	<Button action={createTest} title="Add Test" />
+	<Button action={createTestSubmit} title="Add Test" />
 </form>
