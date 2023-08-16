@@ -1,46 +1,47 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
 	import {
 		Select,
 		SelectItem,
 		TextInput,
 		TextArea,
-		InlineNotification,
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError";
+	import { createTest } from "$lib/supabase/tests";
 
 	let tournaments = [];
 	let name = "";
 	let description = "";
 	let selectItem;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getTournaments() {
-		let { data: tournamentList, error } = await supabase
-			.from("tournaments")
-			.select("*");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			let { data: tournamentList, error } = await supabase
+				.from("tournaments")
+				.select("*");
+			if (error) throw error;
+			tournaments = tournamentList;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		tournaments = tournamentList;
 	}
 
-	async function createTest(e) {
-		e.preventDefault();
-		const { data, error } = await supabase.from("tests").insert([
-			{
+	async function createTestSubmit(e) {
+		try {
+			e.preventDefault();
+			const data = await createTest({
 				test_name: name,
 				test_description: description,
 				tournament_id: selectItem.value,
-			},
-		]);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else window.location.replace("/admin/tests/" + data[0].id);
+			});
+			window.location.replace("/admin/tests/" + data[0].id);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTournaments();
@@ -48,17 +49,6 @@
 
 <br />
 <h1>Admin: Add Test</h1>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <form on:submit|preventDefault style="padding: 20px;">
 	<Select bind:ref={selectItem}>
@@ -84,5 +74,5 @@
 		placeholder="Test Description"
 	/>
 	<br />
-	<Button action={createTest} title="Add Test" />
+	<Button action={createTestSubmit} title="Add Test" />
 </form>

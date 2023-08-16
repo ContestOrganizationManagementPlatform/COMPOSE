@@ -9,6 +9,8 @@
 		ToolbarSearch,
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let problemID;
 	let feedbackList = [];
@@ -22,64 +24,74 @@
 	let feedbackInput;
 
 	async function loadFeedback() {
-		let { data, error } = await supabase
-			.from("testsolve_answers")
-			.select("*,testsolves(users(*))")
-			.eq("problem_id", problemID);
+		try {
+			let { data, error } = await supabase
+				.from("testsolve_answers")
+				.select("*,testsolves(users(*))")
+				.eq("problem_id", problemID);
 
-		// filter empty feedback
-		const totalFeedbackList = data.filter((fd) => !!fd.feedback);
+			// filter empty feedback
+			const totalFeedbackList = data.filter((fd) => !!fd.feedback);
 
-		feedbackList = totalFeedbackList.map((e) => ({
-			id: e.id,
-			answer: e.answer,
-			feedback: e.feedback,
-			resolved: e.resolved,
-			user: e.testsolves ? e.testsolves.users.full_name : "N/A",
-			user_id: e.testsolves ? e.testsolves.users.id : "N/A",
-			user_amc_score: e.testsolves ? e.testsolves.users.amc_score : "N/A",
-			user_math_background: e.testsolves
-				? e.testsolves.users.math_comp_background
-				: "N/A",
-		}));
-
-		answerList = data
-			.filter((fd) => fd.answer !== null)
-			.map((fd) => ({
-				answer: fd.answer,
-				correct: fd.correct,
+			feedbackList = totalFeedbackList.map((e) => ({
+				id: e.id,
+				answer: e.answer,
+				feedback: e.feedback,
+				resolved: e.resolved,
+				user: e.testsolves ? e.testsolves.users.full_name : "N/A",
+				user_id: e.testsolves ? e.testsolves.users.id : "N/A",
+				user_amc_score: e.testsolves ? e.testsolves.users.amc_score : "N/A",
+				user_math_background: e.testsolves
+					? e.testsolves.users.math_comp_background
+					: "N/A",
 			}));
-		groupAnswerList();
 
-		loaded = true;
+			answerList = data
+				.filter((fd) => fd.answer !== null)
+				.map((fd) => ({
+					answer: fd.answer,
+					correct: fd.correct,
+				}));
+			groupAnswerList();
+
+			loaded = true;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function groupAnswerList() {
-		let answerMap = new Map();
-		for (let ans of answerList) {
-			if (ans.correct !== true) ans.correct = false;
-			let stringified = JSON.stringify(ans);
-			answerMap.set(stringified, (answerMap.get(stringified) ?? 0) + 1);
-		}
-		answerList = Array.from(answerMap.entries()).map((x) => {
-			let str = JSON.parse(x[0]);
-			allAnswers.push(x[1]);
-			noRepeatAnswers.push(str.answer);
-			return {
-				answer: str.answer,
-				correct: str.correct,
-				count: x[1],
-			};
-		});
-		answerList.sort((a, b) => {
-			try {
-				let aNum = parseFloat(a.answer);
-				let bNum = parseFloat(b.answer);
-				return aNum - bNum;
-			} catch (e) {
-				return a.answer.localeCompare(b.answer);
+		try {
+			let answerMap = new Map();
+			for (let ans of answerList) {
+				if (ans.correct !== true) ans.correct = false;
+				let stringified = JSON.stringify(ans);
+				answerMap.set(stringified, (answerMap.get(stringified) ?? 0) + 1);
 			}
-		});
+			answerList = Array.from(answerMap.entries()).map((x) => {
+				let str = JSON.parse(x[0]);
+				allAnswers.push(x[1]);
+				noRepeatAnswers.push(str.answer);
+				return {
+					answer: str.answer,
+					correct: str.correct,
+					count: x[1],
+				};
+			});
+			answerList.sort((a, b) => {
+				try {
+					let aNum = parseFloat(a.answer);
+					let bNum = parseFloat(b.answer);
+					return aNum - bNum;
+				} catch (e) {
+					return a.answer.localeCompare(b.answer);
+				}
+			});
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	// only works on time+s
@@ -89,31 +101,41 @@
 
 	// resolve or unresolve an answer
 	async function changeResolve(e, feedback_id) {
-		let newFeedback = {
-			resolved: e.detail,
-		};
+		try {
+			let newFeedback = {
+				resolved: e.detail,
+			};
 
-		let { error } = await supabase
-			.from("testsolve_answers")
-			.update(newFeedback)
-			.eq("id", feedback_id);
+			let { error } = await supabase
+				.from("testsolve_answers")
+				.update(newFeedback)
+				.eq("id", feedback_id);
 
-		if (error) alert(error.message);
+			if (error) throw error;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function addFeedback() {
-		const { data, error } = await supabase.from("testsolve_answers").insert([
-			{
-				problem_id: problemID,
-				feedback: feedbackInput,
-			},
-		]);
+		try {
+			const { data, error } = await supabase.from("testsolve_answers").insert([
+				{
+					problem_id: problemID,
+					feedback: feedbackInput,
+				},
+			]);
 
-		if (error) {
-			alert(error.message);
-		} else {
-			feedbackInput = "";
-			loadFeedback();
+			if (error) {
+				throw error;
+			} else {
+				feedbackInput = "";
+				loadFeedback();
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -204,8 +226,7 @@
 					</svelte:fragment>
 					<svelte:fragment slot="expanded-row" let:row>
 						<div style="padding: 10px;">
-							<pre><strong>User</strong
-								>: {row.user}</pre>
+							<pre><strong>User</strong>: {row.user}</pre>
 							<pre><strong>Math Competition Background</strong
 								>: {row.math_comp_background}</pre>
 							<pre><strong>AMC Score</strong>: {row.amc_score}</pre>

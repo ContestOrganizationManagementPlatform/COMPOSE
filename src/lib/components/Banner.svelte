@@ -10,10 +10,10 @@
 <style>
 	.header {
 		padding: 5px;
-		color: var(--white);
+		color: var(--text-color-light);
 		display: flex;
 		align-items: center;
-		background-color: var(--green);
+		background-color: var(--primary);
 	}
 
 	.header h4 {

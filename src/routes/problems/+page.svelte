@@ -3,8 +3,10 @@
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import { sortIDs } from "$lib/sortIDs";
 	import Button from "$lib/components/Button.svelte";
-	import { InlineNotification, Checkbox } from "carbon-components-svelte";
+	import { Checkbox } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import { getFullProblems } from "$lib/getProblems";
+	import { handleError } from "$lib/handleError.ts";
 
 	let problems = [];
 	let problemCounts = [];
@@ -12,120 +14,132 @@
 	let loaded = false;
 	const userId = supabase.auth.user().id;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];
 	let group = values.slice(0, 1);
 
 	(async () => {
-		problems = await getFullProblems();
+		try {
+			problems = await getFullProblems();
 
-		let { data: problemCountsData, error2 } = await supabase
-			.from("problem_counts")
-			.select("*");
-		if (error2) {
-			errorTrue = true;
-			errorMessage = error2.message;
+			let { data: problemCountsData, error2 } = await supabase
+				.from("problem_counts")
+				.select("*");
+			if (error2) throw error2;
+			problemCounts = problemCountsData.sort(
+				(a, b) => b.problem_count - a.problem_count
+			);
+			//getProblemLink();
+			loaded = true;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		problemCounts = problemCountsData.sort(
-			(a, b) => b.problem_count - a.problem_count
-		);
-		//getProblemLink();
-		loaded = true;
 	})();
 
 	async function getBucketPaths(path) {
-		const { data, error } = await supabase.storage
-			.from("problem-images")
-			.list(path);
-		if (error) throw error;
-		else {
-			let ans = [];
-			for (let i = 0; i < data.length; i++) {
-				if (data[i].id != null) {
-					if (path === "") {
-						ans.push(data[i].name);
+		try {
+			const { data, error } = await supabase.storage
+				.from("problem-images")
+				.list(path);
+			if (error) throw error;
+			else {
+				let ans = [];
+				for (let i = 0; i < data.length; i++) {
+					if (data[i].id != null) {
+						if (path === "") {
+							ans.push(data[i].name);
+						} else {
+							ans.push(path + "/" + data[i].name);
+						}
 					} else {
-						ans.push(path + "/" + data[i].name);
-					}
-				} else {
-					let x;
-					if (path === "") {
-						x = await getBucketPaths(data[i].name);
-					} else {
-						x = await getBucketPaths(path + "/" + data[i].name);
-					}
-					for (let j = 0; j < x.length; j++) {
-						ans.push(x[j]);
+						let x;
+						if (path === "") {
+							x = await getBucketPaths(data[i].name);
+						} else {
+							x = await getBucketPaths(path + "/" + data[i].name);
+						}
+						for (let j = 0; j < x.length; j++) {
+							ans.push(x[j]);
+						}
 					}
 				}
+				return ans;
 			}
-			return ans;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function openProblemsPDF() {
-		let l =
-			"\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
+		try {
+			let l =
+				"\\title{All Problems}\\date{Mustang Math}\\begin{document}\\maketitle";
 
-		for (const problem of problems) {
-			l += "\\section*{Problem " + problem.front_id + "}";
-			if (group.includes("Problems")) {
-				l +=
-					"\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
-			}
+			for (const problem of problems) {
+				l += "\\section*{Problem " + problem.front_id + "}";
+				if (group.includes("Problems")) {
+					l +=
+						"\\textbf{Problem:} " +
+						problem.problem_latex +
+						"\\newline\\newline";
+				}
 
-			if (group.includes("Answers") && problem.answer_latex != "") {
-				l += "\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
-			}
+				if (group.includes("Answers") && problem.answer_latex != "") {
+					l +=
+						"\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
+				}
 
-			if (group.includes("Solutions") && problem.solution_latex != "") {
-				l +=
-					"\\textbf{Solution:} " +
-					problem.solution_latex.replace("\\ans{", "\\boxed{") +
-					"\\newline\\newline";
-			}
+				if (group.includes("Solutions") && problem.solution_latex != "") {
+					l +=
+						"\\textbf{Solution:} " +
+						problem.solution_latex.replace("\\ans{", "\\boxed{") +
+						"\\newline\\newline";
+				}
 
-			if (group.includes("Comments") && problem.comment_latex != "") {
-				l +=
-					"\\textbf{Comment:} " +
-					problem.comment_latex.replace("\\ans{", "\\boxed{") +
-					"\\newline\\newline";
+				if (group.includes("Comments") && problem.comment_latex != "") {
+					l +=
+						"\\textbf{Comment:} " +
+						problem.comment_latex.replace("\\ans{", "\\boxed{") +
+						"\\newline\\newline";
+				}
 			}
+			l += "\\end{document}";
+
+			let images = await getBucketPaths("");
+
+			const resp = await fetch(
+				// make env variable before pushing
+				import.meta.env.VITE_PDF_GENERATOR_URL,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						mode: "no-cors",
+					},
+					body: JSON.stringify({
+						latex: l,
+						images,
+					}),
+				}
+			);
+			const blob = await resp.blob();
+			const newBlob = new Blob([blob]);
+			const blobUrl = window.URL.createObjectURL(newBlob);
+			const link = document.createElement("a");
+			link.href = blobUrl;
+			link.setAttribute("download", "problems.pdf");
+			document.body.appendChild(link);
+			link.click();
+			link.parentNode.removeChild(link);
+
+			// clean up Url
+			window.URL.revokeObjectURL(blobUrl);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		l += "\\end{document}";
-
-		let images = await getBucketPaths("");
-
-		const resp = await fetch(
-			// make env variable before pushing
-			import.meta.env.VITE_PDF_GENERATOR_URL,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					mode: "no-cors",
-				},
-				body: JSON.stringify({
-					latex: l,
-					images,
-				}),
-			}
-		);
-		const blob = await resp.blob();
-		const newBlob = new Blob([blob]);
-		const blobUrl = window.URL.createObjectURL(newBlob);
-		const link = document.createElement("a");
-		link.href = blobUrl;
-		link.setAttribute("download", "problems.pdf");
-		document.body.appendChild(link);
-		link.click();
-		link.parentNode.removeChild(link);
-
-		// clean up Url
-		window.URL.revokeObjectURL(blobUrl);
 	}
 </script>
 
@@ -135,17 +149,6 @@
 <h1>Problem Inventory</h1>
 {#if !loaded}
 	<p>Loading problems...</p>
-{/if}
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
 {/if}
 
 <div style="margin-top: 10px;">
@@ -218,30 +221,12 @@
 {/if}
 
 <style>
-	a {
-		margin-bottom: 10px;
-		border: 2px solid var(--green);
-		padding: 5px 10px;
-		font-weight: 600;
-		text-decoration: none;
-		color: black;
-	}
-
 	.stats {
 		background-color: white;
-		border: 1px solid var(--green);
+		border: 1px solid var(--primary);
 		width: 80%;
 		margin: 10px;
 		text-align: left;
 		padding: 10px;
-	}
-
-	:global(.bx--toolbar-content .bx--search .bx--search-input:focus) {
-		outline-color: var(--green);
-	}
-
-	:global(.pencil .link) {
-		border: none;
-		outline: none;
 	}
 </style>

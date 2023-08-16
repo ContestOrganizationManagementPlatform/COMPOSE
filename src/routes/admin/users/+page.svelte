@@ -1,7 +1,6 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
 	import {
-		InlineNotification,
 		DataTable,
 		Link,
 		Toolbar,
@@ -9,9 +8,9 @@
 		ToolbarSearch,
 		Pagination,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
-	let errorTrue = false;
-	let errorMessage = "";
 	let pageSize = 25;
 	let page = 1;
 
@@ -28,30 +27,32 @@
 	let roles = [];
 
 	async function roleManager() {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("id,full_name,initials,user_roles(role)")
-			.order("full_name");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		let roles2 = [];
-		for (let user of users) {
-			const curRole = user.user_roles?.role ?? 0;
-			roles2.push({
-				edit: user.id + "test",
-				id: user.id,
-				role: roleDictionary[curRole],
-				name: user.full_name,
-				initials: user.initials,
+		try {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("id,full_name,initials,user_roles(role)")
+				.order("full_name");
+			if (error) throw error;
+			let roles2 = [];
+			for (let user of users) {
+				const curRole = user.user_roles?.role ?? 0;
+				roles2.push({
+					edit: user.id + "test",
+					id: user.id,
+					role: roleDictionary[curRole],
+					name: user.full_name,
+					initials: user.initials,
+				});
+			}
+			roles2.sort((a, b) => {
+				return a.name.toLowerCase().localeCompare(b.name.toUpperCase());
 			});
+			roles = roles2;
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		roles2.sort((a, b) => {
-			return a.name.toLowerCase().localeCompare(b.name.toUpperCase());
-		});
-		roles = roles2;
-		loading = false;
 	}
 
 	roleManager();
@@ -63,17 +64,6 @@
 {#if loading}
 	<p>Loading...</p>
 {:else}
-	{#if errorTrue}
-		<div style="position: fixed; bottom: 10px; left: 10px;">
-			<InlineNotification
-				lowContrast
-				kind="error"
-				title="ERROR:"
-				subtitle={errorMessage}
-			/>
-		</div>
-	{/if}
-
 	<div style="padding: 10px;">
 		<DataTable
 			sortable

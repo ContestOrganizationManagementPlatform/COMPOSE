@@ -4,7 +4,6 @@
 	import {
 		Select,
 		SelectItem,
-		InlineNotification,
 		DataTable,
 		Link,
 	} from "carbon-components-svelte";
@@ -12,6 +11,8 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let testId = $page.params.id;
 	let loading = true;
@@ -20,105 +21,101 @@
 	let test;
 	let allUsers = [];
 
-	let errorTrue = false;
-	let errorMessage;
-
 	let tableData = [];
 
 	async function getTest() {
-		let { data, error } = await supabase
-			.from("tests")
-			.select("test_name")
-			.eq("id", testId)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		test = data;
+		try {
+			let { data, error } = await supabase
+				.from("tests")
+				.select("test_name")
+				.eq("id", testId)
+				.limit(1)
+				.single();
+			if (error) throw error;
 
-		getTestsolvers();
+			test = data;
+			getTestsolvers();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function getTestsolvers() {
-		let { data, error } = await supabase
-			.from("testsolvers")
-			.select("solver_id,users(full_name,initials)")
-			.eq("test_id", testId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
+		try {
+			let { data, error } = await supabase
+				.from("testsolvers")
+				.select("solver_id,users(full_name,initials)")
+				.eq("test_id", testId);
+			if (error) throw error;
 
-		testsolvers = data;
+			testsolvers = data;
 
-		testsolvers.forEach((user) => {
-			tableData.push({
-				id: user.solver_id,
-				testsolver: user.users.full_name + " (" + user.users.initials + ")",
-				status: "x",
-				testsolve: "x",
-				delete: user.solver_id,
+			testsolvers.forEach((user) => {
+				tableData.push({
+					id: user.solver_id,
+					testsolver: user.users.full_name + " (" + user.users.initials + ")",
+					status: "x",
+					testsolve: "x",
+					delete: user.solver_id,
+				});
 			});
-		});
 
-		getAllUsers();
+			getAllUsers();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function getAllUsers() {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("*,test_coordinators(*)")
-			.order("full_name");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("*,test_coordinators(*)")
+				.order("full_name");
+			if (error) throw error;
+			allUsers = users.filter(
+				(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
+			);
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		allUsers = users.filter(
-			(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
-		);
-		loading = false;
 	}
 
 	getTest();
 
 	async function addTestsolver() {
-		let { error } = await supabase
-			.from("testsolvers")
-			.insert([{ test_id: testId, solver_id: selectRef.value }], {
-				returning: "minimal",
-			});
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			let { error } = await supabase
+				.from("testsolvers")
+				.insert([{ test_id: testId, solver_id: selectRef.value }], {
+					returning: "minimal",
+				});
+			if (error) throw error;
+			getTestsolvers();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		getTestsolvers();
 	}
 
 	async function deleteTestsolver(id) {
-		const { error } = await supabase
-			.from("testsolvers")
-			.delete({ returning: "minimal" })
-			.eq("solver_id", id);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			const { error } = await supabase
+				.from("testsolvers")
+				.delete({ returning: "minimal" })
+				.eq("solver_id", id);
+			if (error) throw error;
+			getTestsolvers();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		getTestsolvers();
 	}
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <div style="padding: 10px">
 	{#if loading}
@@ -179,18 +176,3 @@
 		{/if}
 	{/if}
 </div>
-
-<style>
-	:global(.bx--table-sort:focus) {
-		outline: none;
-	}
-
-	:global(.bx--select-input:focus) {
-		border-color: var(--green) !important;
-		outline-color: var(--green) !important;
-	}
-
-	:global(.bx--link:visited) {
-		color: var(--green) !important;
-	}
-</style>

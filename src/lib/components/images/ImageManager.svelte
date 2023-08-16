@@ -14,6 +14,8 @@
 	import { ProblemImage } from "$lib/getProblemImages";
 	import { fail } from "@sveltejs/kit";
 	import Modal from "../Modal.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let add: any;
 
@@ -75,34 +77,35 @@
 		}
 	}
 
-	let showUploadError = false;
-	let uploadError = "";
-
 	// clear and cancel file upload
 	function cancelUpload(reason: string) {
 		fileUploader.clearFiles();
-		uploadError = reason;
-		showUploadError = true;
+		toast.error(reason);
 	}
 
 	async function submitImages(e: Event) {
-		e.preventDefault();
-		let imageList = fileList.map((f) => ProblemImage.fromFile(f));
-		let failedList = [];
-		for (const img of imageList) {
-			try {
-				await ImageBucket.addImage(folderString, img);
-			} catch (e) {
-				failedList.push(img.name);
+		try {
+			e.preventDefault();
+			let imageList = fileList.map((f) => ProblemImage.fromFile(f));
+			let failedList = [];
+			for (const img of imageList) {
+				try {
+					await ImageBucket.addImage(folderString, img);
+				} catch (e) {
+					failedList.push(img.name);
+				}
 			}
+			if (failedList.length > 0) {
+				cancelUpload(
+					"The following files failed to upload: " + failedList.join(", ")
+				);
+			}
+			fileList = [];
+			loadFolder();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		if (failedList.length > 0) {
-			cancelUpload(
-				"The following files failed to upload: " + failedList.join(", ")
-			);
-		}
-		fileList = [];
-		loadFolder();
 	}
 
 	let showNewFolder = false;
@@ -124,51 +127,51 @@
 	let folderNameInput = "";
 	const folderNameRegex = /^[a-zA-Z0-9_-]{1,32}$/;
 	function createNewFolder(e: Event) {
-		e.preventDefault();
-		showUploadError = false;
-		uploadError = "";
+		try {
+			e.preventDefault();
 
-		folderNameInput = folderNameInput.trim();
+			folderNameInput = folderNameInput.trim();
 
-		if (folderNameInput.length === 0) {
-			uploadError = "Folder must have a name";
-			showUploadError = true;
-			return;
+			if (folderNameInput.length === 0) {
+				throw new Error("Folder must have a name");
+			}
+
+			if (folderNameInput.length > MAX_NAME_LENGTH) {
+				throw new Error("Folder name is too long");
+			}
+
+			if (itemExists(folderNameInput, "folder")) {
+				throw new Error("Folder with that name already exists");
+			}
+
+			if (!folderNameInput.match(folderNameRegex)) {
+				throw new Error("Invalid folder name");
+			}
+
+			// add folder
+			ImageBucket.addFakeFolder(folderString, folderNameInput);
+
+			loadFolder();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-
-		if (folderNameInput.length > MAX_NAME_LENGTH) {
-			uploadError = "Folder name is too long";
-			showUploadError = true;
-			return;
-		}
-
-		if (itemExists(folderNameInput, "folder")) {
-			uploadError = "Folder with that name already exists";
-			showUploadError = true;
-			return;
-		}
-
-		if (!folderNameInput.match(folderNameRegex)) {
-			uploadError = "Invalid folder name";
-			showUploadError = true;
-			return;
-		}
-
-		// add folder
-		ImageBucket.addFakeFolder(folderString, folderNameInput);
-
-		loadFolder();
 	}
 
 	async function deleteImage(listing: ImageListing) {
-		const path = listing.fullName();
-		await ImageBucket.deleteImage(path);
-		if (curListing.length <= 2) {
-			// folder now empty, navigate back
-			curFolder = [];
-			folderString = "/";
+		try {
+			const path = listing.fullName();
+			await ImageBucket.deleteImage(path);
+			if (curListing.length <= 2) {
+				// folder now empty, navigate back
+				curFolder = [];
+				folderString = "/";
+			}
+			loadFolder();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		loadFolder();
 	}
 
 	loadFolder();
@@ -176,10 +179,6 @@
 
 <div class="manager-container">
 	<p>Image Manager</p>
-	{#if showUploadError}
-		<p class="error-p">Error: {uploadError}</p>
-	{/if}
-
 	<p>Current Folder: {folderString}</p>
 
 	<div class="new-folder-options">
@@ -274,7 +273,7 @@
 		padding: 3px;
 		vertical-align: middle;
 		width: auto;
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		cursor: pointer;
 	}
 

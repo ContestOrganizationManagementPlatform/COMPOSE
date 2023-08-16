@@ -1,14 +1,12 @@
-<script>
-	import { getThisUserRole } from "$lib/getUserRole.js";
+<script lang="ts">
+	import { getThisUserRole } from "$lib/supabase/users";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError";
 
 	let loaded = false;
-	let isAdmin;
-
-	let errorTrue = false;
-	let errorMessage = "";
+	let isAdmin: boolean;
 
 	async function loadIsAdmin() {
 		try {
@@ -19,25 +17,14 @@
 				isAdmin = false;
 			}
 			loaded = true;
-		} catch (err) {
-			errorTrue = true;
-			errorMessage = error.message;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 			isAdmin = false;
 		}
 	}
 	loadIsAdmin();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if !loaded}
 	<Loading />

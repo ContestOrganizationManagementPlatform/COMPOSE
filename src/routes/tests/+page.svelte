@@ -4,66 +4,56 @@
 	import {
 		DataTable,
 		Link,
-		InlineNotification,
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
 		Pagination,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let rows = [];
 	let pageSize = 25;
 	let page = 1;
 	let tournaments = {};
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getTests() {
-		let { data: testList, error } = await supabase
-			.from("tests")
-			.select("*,tournaments(tournament_name)");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
+		try {
+			let { data: testList, error } = await supabase
+				.from("tests")
+				.select("*,tournaments(tournament_name)")
+				.eq("archived", false);
+			if (error) throw error;
 
-		let rowValues = [];
+			let rowValues = [];
 
-		for (const test of testList) {
-			if (!tournaments[test.tournament_id]) {
-				tournaments[test.tournament_id] = {
-					name: test.tournaments.tournament_name,
-					tests: [],
-				};
+			for (const test of testList) {
+				if (!tournaments[test.tournament_id]) {
+					tournaments[test.tournament_id] = {
+						name: test.tournaments.tournament_name,
+						tests: [],
+					};
+				}
+				tournaments[test.tournament_id].tests.push(test);
+				rowValues.push({
+					id: test.id,
+					edit: test.id,
+					competition: test.tournaments.tournament_name,
+					name: test.test_name,
+					description: test.test_description,
+					version: test.test_version,
+				});
 			}
-			tournaments[test.tournament_id].tests.push(test);
-			rowValues.push({
-				id: test.id,
-				edit: test.id,
-				competition: test.tournaments.tournament_name,
-				name: test.test_name,
-				description: test.test_description,
-				version: test.test_version,
-			});
-		}
 
-		rows = rowValues;
+			rows = rowValues;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTests();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <br />
 <h1>View Tests</h1>
@@ -95,7 +85,7 @@
 				{#if cell.key === "edit"}
 					<div class="pencil">
 						<Link class="link" href={"/tests/" + row.id}
-							><i class="ri-pencil-fill" /></Link
+							><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 						>
 					</div>
 				{:else}
@@ -114,9 +104,3 @@
 		pageSizeInputDisabled
 	/>
 </div>
-
-<style>
-	:global(.bx--search-input:focus:not([disabled])) {
-		outline: none !important;
-	}
-</style>

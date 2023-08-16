@@ -2,11 +2,9 @@
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
 	import Button from "$lib/components/Button.svelte";
-	import {
-		Form,
-		TextInput,
-		PasswordInput,
-	} from "carbon-components-svelte";
+	import { Form, TextInput, PasswordInput } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let logIn;
 	let loading = false;
@@ -24,29 +22,35 @@
 			});
 			if (error) throw error;
 		} catch (error) {
-			alert(error.error_description || error.message);
+			handleError(error);
+			toast.error(error.error_description || error.message);
 		} finally {
 			loading = false;
 		}
 	};
 
 	const handleSignUp = async () => {
-		if (password == retypePassword) {
-			try {
-				loading = true;
-				const { user, session, error } = await supabase.auth.signUp({
-					email: email,
-					password: password,
-				});
-				if (error) throw error;
-				signupSuccess = true;
-			} catch (error) {
-				alert(error.error_description || error.message);
-			} finally {
-				loading = false;
+		try {
+			if (password == retypePassword) {
+				try {
+					loading = true;
+					const { user, session, error } = await supabase.auth.signUp({
+						email: email,
+						password: password,
+					});
+					if (error) throw error;
+					signupSuccess = true;
+				} catch (error) {
+					throw error;
+				} finally {
+					loading = false;
+				}
+			} else {
+				throw new Error("Passwords do not match");
 			}
-		} else {
-			alert("ERROR: Passwords do not match");
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	};
 </script>
@@ -105,8 +109,11 @@
 		font-size: 50px;
 	}
 
-	:global(.bx--text-input--password__visibility, .bx--btn.bx--text-input--password__visibility__toggle.bx--tooltip__trigger:focus) {
-		outline-color: var(--green) !important;
+	:global(
+			.bx--text-input--password__visibility,
+			.bx--btn.bx--text-input--password__visibility__toggle.bx--tooltip__trigger:focus
+		) {
+		outline-color: var(--primary) !important;
 	}
 
 	@media only screen and (max-width: 700px) {

@@ -3,6 +3,8 @@
 	import { Select, SelectItem } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Loading from "$lib/components/Loading.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let finalUser = "";
 	let finalTest = "";
@@ -12,16 +14,26 @@
 	let message = "";
 
 	async function getUsers() {
-		let { data: usersInfo, error } = await supabase.from("users").select("*");
-		if (error) alert(error.message);
-		else users = usersInfo;
+		try {
+			let { data: usersInfo, error } = await supabase.from("users").select("*");
+			if (error) throw error;
+			else users = usersInfo;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function getTests() {
-		let { data: testsInfo, error } = await supabase.from("tests").select("*");
-		if (error) alert(error.message);
-		else tests = testsInfo;
-		loading = false;
+		try {
+			let { data: testsInfo, error } = await supabase.from("tests").select("*");
+			if (error) throw error;
+			else tests = testsInfo;
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getUsers();
@@ -52,15 +64,20 @@
 		<Button
 			title="Submit"
 			action={async () => {
-				if (finalTest === "" || finalUser === "") {
-					alert("Please select a test and a user");
-				} else {
-					message = "";
-					const { data, error } = await supabase
-						.from("testsolvers")
-						.insert([{ test_id: finalTest, solver_id: finalUser }]);
-					if (error) alert(error.message);
-					message = "Success! Added testsolve.";
+				try {
+					if (finalTest === "" || finalUser === "") {
+						toast.error("Please select a test and a user");
+					} else {
+						message = "";
+						const { data, error } = await supabase
+							.from("testsolvers")
+							.insert([{ test_id: finalTest, solver_id: finalUser }]);
+						if (error) throw error;
+						message = "Success! Added testsolve.";
+					}
+				} catch (error) {
+					handleError(error);
+					toast.error(error.message);
 				}
 			}}
 		/>

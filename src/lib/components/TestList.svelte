@@ -13,6 +13,7 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
+	import toast from "svelte-french-toast";
 
 	export let tests = [];
 	export let condensed = false;
@@ -26,6 +27,7 @@
 	export let pageEnabled = true;
 	export let problemCounts = {};
 	const dispatch = createEventDispatcher();
+	import { handleError } from "$lib/handleError.ts";
 
 	let width = 0;
 	let mobileFriendly = {
@@ -39,22 +41,26 @@
 	let pageSize = 10;
 	let page = 1;
 	(async () => {
-		// let { data: newProblems, error } = await supabase
-		// 	.from("full_problems")
-		// 	.select("*")
-		// 	.order("front_id");
-		// if (error) alert(error.message);
-		// problems = newProblems;
+		try {
+			// let { data: newProblems, error } = await supabase
+			// 	.from("full_problems")
+			// 	.select("*")
+			// 	.order("front_id");
+			// problems = newProblems;
 
-		let { data: problemCountsData, error2 } = await supabase
-			.from("problem_counts")
-			.select("*");
-		if (error2) alert(error2.message);
-		problemCounts = problemCountsData.sort(
-			(a, b) => b.problem_count - a.problem_count
-		);
+			let { data: problemCountsData, error2 } = await supabase
+				.from("problem_counts")
+				.select("*");
+			if (error2) throw error2;
+			problemCounts = problemCountsData.sort(
+				(a, b) => b.problem_count - a.problem_count
+			);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	})();
-	let editHeader = { key: "edit", value: "", width: "20px" };
+	let editHeader = { key: "edit", value: "", width: "25px" };
 
 	let headers = [
 		{ key: "id", value: "ID", width: "80px" },
@@ -91,14 +97,19 @@
 
 	let listeners = {};
 	$: if (draggable && tableContainerDiv && !draggingRow) {
-		for (let i = 0; i < tests.length; i++) {
-			const row = tests[i];
-			let elem = getRowElement(row.id);
-			if (row.id in listeners) {
-				elem?.removeEventListener("dragenter", listeners[row.id]);
+		try {
+			for (let i = 0; i < tests.length; i++) {
+				const row = tests[i];
+				let elem = getRowElement(row.id);
+				if (row.id in listeners) {
+					elem?.removeEventListener("dragenter", listeners[row.id]);
+				}
+				listeners[row.id] = (e) => handleDragEnter(e, row);
+				elem?.addEventListener("dragenter", listeners[row.id]);
 			}
-			listeners[row.id] = (e) => handleDragEnter(e, row);
-			elem?.addEventListener("dragenter", listeners[row.id]);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -107,35 +118,50 @@
 	let lastDraggedInd = null;
 
 	function startDrag(e, row) {
-		if (!draggable) return;
-		draggingRow = true;
-		draggedRow = row;
+		try {
+			if (!draggable) return;
+			draggingRow = true;
+			draggedRow = row;
+		} catch (error) {
+			handleError(error);
+			toast.error(erorr.message);
+		}
 	}
 
 	function handleDragEnter(e, row) {
-		if (!draggable) return;
-		if (!draggingRow) return;
-		if (row === draggedRow) return;
+		try {
+			if (!draggable) return;
+			if (!draggingRow) return;
+			if (row === draggedRow) return;
 
-		e.preventDefault();
-		const ind = tests.indexOf(row);
-		lastDraggedInd = ind;
-		tests.splice(tests.indexOf(draggedRow), 1);
-		tests.splice(ind, 0, draggedRow);
-		tests = tests;
+			e.preventDefault();
+			const ind = tests.indexOf(row);
+			lastDraggedInd = ind;
+			tests.splice(tests.indexOf(draggedRow), 1);
+			tests.splice(ind, 0, draggedRow);
+			tests = tests;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function endDrag(e) {
-		if (!draggable) return;
-		if (lastDraggedInd !== null) {
-			dispatch("reorder", {
-				id: draggedRow.id,
-				to: lastDraggedInd,
-			});
+		try {
+			if (!draggable) return;
+			if (lastDraggedInd !== null) {
+				dispatch("reorder", {
+					id: draggedRow.id,
+					to: lastDraggedInd,
+				});
+			}
+			draggingRow = false;
+			draggedRow = null;
+			lastDraggedInd = null;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		draggingRow = false;
-		draggedRow = null;
-		lastDraggedInd = null;
 	}
 </script>
 
@@ -171,7 +197,7 @@
 				{#if cell.key === "edit"}
 					<div class="pencil">
 						<Link class="link" href={"/admin/tests/" + row.id}
-							><i class="ri-pencil-fill" /></Link
+							><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 						>
 					</div>
 				{:else if cell.key === "drag"}

@@ -25,14 +25,14 @@
 	}
 
 	.button {
-		border: 2px solid var(--body);
+		border: 2px solid var(--primary-light);
 		width: 30em;
 		padding: 10px;
-		color: var(--body);
+		color: var(--primary-light);
 	}
 
 	.button:hover {
-		background-color: var(--body);
-		color: var(--white);
+		background-color: var(--primary-light);
+		color: var(--text-color-light);
 	}
 </style>

@@ -5,8 +5,9 @@
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { Loading, Checkbox } from "carbon-components-svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import { displayLatex } from "$lib/latexStuff";
+	import { handleError } from "$lib/handleError.ts";
 
 	let testId = $page.params.id;
 	let test;
@@ -17,9 +18,6 @@
 	let userIsTestCoordinator = false;
 
 	let feedback = [];
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	let openModal = false;
 	let values = [
@@ -33,47 +31,56 @@
 	let group = values.slice(0, 1);
 
 	async function getTest() {
-		let { data: tests, error } = await supabase
-			.from("tests")
-			.select(
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
-			)
-			.eq("id", testId)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		test = tests;
+		try {
+			let { data: tests, error } = await supabase
+				.from("tests")
+				.select(
+					"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+				)
+				.eq("id", testId)
+				.limit(1)
+				.single();
+			if (error) throw error;
+			test = tests;
 
-		testCoordinators = test.test_coordinators.map((x) => x.users);
-		userIsTestCoordinator =
-			!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
-			(await getThisUserRole()) >= 40;
-		getProblems();
-		loading = false;
+			testCoordinators = test.test_coordinators.map((x) => x.users);
+			userIsTestCoordinator =
+				!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
+				(await getThisUserRole()) >= 40;
+			getProblems();
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function getProblems() {
-		let { data: problemList, error } = await supabase
-			.from("test_problems")
-			.select("*,full_problems(*)")
-			.eq("test_id", testId)
-			.order("problem_number");
+		try {
+			let { data: problemList, error } = await supabase
+				.from("test_problems")
+				.select("*,full_problems(*)")
+				.eq("test_id", testId)
+				.order("problem_number");
+			if (error) throw error;
 
-		let { data: feedbackList, error2 } = await supabase
-			.from("testsolve_answers")
-			.select("*")
-			.order("problem_id");
+			let { data: feedbackList, error2 } = await supabase
+				.from("testsolve_answers")
+				.select("*")
+				.order("problem_id");
+			if (error2) throw error2;
 
-		feedback = feedbackList;
+			feedback = feedbackList;
 
-		problems = problemList.map((pb) => ({
-			problem_number: pb.problem_number,
-			...pb.full_problems,
-		}));
-		loadingProblems = false;
+			problems = problemList.map((pb) => ({
+				problem_number: pb.problem_number,
+				...pb.full_problems,
+			}));
+			loadingProblems = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function getProblemFeedback(id) {
@@ -87,146 +94,152 @@
 	}
 
 	async function getBucketPaths(path) {
-		const { data, error } = await supabase.storage
-			.from("problem-images")
-			.list(path);
-		if (error) throw error;
-		else {
-			let ans = [];
-			for (let i = 0; i < data.length; i++) {
-				if (data[i].id != null) {
-					if (path === "") {
-						ans.push(data[i].name);
+		try {
+			const { data, error } = await supabase.storage
+				.from("problem-images")
+				.list(path);
+			if (error) throw error;
+			else {
+				let ans = [];
+				for (let i = 0; i < data.length; i++) {
+					if (data[i].id != null) {
+						if (path === "") {
+							ans.push(data[i].name);
+						} else {
+							ans.push(path + "/" + data[i].name);
+						}
 					} else {
-						ans.push(path + "/" + data[i].name);
-					}
-				} else {
-					let x;
-					if (path === "") {
-						x = await getBucketPaths(data[i].name);
-					} else {
-						x = await getBucketPaths(path + "/" + data[i].name);
-					}
-					for (let j = 0; j < x.length; j++) {
-						ans.push(x[j]);
+						let x;
+						if (path === "") {
+							x = await getBucketPaths(data[i].name);
+						} else {
+							x = await getBucketPaths(path + "/" + data[i].name);
+						}
+						for (let j = 0; j < x.length; j++) {
+							ans.push(x[j]);
+						}
 					}
 				}
+				return ans;
 			}
-			return ans;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function openTest() {
-		let l =
-			"\\title{" +
-			test.test_name +
-			"}\\author{" +
-			test.tournaments.tournament_name +
-			"}\\date{Mustang Math}\\begin{document}\\maketitle";
-
-		if (group.includes("Feedback")) {
-			l += "\\section*{Test Feedback}";
-			for (var feedback of test.testsolves) {
-				if (feedback.feedback != null && feedback.feedback != "") {
-					l +=
-						"\\textbf{" + feedback.id + ":} " + feedback.feedback + "\\newline";
-				}
-			}
-		}
-
-		for (const problem of problems) {
-			l += group.includes("Problem ID")
-				? "\\section*{Problem " +
-				  (problem.problem_number + 1) +
-				  " (" +
-				  problem.front_id +
-				  ")}"
-				: "\\section*{Problem " + (problem.problem_number + 1) + "}";
-			if (group.includes("Problems")) {
-				l +=
-					"\\textbf{Problem:} " + problem.problem_latex + "\\newline\\newline";
-			}
-
-			if (group.includes("Answers") && problem.answer_latex != "") {
-				l += "\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
-			}
-
-			if (group.includes("Solutions") && problem.solution_latex != "") {
-				l +=
-					"\\textbf{Solution:} " +
-					problem.solution_latex.replace("\\ans{", "\\boxed{") +
-					"\\newline\\newline";
-			}
-
-			if (group.includes("Comments") && problem.comment_latex != "") {
-				l +=
-					"\\textbf{Comment:} " +
-					problem.comment_latex.replace("\\ans{", "\\boxed{") +
-					"\\newline\\newline";
-			}
+		try {
+			let l =
+				"\\title{" +
+				test.test_name +
+				"}\\author{" +
+				test.tournaments.tournament_name +
+				"}\\date{Mustang Math}\\begin{document}\\maketitle";
 
 			if (group.includes("Feedback")) {
-				var feed = getProblemFeedback(problem.problem_number);
-
-				if (feed.length > 0) {
-					l += "\\textbf{Feedback:} ";
-
-					for (var f of feed) {
-						if (f.feedback != "") {
-							l += "\\\\\\textbf{" + f.testsolve_id + ":} " + f.feedback;
-						}
+				l += "\\section*{Test Feedback}";
+				for (var feedback of test.testsolves) {
+					if (feedback.feedback != null && feedback.feedback != "") {
+						l +=
+							"\\textbf{" +
+							feedback.id +
+							":} " +
+							feedback.feedback +
+							"\\newline";
 					}
-
-					l += "\\newline\\newline";
 				}
 			}
-		}
-		l += "\\end{document}";
 
-		let images = await getBucketPaths("");
+			for (const problem of problems) {
+				l += group.includes("Problem ID")
+					? "\\section*{Problem " +
+					  (problem.problem_number + 1) +
+					  " (" +
+					  problem.front_id +
+					  ")}"
+					: "\\section*{Problem " + (problem.problem_number + 1) + "}";
+				if (group.includes("Problems")) {
+					l +=
+						"\\textbf{Problem:} " +
+						problem.problem_latex +
+						"\\newline\\newline";
+				}
 
-		const resp = await fetch(
-			// make env variable before pushing
-			import.meta.env.VITE_PDF_GENERATOR_URL,
-			{
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					mode: "no-cors",
-				},
-				body: JSON.stringify({
-					latex: l,
-					images,
-				}),
+				if (group.includes("Answers") && problem.answer_latex != "") {
+					l +=
+						"\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
+				}
+
+				if (group.includes("Solutions") && problem.solution_latex != "") {
+					l +=
+						"\\textbf{Solution:} " +
+						problem.solution_latex.replace("\\ans{", "\\boxed{") +
+						"\\newline\\newline";
+				}
+
+				if (group.includes("Comments") && problem.comment_latex != "") {
+					l +=
+						"\\textbf{Comment:} " +
+						problem.comment_latex.replace("\\ans{", "\\boxed{") +
+						"\\newline\\newline";
+				}
+
+				if (group.includes("Feedback")) {
+					var feed = getProblemFeedback(problem.problem_number);
+
+					if (feed.length > 0) {
+						l += "\\textbf{Feedback:} ";
+
+						for (var f of feed) {
+							if (f.feedback != "") {
+								l += "\\\\\\textbf{" + f.testsolve_id + ":} " + f.feedback;
+							}
+						}
+
+						l += "\\newline\\newline";
+					}
+				}
 			}
-		);
-		const blob = await resp.blob();
-		const newBlob = new Blob([blob]);
-		const blobUrl = window.URL.createObjectURL(newBlob);
-		const link = document.createElement("a");
-		link.href = blobUrl;
-		link.setAttribute("download", test.test_name + ".pdf");
-		document.body.appendChild(link);
-		link.click();
-		link.parentNode.removeChild(link);
+			l += "\\end{document}";
 
-		// clean up Url
-		window.URL.revokeObjectURL(blobUrl);
+			let images = await getBucketPaths("");
+
+			const resp = await fetch(
+				// make env variable before pushing
+				import.meta.env.VITE_PDF_GENERATOR_URL,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						mode: "no-cors",
+					},
+					body: JSON.stringify({
+						latex: l,
+						images,
+					}),
+				}
+			);
+			const blob = await resp.blob();
+			const newBlob = new Blob([blob]);
+			const blobUrl = window.URL.createObjectURL(newBlob);
+			const link = document.createElement("a");
+			link.href = blobUrl;
+			link.setAttribute("download", test.test_name + ".pdf");
+			document.body.appendChild(link);
+			link.click();
+			link.parentNode.removeChild(link);
+
+			// clean up Url
+			window.URL.revokeObjectURL(blobUrl);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTest();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <br />
 {#if loading}
@@ -305,19 +318,3 @@
 	{/if}
 {/if}
 <br />
-
-<style>
-	a {
-		margin-bottom: 10px;
-		border: 2px solid var(--green);
-		padding: 5px 10px;
-		font-weight: 600;
-		text-decoration: none;
-		color: black;
-	}
-
-	:global(.bx--checkbox-label:focus) {
-		outline: none !important;
-		border: none !important;
-	}
-</style>

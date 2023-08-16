@@ -9,7 +9,9 @@
 		ToolbarSearch,
 	} from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";
+	import toast from "svelte-french-toast";
 	import Button from "$lib/components/Button.svelte";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loading = true;
 	let testsolves = [];
@@ -17,53 +19,58 @@
 	let page = 1;
 
 	async function getUpcomingTestsolves() {
-		loading = true;
+		try {
+			loading = true;
 
-		let testsolves1 = [];
+			let testsolves1 = [];
 
-		let { data: testsolveInfo, error } = await supabase
-			.from("testsolves")
-			.select("*,users(full_name,initials),tests(test_name)");
-		if (error) alert(error.message);
-		else {
-			testsolves1 = testsolveInfo.map((e) => ({
-				id: e.id,
-				solver_id: e.solver_id,
-				test_id: e.test_id,
-				solver_name: e.users.full_name,
-				solver_initials: e.users.initials,
-				test_name: e.tests.test_name,
-				start_time: formatDate(new Date(e.start_time)),
-				end_time: formatDate(new Date(e.end_time)),
-				feedback: e.feedback,
-				test_version: e.test_version,
-				status: "Past",
-			}));
+			let { data: testsolveInfo, error } = await supabase
+				.from("testsolves")
+				.select("*,users(full_name,initials),tests(test_name)");
+			if (error) throw error;
+			else {
+				testsolves1 = testsolveInfo.map((e) => ({
+					id: e.id,
+					solver_id: e.solver_id,
+					test_id: e.test_id,
+					solver_name: e.users.full_name,
+					solver_initials: e.users.initials,
+					test_name: e.tests.test_name,
+					start_time: formatDate(new Date(e.start_time)),
+					end_time: formatDate(new Date(e.end_time)),
+					feedback: e.feedback,
+					test_version: e.test_version,
+					status: "Past",
+				}));
+			}
+
+			let testsolves2 = [];
+
+			let { data: testsolveInfo2, error2 } = await supabase
+				.from("testsolvers")
+				.select("*,users(full_name,initials),tests(test_name)");
+			if (error2) throw error2;
+			else {
+				testsolves2 = testsolveInfo2.map((e) => ({
+					id: e.id,
+					solver_id: e.solver_id,
+					test_id: e.test_id,
+					solver_name: e.users.full_name,
+					solver_initials: e.users.initials,
+					test_name: e.tests.test_name,
+					start_time: "N/A",
+					end_time: "N/A",
+					feedback: "N/A",
+					status: "Upcoming",
+				}));
+			}
+
+			testsolves = testsolves1.concat(testsolves2);
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-
-		let testsolves2 = [];
-
-		let { data: testsolveInfo2, error2 } = await supabase
-			.from("testsolvers")
-			.select("*,users(full_name,initials),tests(test_name)");
-		if (error2) alert(error2.message);
-		else {
-			testsolves2 = testsolveInfo2.map((e) => ({
-				id: e.id,
-				solver_id: e.solver_id,
-				test_id: e.test_id,
-				solver_name: e.users.full_name,
-				solver_initials: e.users.initials,
-				test_name: e.tests.test_name,
-				start_time: "N/A",
-				end_time: "N/A",
-				feedback: "N/A",
-				status: "Upcoming",
-			}));
-		}
-
-		testsolves = testsolves1.concat(testsolves2);
-		loading = false;
 	}
 
 	getUpcomingTestsolves();
@@ -71,11 +78,13 @@
 	$: testsolvesSameWeek = testsolves
 		.filter((row) => {
 			var today = new Date();
-			var nextWeek = Date.parse(new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7));
+			var nextWeek = Date.parse(
+				new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7)
+			);
 
-			if (nextWeek > new Date(row.end_time)) {                     
+			if (nextWeek > new Date(row.end_time)) {
 				return false;
-			} else{
+			} else {
 				return true;
 			}
 		})
@@ -86,14 +95,14 @@
 	$: styles = `
 		<style>
 		${selectors} {
-			outline: 1.5px solid var(--green);
+			outline: 1.5px solid var(--primary);
 		}
 		<\/style>
 	`;
 </script>
 
 <svelte:head>
-  {@html styles}
+	{@html styles}
 </svelte:head>
 
 <br />
@@ -130,7 +139,7 @@
 					{#if row.status == "Past"}
 						<div class="pencil">
 							<Link class="link" href={"/testsolve/" + row.id}
-								><i class="ri-pencil-fill" /></Link
+								><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 							>
 						</div>
 					{:else}
@@ -143,7 +152,7 @@
 										.from("testsolvers")
 										.delete()
 										.eq("id", row.id);
-									if (error) alert(error.message);
+									if (error) toast.error(error.message);
 									else getUpcomingTestsolves();
 								}}
 							/>

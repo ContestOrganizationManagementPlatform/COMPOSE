@@ -2,13 +2,11 @@
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loaded = false;
 	let isPW;
-
-	let errorTrue = false;
-	let errorMessage = "";
 
 	async function loadIsPW() {
 		try {
@@ -19,25 +17,14 @@
 				isPW = false;
 			}
 			loaded = true;
-		} catch (err) {
-			errorTrue = true;
-			errorMessage = err.message;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 			isPW = false;
 		}
 	}
 	loadIsPW();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if !loaded}
 	<Loading />

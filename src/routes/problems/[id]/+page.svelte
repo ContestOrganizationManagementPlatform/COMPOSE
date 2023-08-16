@@ -4,102 +4,117 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
 	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { getSingleProblem } from "$lib/getProblems";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let problem;
 	let loaded = false;
 
 	let isAdmin = false;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getAuthorName() {
-		let { data: user, error } = await supabase
-			.from("users")
-			.select("full_name")
-			.eq("id", supabase.auth.user().id)
-			.single();
-		if (error) throw error;
-		else return user.full_name;
+		try {
+			let { data: user, error } = await supabase
+				.from("users")
+				.select("full_name")
+				.eq("id", supabase.auth.user().id)
+				.single();
+			if (error) throw error;
+			else return user.full_name;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function fetchTopic(problem_id) {
-		let { data: problem_topics, error } = await supabase
-			.from("problem_topics")
-			.select("topic_id,global_topics(topic)")
-			.eq("problem_id", problem_id);
-		problem.topic = problem_topics.map((x) => x.topic_id);
-		problem.topicArray = problem_topics.map(
-			(x) => x.global_topics?.topic ?? "Unknown Topic"
-		);
+		try {
+			let { data: problem_topics, error } = await supabase
+				.from("problem_topics")
+				.select("topic_id,global_topics(topic)")
+				.eq("problem_id", problem_id);
+			if (error) throw error;
+
+			problem.topic = problem_topics.map((x) => x.topic_id);
+			problem.topicArray = problem_topics.map(
+				(x) => x.global_topics?.topic ?? "Unknown Topic"
+			);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function fetchProblem() {
-		isAdmin = (await getThisUserRole()) >= 40;
-		problem = await getSingleProblem({
-			id: $page.params.id,
-			archived: isAdmin,
-		});
+		try {
+			isAdmin = (await getThisUserRole()) >= 40;
+			problem = await getSingleProblem({
+				id: $page.params.id,
+				archived: isAdmin,
+			});
 
-		if (!problem) {
-			// problem wasn't found
+			if (!problem) {
+				// problem wasn't found
+				loaded = true;
+				return;
+			}
+
+			await fetchTopic(problem.id);
 			loaded = true;
-			return;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-
-		await fetchTopic(problem.id);
-		loaded = true;
 	}
 	fetchProblem();
 
 	async function deleteProblem() {
-		const { data, error } = await supabase
-			.from("problems")
-			.update({ archived: true })
-			.eq("id", problem.id);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			const authorName = await getAuthorName();
-			await fetch("/api/discord-update", {
-				method: "POST",
-				body: JSON.stringify({
-					id: problem.id,
-					update: "deleted",
-					updater: authorName,
-				}),
-			});
+		try {
+			const { data, error } = await supabase
+				.from("problems")
+				.update({ archived: true })
+				.eq("id", problem.id);
+			if (error) {
+				throw error;
+			} else {
+				const authorName = await getAuthorName();
+				await fetch("/api/discord-update", {
+					method: "POST",
+					body: JSON.stringify({
+						id: problem.id,
+						update: "deleted",
+						updater: authorName,
+					}),
+				});
 
-			window.location.replace("/problems");
+				window.location.replace("/problems");
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function restoreProblem() {
-		const { data, error } = await supabase
-			.from("problems")
-			.update({ archived: false })
-			.eq("id", problem.id);
+		try {
+			const { data, error } = await supabase
+				.from("problems")
+				.update({ archived: false })
+				.eq("id", problem.id);
+			if (error) throw error;
 
-		window.location.reload();
+			window.location.reload();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 </script>
 
 <br />
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 {#if loaded}
 	{#if problem}

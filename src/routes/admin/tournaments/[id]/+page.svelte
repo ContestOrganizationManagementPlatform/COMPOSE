@@ -4,100 +4,98 @@
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Loading from "../../../../lib/components/Loading.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import JSZip from "jszip";
+	import {
+		archiveTournament,
+		getTournamentInfo,
+		getTournamentTests,
+	} from "$lib/supabase/tournaments";
+	import { getTestProblems } from "$lib/supabase/tests";
+	import { handleError } from "$lib/handleError.ts";
+	import { getAllProblems } from "$lib/supabase/problems.ts";
 
 	let tournamentId = $page.params.id;
 	let tournament;
 	let tests = [];
 	let loading = false;
 
-	let errorTrue = false;
-	let errorMessage = "";
-
-	let showDownloadMsg = false;
-
 	async function getTournament() {
-		loading = true;
-		let { data: serverTournament, error } = await supabase
-			.from("tournaments")
-			.select("*")
-			.eq("id", tournamentId)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			loading = true;
+			tournament = await getTournamentInfo(tournamentId);
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		tournament = serverTournament;
-		loading = false;
 	}
 
 	async function getTests() {
-		loading = true;
-		let { data: testList, error } = await supabase
-			.from("tests")
-			.select("*")
-			.eq("tournament_id", tournamentId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			loading = true;
+			tests = await getTournamentTests(tournamentId);
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		tests = testList;
-		loading = false;
 	}
 
 	async function deleteTournament() {
-		const { data, error } = await supabase
-			.from("tournaments")
-			.delete()
-			.eq("id", tournamentId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else window.location.replace("/admin/tournaments");
+		try {
+			const { data, error } = await supabase
+				.from("tournaments")
+				.delete()
+				.eq("id", tournamentId);
+			if (error) throw error;
+			else window.location.replace("/admin/tournaments");
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function getBucketPaths(path) {
-		const { data, error } = await supabase.storage
-			.from("problem-images")
-			.list(path);
-		if (error) throw error;
-		else {
-			let ans = [];
-			for (let i = 0; i < data.length; i++) {
-				if (data[i].id != null) {
-					if (path === "") {
-						ans.push(data[i].name);
+		try {
+			const { data, error } = await supabase.storage
+				.from("problem-images")
+				.list(path);
+			if (error) throw error;
+			else {
+				let ans = [];
+				for (let i = 0; i < data.length; i++) {
+					if (data[i].id != null) {
+						if (path === "") {
+							ans.push(data[i].name);
+						} else {
+							ans.push(path + "/" + data[i].name);
+						}
 					} else {
-						ans.push(path + "/" + data[i].name);
-					}
-				} else {
-					let x;
-					if (path === "") {
-						x = await getBucketPaths(data[i].name);
-					} else {
-						x = await getBucketPaths(path + "/" + data[i].name);
-					}
-					for (let j = 0; j < x.length; j++) {
-						ans.push(x[j]);
+						let x;
+						if (path === "") {
+							x = await getBucketPaths(data[i].name);
+						} else {
+							x = await getBucketPaths(path + "/" + data[i].name);
+						}
+						for (let j = 0; j < x.length; j++) {
+							ans.push(x[j]);
+						}
 					}
 				}
+				return ans;
 			}
-			return ans;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function downloadTournament() {
-		showDownloadMsg = true;
-		let zip = new JSZip();
+		try {
+			let zip = new JSZip();
+			let full_problems = await getAllProblems();
 
-		let { data: full_problems, error: err1 } = await supabase
-			.from("full_problems")
-			.select("*");
-		if (err1) {
-			errorTrue = true;
-			errorMessage = err1.message;
-		} else {
 			let problemFolder = zip.folder("Problems");
 			for (const x of full_problems) {
 				let s = "";
@@ -127,31 +125,16 @@
 				s += "\\end{document}";
 				problemFolder.file(x.front_id + ".tex", s);
 			}
-		}
 
-		let { data: testProblems, error: err2 } = await supabase
-			.from("test_problems")
-			.select("*");
-		if (err2) {
-			errorTrue = true;
-			errorMessage = err2.message;
-		} else {
 			let testOverallFolder = zip.folder("Tests");
 
 			for (const test of tests) {
 				let testFolder = testOverallFolder.folder(test.test_name);
-
 				let problemList = "\\def\\List{";
 
+				let testProblems = await getTestProblems(test.id);
 				for (const problem of testProblems) {
-					if (problem.test_id == test.id) {
-						for (const problemInfo of full_problems) {
-							if (problemInfo.id == problem.problem_id) {
-								problemList += problemInfo.front_id + ",";
-								break;
-							}
-						}
-					}
+					problemList += problem.front_id + ",";
 				}
 
 				if (problemList.charAt(problemList.length - 1) == ",") {
@@ -176,82 +159,59 @@
 					"ProblemList.tex}\n\\large\n\\begin{enumerate}\n    \\foreach \\p [count=\\i] in \\List{\n        \\item \\UnboxedAnswer{\\p}\n    }\n\\end{enumerate}\n\\newpage\n\\end{document}\n";
 				testFolder.file("Answers.tex", answerTex);
 			}
-		}
 
-		let miscellaneousFolder = zip.folder("Miscellaneous");
-		let tcm =
-			"\\ProvidesPackage{MustangMath}\n\\usepackage[utf8]{inputenc}\n\\usepackage{geometry} {}\n\\usepackage{amsmath,currfile,filecontents,graphicx,enumitem,catchfilebetweentags,fancyhdr,gensymb}\n\\usepackage{mathtools}\n\\usepackage{etoolbox}\n\\usepackage[export]{adjustbox}\n\\usepackage{pgffor}\n\\usepackage{tabularx}\n\\usepackage{ifthen}\n\n\\usepackage{tikz}\n\\usetikzlibrary{math}\n\n\\geometry{\n left = 1in,\n right = 1in,\n top = 0.8in,\n bottom = 0.8in\n }\n\n\\newenvironment*{dummyenv}{}{}\n\n%\\usepackage[dvipsnames]{xcolor}\n\\definecolor{mygray}{gray}{0.9}\n\n\n\\setlength{\\parindent}{0pt}\n\\setlength{\\parskip}{12pt}\n\\usepackage{enumitem}\n\\setenumerate{parsep=10pt}\n\\usepackage{etoolbox}\n\\makeatletter\n\\patchcmd{\\CatchFBT@Fin@l}{\\endlinechar\\m@ne}{}\n  {}{\\typeout{Unsuccessful patch!}}\n\\makeatother\n\n\\pagestyle{fancy}\n\\fancyhf{}\n\\chead{" +
-			tournament.tournament_name +
-			"}\n\\cfoot{\\copyright\\ 2023 Mustang Math}\n\n\\newcommand{\\Tag}[1]{\\textbf{\\ExecuteMetaData[Problems/#1.tex]{Tag}}}\n\\newcommand{\\Problem}[1]{\\ExecuteMetaData[Problems/#1.tex]{Problem}}\n\n\\newcommand{\\Author}[1]{\\textit{Written by: \\ExecuteMetaData[Problems/#1.tex]{Author}}}\n\\newcommand{\\Answer}[1]{$\\boxed{\\ExecuteMetaData[Problems/#1.tex]{Answer}}$}\n\\newcommand{\\UnboxedAnswer}[1]{$\\ExecuteMetaData[Problems/#1.tex]{Answer}$}\n\\newcommand{\\AnswerBlurb}[1]{$\\ExecuteMetaData[Problems/#1.tex]{Answer}$}\n\n\\newcommand{\\Solution}[1]{\\ExecuteMetaData[Problems/#1.tex]{Solution}}\n\n\\newcommand{\\ProblemBlurb}[1]{\\Tag{#1}\\Problem{#1}}\n%\\newcommand{\\ProblemBlurb}[1]{\\Problem{#1}}\n\\newcommand{\\SolutionBlurb}[1]{ \\Tag{#1}\\Problem{#1}\\\\\\\\ \\Author{#1}\\\\[0.5cm] \\textbf{Answer: } \\Answer{#1}\\\\\\\\ \\Solution{#1} }";
-		const macros = {
-			"\\ans": "\\boxed{#1}",
-			"\\Abs": "\\left\\lVert #1 \\right\\rVert",
-			"\\ang": "\\left \\langle #1 \\right \\rangle",
-			"\\set": "\\left\\{#1\\right\\}",
-			"\\paren": "\\left(#1\\right)",
-			"\\floor": "\\left\\lfloor #1 \\right\\rfloor",
-			"\\ceil": "\\left\\lceil #1 \\right\\rceil",
-			"\\VEC": "\\overrightarrow{#1}",
-			"\\Mod": "\\enspace(\\text{mod}\\ #1)",
-			"\\image": "\\includegraphics{#1}",
-		};
-		for (const x of Object.keys(macros)) {
-			tcm += "\\newcommand{" + x + "}[1]{" + macros[x] + "}";
-		}
-		miscellaneousFolder.file("MustangMath.sty", tcm);
-
-		let image_paths = await getBucketPaths("");
-		for (const x of image_paths) {
-			const { data: imageX, err3 } = await supabase.storage
-				.from("problem-images")
-				.download(x);
-			if (err3) {
-				errorTrue = true;
-				errorMessage = err3.message;
-			} else {
-				zip.file(x, imageX);
+			let miscellaneousFolder = zip.folder("Miscellaneous");
+			let tcm =
+				"\\ProvidesPackage{MustangMath}\n\\usepackage[utf8]{inputenc}\n\\usepackage{geometry} {}\n\\usepackage{amsmath,currfile,filecontents,graphicx,enumitem,catchfilebetweentags,fancyhdr,gensymb}\n\\usepackage{mathtools}\n\\usepackage{etoolbox}\n\\usepackage[export]{adjustbox}\n\\usepackage{pgffor}\n\\usepackage{tabularx}\n\\usepackage{ifthen}\n\n\\usepackage{tikz}\n\\usetikzlibrary{math}\n\n\\geometry{\n left = 1in,\n right = 1in,\n top = 0.8in,\n bottom = 0.8in\n }\n\n\\newenvironment*{dummyenv}{}{}\n\n%\\usepackage[dvipsnames]{xcolor}\n\\definecolor{mygray}{gray}{0.9}\n\n\n\\setlength{\\parindent}{0pt}\n\\setlength{\\parskip}{12pt}\n\\usepackage{enumitem}\n\\setenumerate{parsep=10pt}\n\\usepackage{etoolbox}\n\\makeatletter\n\\patchcmd{\\CatchFBT@Fin@l}{\\endlinechar\\m@ne}{}\n  {}{\\typeout{Unsuccessful patch!}}\n\\makeatother\n\n\\pagestyle{fancy}\n\\fancyhf{}\n\\chead{" +
+				tournament.tournament_name +
+				"}\n\\cfoot{\\copyright\\ 2023 Mustang Math}\n\n\\newcommand{\\Tag}[1]{\\textbf{\\ExecuteMetaData[Problems/#1.tex]{Tag}}}\n\\newcommand{\\Problem}[1]{\\ExecuteMetaData[Problems/#1.tex]{Problem}}\n\n\\newcommand{\\Author}[1]{\\textit{Written by: \\ExecuteMetaData[Problems/#1.tex]{Author}}}\n\\newcommand{\\Answer}[1]{$\\boxed{\\ExecuteMetaData[Problems/#1.tex]{Answer}}$}\n\\newcommand{\\UnboxedAnswer}[1]{$\\ExecuteMetaData[Problems/#1.tex]{Answer}$}\n\\newcommand{\\AnswerBlurb}[1]{$\\ExecuteMetaData[Problems/#1.tex]{Answer}$}\n\n\\newcommand{\\Solution}[1]{\\ExecuteMetaData[Problems/#1.tex]{Solution}}\n\n\\newcommand{\\ProblemBlurb}[1]{\\Tag{#1}\\Problem{#1}}\n%\\newcommand{\\ProblemBlurb}[1]{\\Problem{#1}}\n\\newcommand{\\SolutionBlurb}[1]{ \\Tag{#1}\\Problem{#1}\\\\\\\\ \\Author{#1}\\\\[0.5cm] \\textbf{Answer: } \\Answer{#1}\\\\\\\\ \\Solution{#1} }";
+			const macros = {
+				"\\ans": "\\boxed{#1}",
+				"\\Abs": "\\left\\lVert #1 \\right\\rVert",
+				"\\ang": "\\left \\langle #1 \\right \\rangle",
+				"\\set": "\\left\\{#1\\right\\}",
+				"\\paren": "\\left(#1\\right)",
+				"\\floor": "\\left\\lfloor #1 \\right\\rfloor",
+				"\\ceil": "\\left\\lceil #1 \\right\\rceil",
+				"\\VEC": "\\overrightarrow{#1}",
+				"\\Mod": "\\enspace(\\text{mod}\\ #1)",
+				"\\image": "\\includegraphics{#1}",
+			};
+			for (const x of Object.keys(macros)) {
+				tcm += "\\newcommand{" + x + "}[1]{" + macros[x] + "}";
 			}
-		}
+			miscellaneousFolder.file("MustangMath.sty", tcm);
 
-		showDownloadMsg = false;
-
-		zip.generateAsync({ type: "blob" }).then(
-			function (blob) {
-				// 1) generate the zip file
-				saveAs(blob, tournament.tournament_name + ".zip"); // 2) trigger the download
-			},
-			function (err) {
-				errorTrue = true;
-				errorMessage = err.message;
+			let image_paths = await getBucketPaths("");
+			for (const x of image_paths) {
+				const { data: imageX, err3 } = await supabase.storage
+					.from("problem-images")
+					.download(x);
+				if (err3) {
+					toast.error(err3.message);
+				} else {
+					zip.file(x, imageX);
+				}
 			}
-		);
+
+			zip.generateAsync({ type: "blob" }).then(
+				function (blob) {
+					// 1) generate the zip file
+					saveAs(blob, tournament.tournament_name + ".zip"); // 2) trigger the download
+				},
+				function (err) {
+					toast.error(err.message);
+				}
+			);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTournament();
 	getTests();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
-
-{#if showDownloadMsg}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="success"
-			title="SUCCESS:"
-			subtitle="Currently downloading ZIP file, please wait..."
-		/>
-	</div>
-{/if}
 
 {#if loading}
 	<Loading />
@@ -276,7 +236,12 @@
 			</div>
 		{/each}
 	{/if}
-	<br /><Modal runHeader="Delete Tournament" onSubmit={deleteTournament} />
+	<br /><Modal
+		runHeader="Archive Tournament"
+		onSubmit={async () => {
+			await archiveTournament(tournamentId);
+		}}
+	/>
 {/if}
 <br />
 <br />

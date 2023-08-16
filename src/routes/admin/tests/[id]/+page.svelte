@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import {
@@ -6,10 +6,21 @@
 		Select,
 		SelectItem,
 		TextArea,
-		InlineNotification,
 	} from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import Modal from "$lib/components/Modal.svelte";
 	import Button from "$lib/components/Button.svelte";
+
+	import { handleError } from "$lib/handleError";
+	import {
+		addTestFeedbackQuestion,
+		getTestInfo,
+		addTestCoordinator,
+		getTestCoordinators,
+		removeTestCoordinator,
+		editTestInfo,
+	} from "$lib/supabase/tests";
+	import { getUser } from "$lib/supabase/users";
 
 	let testId = $page.params.id;
 	let test;
@@ -21,151 +32,130 @@
 	let curQuestion = "";
 	let feedbackQuestions = [];
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getFeedbackQuestions() {
 		try {
 			let { data: test_feedback_questions, error } = await supabase
 				.from("test_feedback_questions")
 				.select("*")
 				.eq("test_id", testId);
+			if (error) throw error;
+
 			feedbackQuestions = test_feedback_questions;
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error.messsage;
+				handleError(error);
+				toast.error(error.messsage);
 			}
 		}
 	}
 
 	async function addFeedbackQuestion() {
-		const { data, error } = await supabase
-			.from("test_feedback_questions")
-			.insert([{ test_id: testId, question: curQuestion }]);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
+		try {
+			await addTestFeedbackQuestion({
+				test_id: Number(testId),
+				question: curQuestion,
+			});
 			await getFeedbackQuestions();
 			curQuestion = "";
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
-	async function getOneUser(id) {
-		let { data: user, error } = await supabase
-			.from("users")
-			.select("*")
-			.eq("id", id)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+	async function getOneUser(id: string) {
+		try {
+			const user = await getUser(id);
+			return user;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		return user;
 	}
 
 	async function getTest() {
-		let { data: tests, error } = await supabase
-			.from("tests")
-			.select("*")
-			.eq("id", testId)
-			.limit(1)
-			.single();
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		}
-		test = tests;
+		try {
+			test = await getTestInfo(Number(testId));
 
-		let { data: queriedCoordinators, error2 } = await supabase
-			.from("test_coordinators")
-			.select("*,users(*)")
-			.eq("test_id", testId);
-		testCoordinators = queriedCoordinators.map((tc) => tc.users);
-		loading = false;
-		await getAllUsers();
-		await getFeedbackQuestions();
+			let queriedCoordinators = await getTestCoordinators(Number(testId));
+			testCoordinators = queriedCoordinators.map((tc) => tc.users);
+
+			loading = false;
+			await getAllUsers();
+			await getFeedbackQuestions();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	async function getAllUsers() {
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("*,test_coordinators(*)")
-			.order("full_name");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			let { data: users, error } = await supabase
+				.from("users")
+				.select("*,test_coordinators(*)")
+				.order("full_name");
+			if (error) throw error;
+			allUsers = users.filter(
+				(x) => !testCoordinators.some((tc) => tc.id === x.id)
+			);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		allUsers = users.filter(
-			(x) => !testCoordinators.some((tc) => tc.id === x.id)
-		);
 	}
 
-	async function addTestCoordinator(e) {
-		e.preventDefault(); // stop form from submitting
-		const { data, error } = await supabase
-			.from("test_coordinators")
-			.insert({ coordinator_id: selectRef.value, test_id: testId });
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+	async function addTestCoordinatorSubmit(e) {
+		try {
+			await addTestCoordinator(Number(testId), selectRef.value);
+			getTest();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		getTest();
 	}
 
-	async function deleteTestCoordinator(testCoordinatorId) {
-		const { data, error } = await supabase
-			.from("test_coordinators")
-			.delete()
-			.eq("coordinator_id", testCoordinatorId)
-			.eq("test_id", testId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+	async function deleteTestCoordinator(testCoordinatorId: number) {
+		try {
+			await removeTestCoordinator(Number(testId), testCoordinatorId);
+			getTest();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		getTest();
 	}
 
 	async function editTest() {
-		const { data, error } = await supabase
-			.from("tests")
-			.update({
-				test_name: test.test_name,
-				test_description: test.test_description,
-			})
-			.eq("id", testId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			await editTestInfo(
+				{
+					test_name: test.test_name,
+					test_description: test.test_description,
+				},
+				Number(testId)
+			);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function deleteTest() {
-		const { data, error } = await supabase
-			.from("tests")
-			.delete()
-			.eq("id", testId);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else window.location.replace("/admin/tests");
+		try {
+			const { data, error } = await supabase
+				.from("tests")
+				.delete()
+				.eq("id", testId);
+			if (error) throw error;
+			else window.location.replace("/admin/tests");
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTest();
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <div style="padding: 10px">
 	{#if loading}
@@ -232,7 +222,7 @@
 				</div>
 			</div>
 			<br />
-			<Button action={addTestCoordinator} title="Add Test Coordinator" />
+			<Button action={addTestCoordinatorSubmit} title="Add Test Coordinator" />
 		</form>
 		<br />
 		<br />

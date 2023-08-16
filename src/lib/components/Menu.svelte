@@ -5,6 +5,8 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { page } from "$app/stores";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	$: path = $page.route.id;
 
@@ -38,7 +40,8 @@
 			let { error } = await supabase.auth.signOut();
 			if (error) throw error;
 		} catch (error) {
-			alert(error.message);
+			handleError(error);
+			toast.error(error.message);
 		} finally {
 			loading = false;
 		}
@@ -168,10 +171,10 @@
 
 <style>
 	button {
-		background-color: var(--green);
+		background-color: var(--primary);
 		border: none;
 		outline: none;
-		color: var(--white);
+		color: var(--text-color-light);
 		padding: 10px;
 		position: fixed;
 		top: 20px;
@@ -181,12 +184,12 @@
 	}
 
 	.close {
-		background-color: var(--body);
+		background-color: var(--primary-light);
 		z-index: 101;
 	}
 
 	.linkPara {
-		color: var(--white);
+		color: var(--text-color-light);
 		text-decoration: none;
 		border: none;
 		width: 100%;
@@ -201,7 +204,7 @@
 
 	.linkPara:hover {
 		cursor: pointer;
-		color: var(--body);
+		color: var(--primary-light);
 	}
 
 	.close {
@@ -209,14 +212,14 @@
 		margin-left: auto;
 	}
 	.drawer {
-		background-color: var(--green);
+		background-color: var(--primary);
 		width: 100%;
 		height: 100%;
-		color: var(--white);
+		color: var(--text-color-light);
 	}
 
 	.banner {
-		border-bottom: 2px solid var(--white);
+		border-bottom: 2px solid var(--text-color-light);
 		padding-bottom: 5px;
 		width: 50%;
 		position: relative;
@@ -229,7 +232,7 @@
 		left: 0;
 		height: 10px;
 		width: 10px;
-		background: var(--white);
+		background: var(--text-color-light);
 		content: "";
 		border-radius: 5px;
 	}
@@ -242,7 +245,7 @@
 	.bottomBanner {
 		position: fixed;
 		bottom: 0;
-		background-color: var(--body);
+		background-color: var(--primary-light);
 		padding: 20px;
 		width: 100%;
 	}

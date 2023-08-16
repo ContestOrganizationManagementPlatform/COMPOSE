@@ -15,6 +15,8 @@
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
 	import { Filter } from "carbon-icons-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let problems = [];
 	export let condensed = false;
@@ -65,7 +67,7 @@
 	let pageSize = 25;
 	let page = 1;
 
-	let editHeader = { key: "edit", value: "", width: "20px" };
+	let editHeader = { key: "edit", value: "", width: "30px" };
 
 	let headers = [
 		{
@@ -116,6 +118,7 @@
 		{ key: "topics_short", value: "Topics" },
 		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
+		{ key: "problem_tests", value: "Test(s)" },
 	];
 
 	$: headersF = headers.filter((row) => showList.includes(row.key));
@@ -138,14 +141,19 @@
 
 	let listeners = {};
 	$: if (draggable && tableContainerDiv && !draggingRow) {
-		for (let i = 0; i < problems.length; i++) {
-			const row = problems[i];
-			let elem = getRowElement(row.id);
-			if (row.id in listeners) {
-				elem?.removeEventListener("dragenter", listeners[row.id]);
+		try {
+			for (let i = 0; i < problems.length; i++) {
+				const row = problems[i];
+				let elem = getRowElement(row.id);
+				if (row.id in listeners) {
+					elem?.removeEventListener("dragenter", listeners[row.id]);
+				}
+				listeners[row.id] = (e) => handleDragEnter(e, row);
+				elem?.addEventListener("dragenter", listeners[row.id]);
 			}
-			listeners[row.id] = (e) => handleDragEnter(e, row);
-			elem?.addEventListener("dragenter", listeners[row.id]);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -154,35 +162,50 @@
 	let lastDraggedInd = null;
 
 	function startDrag(e, row) {
-		if (!draggable) return;
-		draggingRow = true;
-		draggedRow = row;
+		try {
+			if (!draggable) return;
+			draggingRow = true;
+			draggedRow = row;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function handleDragEnter(e, row) {
-		if (!draggable) return;
-		if (!draggingRow) return;
-		if (row === draggedRow) return;
+		try {
+			if (!draggable) return;
+			if (!draggingRow) return;
+			if (row === draggedRow) return;
 
-		e.preventDefault();
-		const ind = problems.indexOf(row);
-		lastDraggedInd = ind;
-		problems.splice(problems.indexOf(draggedRow), 1);
-		problems.splice(ind, 0, draggedRow);
-		problems = problems;
+			e.preventDefault();
+			const ind = problems.indexOf(row);
+			lastDraggedInd = ind;
+			problems.splice(problems.indexOf(draggedRow), 1);
+			problems.splice(ind, 0, draggedRow);
+			problems = problems;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	function endDrag(e) {
-		if (!draggable) return;
-		if (lastDraggedInd !== null) {
-			dispatch("reorder", {
-				id: draggedRow.id,
-				to: lastDraggedInd,
-			});
+		try {
+			if (!draggable) return;
+			if (lastDraggedInd !== null) {
+				dispatch("reorder", {
+					id: draggedRow.id,
+					to: lastDraggedInd,
+				});
+			}
+			draggingRow = false;
+			draggedRow = null;
+			lastDraggedInd = null;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		draggingRow = false;
-		draggedRow = null;
-		lastDraggedInd = null;
 	}
 </script>
 
@@ -264,7 +287,7 @@
 				{#if cell.key === "edit"}
 					<div class="pencil">
 						<Link class="link" href={"/problems/" + row.id}
-							><i class="ri-pencil-fill" /></Link
+							><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
 						>
 					</div>
 				{:else if cell.key === "drag"}
@@ -351,6 +374,6 @@
 	}
 
 	:global(.bx--list-box__field:focus) {
-		outline-color: var(--green);
+		outline-color: var(--primary);
 	}
 </style>

@@ -7,6 +7,8 @@
 	import { unified } from "unified";
 	import { processLatexViaUnified } from "@unified-latex/unified-latex";
 	import rehypeStringify from "rehype-stringify";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	export let problem; // whole object from database
 	export let showMetadata = false;
@@ -19,16 +21,22 @@
 	let author = "";
 
 	(async () => {
-		if ("full_name" in problem) {
-			author = problem.full_name;
-		} else if ("author_id" in problem) {
-			let { data: users, error } = await supabase
-				.from("users")
-				.select("full_name")
-				.eq("id", problem.author_id);
-			author = users[0].full_name;
-		}
+		try {
+			if ("full_name" in problem) {
+				author = problem.full_name;
+			} else if ("author_id" in problem) {
+				let { data: users, error } = await supabase
+					.from("users")
+					.select("full_name")
+					.eq("id", problem.author_id);
+				if (error) throw error;
 
+				author = users[0].full_name;
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 		loaded = true;
 	})();
 
@@ -42,30 +50,35 @@
 	let errorList = [];
 
 	async function loadProblem() {
-		failed = false;
-		errorList = [];
-		for (const field of fieldList) {
-			// find and load images
-			const fieldText = problem[field + "_latex"];
-			const imageDownloadResult = await ImageBucket.downloadLatexImages(
-				fieldText
-			);
-			if (imageDownloadResult.errorList.length > 0) {
-				failed = true;
-				errorList.push(...imageDownloadResult.errorList);
-			}
+		try {
+			failed = false;
+			errorList = [];
+			for (const field of fieldList) {
+				// find and load images
+				const fieldText = problem[field + "_latex"];
+				const imageDownloadResult = await ImageBucket.downloadLatexImages(
+					fieldText
+				);
+				if (imageDownloadResult.errorList.length > 0) {
+					failed = true;
+					errorList.push(...imageDownloadResult.errorList);
+				}
 
-			const displayed = await displayLatex(
-				fieldText,
-				imageDownloadResult.images
-			);
-			displayed.errorList.forEach((x) => (x.field = field)); // add context to errors
-			errorList.push(...displayed.errorList);
-			latexes[field] = displayed.out;
-			for (const err of displayed.errorList) {
-				if (err.sev === "err") failed = true;
+				const displayed = await displayLatex(
+					fieldText,
+					imageDownloadResult.images
+				);
+				displayed.errorList.forEach((x) => (x.field = field)); // add context to errors
+				errorList.push(...displayed.errorList);
+				latexes[field] = displayed.out;
+				for (const err of displayed.errorList) {
+					if (err.sev === "err") failed = true;
+				}
+				errorList = errorList;
 			}
-			errorList = errorList;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 

@@ -1,22 +1,17 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import {
-		TextInput,
-		PasswordInput,
-		InlineNotification,
-	} from "carbon-components-svelte";
+	import { TextInput, PasswordInput } from "carbon-components-svelte";
 	import { page } from "$app/stores";
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let hash = $page.url.hash;
 	let type = "";
 	let accessToken = "";
 
 	let showPasswordReset = false;
-	let checkOutEmail = false;
-	let error = false;
-	let errorMessage = "";
 
 	if (hash !== "") {
 		hash = hash.substring(1);
@@ -41,27 +36,26 @@
 		return re.test(email);
 	}
 	async function resetPassword(payload) {
-		clearInterval();
-		if (validateEmail(email)) {
-			checkOutEmail = true;
-			setInterval(() => {
-				checkOutEmail = false;
-			}, 5000);
+		try {
+			clearInterval();
+			if (validateEmail(email)) {
+				if (type == "recovery") {
+					toast.success(`Your password has been updated.`);
+				} else {
+					toast.success(`A reset password email has been sent to ${email}.`);
+				}
 
-			const { data, error } = await supabase.auth.api.resetPasswordForEmail(
-				email,
-				{ redirectTo: window.location.origin + "/password-reset" }
-			);
-			if (error) {
-				throw error.message;
+				const { data, error } = await supabase.auth.api.resetPasswordForEmail(
+					email,
+					{ redirectTo: window.location.origin + "/password-reset" }
+				);
+				if (error) throw error;
+			} else {
+				toast.error("Your email is not valid!");
 			}
-		} else {
-			error = true;
-			errorMessage = "Your email is not valid!";
-
-			setInterval(() => {
-				error = false;
-			}, 5000);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -71,57 +65,50 @@
 	}
 
 	async function updateUser(payload) {
-		clearInterval();
-		if (validatePassword(password)) {
-			if (password == newPassword) {
-				showPasswordReset = true;
+		try {
+			clearInterval();
+			if (validatePassword(password)) {
+				if (password == newPassword) {
+					showPasswordReset = true;
+					setInterval(() => {
+						showPasswordReset = false;
+					}, 5000);
 
-				setInterval(() => {
-					showPasswordReset = false;
-				}, 5000);
-
-				const { error, data } = await supabase.auth.api.updateUser(
-					accessToken,
-					{
-						password,
+					const { data, error } = await supabase.auth.api.updateUser(
+						accessToken,
+						{
+							password,
+						}
+					);
+					if (error) {
+						throw error;
 					}
-				);
-				if (error) {
-					throw error.message;
+					window.location.href = "/";
+				} else {
+					throw new Error("Your passwords should match.");
+
+					setInterval(() => {
+						error = false;
+					}, 5000);
 				}
-				window.location.href = "/";
 			} else {
-				error = true;
-				errorMessage = "Your passwords should match.";
+				throw new Error(
+					"Your password should contain 8 characters, an uppercase and lowercase letter, and a number."
+				);
 
 				setInterval(() => {
 					error = false;
 				}, 5000);
 			}
-		} else {
-			error = true;
-			errorMessage =
-				"Your password should contain 8 characters, an uppercase and lowercase letter, and a number.";
-
-			setInterval(() => {
-				error = false;
-			}, 5000);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 </script>
 
 <Banner />
 <br />
-{#if error}
-	<div style="position: fixed; top: 20px; left: 20px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="Error:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 <h1>Reset Password</h1>
 <div style="padding: 20px;overflow: hidden;">
 	{#if type == "recovery"}
@@ -145,16 +132,6 @@
 			</div>
 		</div>
 		<Button action={updateUser} title="Reset Password" />
-		{#if checkOutEmail}
-			<div style="position: fixed; top: 20px;">
-				<InlineNotification
-					lowContrast
-					kind="info"
-					title="Updates:"
-					subtitle="Your password has been updated."
-				/>
-			</div>
-		{/if}
 	{:else}
 		<div class="flex" style="width: 100%; margin-bottom: 0.75rem;">
 			<div style="width: 30em;">
@@ -169,22 +146,5 @@
 			</div>
 		</div>
 		<Button action={resetPassword} title="Send Email" />
-		{#if checkOutEmail}
-			<div style="position: fixed; top: 20px;">
-				<InlineNotification
-					lowContrast
-					kind="success"
-					title="Email sent:"
-					subtitle={`A reset password email has been sent to ${email}.`}
-				/>
-			</div>
-		{/if}
 	{/if}
 </div>
-
-<style>
-	:global(.bx--inline-notification__close-button) {
-		outline: none;
-		border: none;
-	}
-</style>

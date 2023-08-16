@@ -2,33 +2,44 @@
 	import { TextInput } from "carbon-components-svelte";
 	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
+	import { createTournament } from "$lib/supabase/tournaments";
 
 	let tournaments = [];
+	let tournamentsArchive = [];
 	let tournamentName = "";
 	let tournamentDate = "";
 
-	let errorTrue = false;
-	let errorMessage = "";
-
 	async function getTournaments() {
-		let { data: tournamentList, error } = await supabase
-			.from("tournaments")
-			.select("*");
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
+		try {
+			let { data: tournamentList, error } = await supabase
+				.from("tournaments")
+				.select("*");
+			if (error) throw error;
+			tournaments = tournamentList.filter((tournament) => {
+				return !tournament.archived;
+			});
+			tournamentsArchive = tournamentList.filter((tournament) => {
+				return tournament.archived;
+			});
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		tournaments = tournamentList;
 	}
 
-	async function createTournament() {
-		const { data, error } = await supabase
-			.from("tournaments")
-			.insert([
-				{ tournament_name: tournamentName, tournament_date: tournamentDate },
-			]);
-		getTournaments();
+	async function createTournamentSubmit() {
+		try {
+			await createTournament({
+				tournament_name: tournamentName,
+				tournament_date: tournamentDate,
+			});
+			getTournaments();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 
 	getTournaments();
@@ -38,22 +49,11 @@
 <h1>Admin: View Tournaments</h1>
 <br />
 
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
-
 <div class="flex profileButtons">
 	<form on:submit|preventDefault class="tournamentForm">
 		<TextInput
 			on:keyup={(e) => {
-				if (e.key === "Enter") createTournament();
+				if (e.key === "Enter") createTournamentSubmit();
 			}}
 			bind:value={tournamentName}
 			label="Name"
@@ -62,18 +62,43 @@
 		<br />
 		<TextInput
 			on:keyup={(e) => {
-				if (e.key === "Enter") createTournament();
+				if (e.key === "Enter") createTournamentSubmit();
 			}}
 			bind:value={tournamentDate}
 			label="Date"
 			placeholder="Date"
 		/>
 		<br />
-		<Button action={createTournament} title="Create New Tournament" />
+		<Button action={createTournamentSubmit} title="Create New Tournament" />
 	</form>
 </div>
 <div style="padding: 10px;" class="grid">
 	{#each tournaments as tournament}
+		<a href={"/admin/tournaments/" + tournament.id}>
+			<div class="box">
+				<h3>
+					<strong>{tournament.id}: {tournament.tournament_name}</strong>
+				</h3>
+				<h3 style="margin-bottom: 10px;">
+					{tournament.tournament_date ?? "None"}
+				</h3>
+				<!--<div class="miniGrid">
+				{#each tournament.tests as test, i}
+					<div class="miniBox">
+						<h5>Test {i}</h5>
+						<p><strong>Name:</strong> {test.test_name}</p>
+						<p><strong>Description:</strong> {test.test_description}</p>
+					</div>
+				{/each}
+			</div>-->
+			</div>
+		</a>
+	{/each}
+</div>
+<br />
+<h2>Archived Tournaments</h2>
+<div style="padding: 10px;" class="grid">
+	{#each tournamentsArchive as tournament}
 		<a href={"/admin/tournaments/" + tournament.id}>
 			<div class="box">
 				<h3>
@@ -110,11 +135,11 @@
 		transition: 0.4s ease-in-out;
 	}
 	a:hover div {
-		background-color: var(--tinted-green);
+		background-color: var(--primary-tint);
 	}
 	.box {
-		background-color: var(--white);
-		border: 1px solid var(--green);
+		background-color: var(--text-color-light);
+		border: 1px solid var(--primary);
 		margin: 10px;
 		padding: 10px 20px;
 	}
@@ -122,9 +147,5 @@
 	.grid {
 		display: grid;
 		grid-template-columns: 50% 50%;
-	}
-
-	:global(.tournamentForm) {
-		min-width: 400px;
 	}
 </style>

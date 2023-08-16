@@ -6,6 +6,8 @@
 	import { createEventDispatcher } from "svelte";
 	import { page } from "$app/stores";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	const dispatch = createEventDispatcher();
 
@@ -24,29 +26,35 @@
 	let loading = true;
 
 	async function fetchProblems() {
-		let { data: testProblems, error } = await supabase
-			.from("test_problems")
-			.select("*,full_problems(*)")
-			.eq("test_id", testId)
-			.order("problem_number");
+		try {
+			let { data: testProblems, error } = await supabase
+				.from("test_problems")
+				.select("*,full_problems(*)")
+				.eq("test_id", testId)
+				.order("problem_number");
+			if (error) throw error;
 
-		problems = testProblems;
-		if (answers.length > 0) {
-			for (const ans of answers) {
-				answerTexts[ans.problem_id] = ans.answer;
-				feedbackTexts[ans.problem_id] = ans.feedback;
-				isCorrect[ans.problem_id] = ans.correct;
+			problems = testProblems;
+			if (answers.length > 0) {
+				for (const ans of answers) {
+					answerTexts[ans.problem_id] = ans.answer;
+					feedbackTexts[ans.problem_id] = ans.feedback;
+					isCorrect[ans.problem_id] = ans.correct;
+				}
+				answers.sort(
+					(a, b) =>
+						problems.findIndex((pb) => pb.problem_id === a.problem_id) -
+						problems.findIndex((pb) => pb.problem_id === b.problem_id)
+				);
+				answers = answers;
+			} else {
+				answers = problems.map((pb) => new TestsolveAnswer(pb.problem_id));
 			}
-			answers.sort(
-				(a, b) =>
-					problems.findIndex((pb) => pb.problem_id === a.problem_id) -
-					problems.findIndex((pb) => pb.problem_id === b.problem_id)
-			);
-			answers = answers;
-		} else {
-			answers = problems.map((pb) => new TestsolveAnswer(pb.problem_id));
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		loading = false;
 	}
 
 	fetchProblems();
@@ -67,7 +75,12 @@
 	}
 
 	function submitTest() {
-		dispatch("submit");
+		try {
+			dispatch("submit");
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
 	}
 </script>
 
@@ -167,7 +180,7 @@
 
 	.problem-div,
 	.feedback-div {
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 2px solid black;
 		margin: 10px;
 		padding: 20px;
@@ -191,7 +204,7 @@
 	}
 
 	.questionsDiv {
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 2px solid black;
 		padding: 20px;
 		text-align: left;

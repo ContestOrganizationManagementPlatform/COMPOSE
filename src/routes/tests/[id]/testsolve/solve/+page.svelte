@@ -2,19 +2,13 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import {
-		InlineNotification,
-		TextArea,
-		Form,
-		TextInput,
-	} from "carbon-components-svelte";
+	import { TextArea, Form, TextInput } from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
 	import Button from "$lib/components/Button.svelte";
-
-	let errorTrue = false;
-	let errorMessage = "";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loading = true;
 	let disallowed = true;
@@ -45,227 +39,222 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error;
+				handleError(error);
+				toast.error(error);
 			}
 		}
 	}
 
 	async function permissionCheck() {
-		// check permission
-		if ((await getThisUserRole()) >= 40) {
-			disallowed = false;
-		} else {
-			let { data, error, count } = await supabase
-				.from("testsolvers")
-				.select("*", { count: "exact", head: true })
-				.eq("test_id", $page.params.id)
-				.eq("solver_id", supabase.auth.user().id);
-			if (error) {
-				errorTrue = true;
-				loading = false;
-				errorMessage = error.message;
-			} else if (count > 0) {
+		try {
+			// check permission
+			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
+			} else {
+				let { data, error, count } = await supabase
+					.from("testsolvers")
+					.select("*", { count: "exact", head: true })
+					.eq("test_id", $page.params.id)
+					.eq("solver_id", supabase.auth.user().id);
+				if (error) {
+					loading = false;
+					throw error;
+				} else if (count > 0) {
+					disallowed = false;
+				}
 			}
+
+			await loadTestsolve();
+
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-
-		await loadTestsolve();
-
-		loading = false;
 	}
 
 	async function loadTestsolve() {
-		await getFeedbackQuestions();
+		try {
+			await getFeedbackQuestions();
 
-		// check if there is a prior testsolve
+			// check if there is a prior testsolve
 
-		let { data, error } = await supabase
-			.from("testsolves")
-			.select("*")
-			.eq("test_id", $page.params.id)
-			.eq("solver_id", supabase.auth.user().id)
-			.eq("completed", false);
-
-		if (error) alert(error.message);
-
-		if (data.length > 0) {
-			loadedTestsolve = data[0];
-
-			//console.log(loadedTestsolve);
-
-			// need to fetch all the previous answers
-			let { data: data2, error: error2 } = await supabase
-				.from("testsolve_answers")
+			let { data, error } = await supabase
+				.from("testsolves")
 				.select("*")
-				.eq("testsolve_id", loadedTestsolve.id);
+				.eq("test_id", $page.params.id)
+				.eq("solver_id", supabase.auth.user().id)
+				.eq("completed", false);
 
-			if (error2) {
-				errorTrue = true;
-				errorMessage = error.message;
-			} else {
-				answers = data2;
+			if (error) throw error;
+
+			if (data.length > 0) {
+				loadedTestsolve = data[0];
+
+				//console.log(loadedTestsolve);
+
+				// need to fetch all the previous answers
+				let { data: data2, error: error2 } = await supabase
+					.from("testsolve_answers")
+					.select("*")
+					.eq("testsolve_id", loadedTestsolve.id);
+
+				if (error2) throw error2;
+				else {
+					answers = data2;
+				}
+
+				// need to fetch all the previous feedback answers
+				let { data: data3, error: error3 } = await supabase
+					.from("testsolve_feedback_answers")
+					.select("*")
+					.eq("testsolve_id", loadedTestsolve.id);
+				if (error3) {
+					throw error3;
+				} else {
+					feedbackAnswers = data3;
+				}
+
+				// load in start time
+				timeOffset = loadedTestsolve.time_elapsed;
 			}
-
-			// need to fetch all the previous feedback answers
-			let { data: data3, error: error3 } = await supabase
-				.from("testsolve_feedback_answers")
-				.select("*")
-				.eq("testsolve_id", loadedTestsolve.id);
-			if (error3) {
-				errorTrue = true;
-				errorMessage = error.message;
-			} else {
-				feedbackAnswers = data3;
-			}
-
-			// load in start time
-			timeOffset = loadedTestsolve.time_elapsed;
+			startTime = new Date();
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
-		startTime = new Date();
 	}
 
 	permissionCheck();
 
 	async function submitTestsolve(completedSolve) {
-		console.log("hi");
-		endTime = new Date();
+		try {
+			endTime = new Date();
 
-		// time elapsed in seconds
-		const timeElapsed = Math.floor((endTime - startTime) / 1000) + timeOffset;
+			// time elapsed in seconds
+			const timeElapsed = Math.floor((endTime - startTime) / 1000) + timeOffset;
 
-		let data;
+			let data;
 
-		// fetch the current test version
-		let { data: testData, error: testError } = await supabase
-			.from("tests")
-			.select("*")
-			.eq("id", $page.params.id)
-			.limit(1)
-			.single();
-		console.log(testData);
+			// fetch the current test version
+			let { data: testData, error: testError } = await supabase
+				.from("tests")
+				.select("*")
+				.eq("id", $page.params.id)
+				.limit(1)
+				.single();
+			if (testError) throw testError;
 
-		// check if this is a resubmission
-		if (loadedTestsolve) {
-			let { data: tsData, error } = await supabase
-				.from("testsolves")
-				.update({
-					test_id: $page.params.id,
-					solver_id: supabase.auth.user().id,
-					start_time: startTime.toISOString(),
-					end_time: endTime.toISOString(),
-					time_elapsed: timeElapsed,
-					completed: completedSolve,
-					test_version: testData.test_version,
-				})
-				.eq("id", loadedTestsolve.id);
-
-			if (error) {
-				errorTrue = true;
-				loading = false;
-				errorMessage = error.message;
-			}
-
-			data = tsData;
-		} else {
-			let { data: tsData, error } = await supabase.from("testsolves").insert([
-				{
-					test_id: $page.params.id,
-					solver_id: supabase.auth.user().id,
-					start_time: startTime.toISOString(),
-					end_time: endTime.toISOString(),
-					time_elapsed: timeElapsed,
-					completed: completedSolve,
-					test_version: testData.test_version,
-				},
-			]);
-
-			if (error) {
-				errorTrue = true;
-				loading = false;
-				errorMessage = error.message;
-			}
-
-			data = tsData;
-		}
-
-		let testsolveId = data[0].id;
-
-		// update all answers if previous testsolve, else insert
-		if (loadedTestsolve) {
-			for (const ans of answers) {
-				let { error: error2 } = await supabase
-					.from("testsolve_answers")
+			// check if this is a resubmission
+			if (loadedTestsolve) {
+				let { data: tsData, error } = await supabase
+					.from("testsolves")
 					.update({
+						test_id: $page.params.id,
+						solver_id: supabase.auth.user().id,
+						start_time: startTime.toISOString(),
+						end_time: endTime.toISOString(),
+						time_elapsed: timeElapsed,
+						completed: completedSolve,
+						test_version: testData.test_version,
+					})
+					.eq("id", loadedTestsolve.id);
+
+				if (error) {
+					loading = false;
+					throw error;
+				}
+
+				data = tsData;
+			} else {
+				let { data: tsData, error } = await supabase.from("testsolves").insert([
+					{
+						test_id: $page.params.id,
+						solver_id: supabase.auth.user().id,
+						start_time: startTime.toISOString(),
+						end_time: endTime.toISOString(),
+						time_elapsed: timeElapsed,
+						completed: completedSolve,
+						test_version: testData.test_version,
+					},
+				]);
+
+				if (error) {
+					loading = false;
+					throw error;
+				}
+
+				data = tsData;
+			}
+
+			let testsolveId = data[0].id;
+
+			// update all answers if previous testsolve, else insert
+			if (loadedTestsolve) {
+				for (const ans of answers) {
+					let { error: error2 } = await supabase
+						.from("testsolve_answers")
+						.update({
+							testsolve_id: testsolveId,
+							problem_id: ans.problem_id,
+							answer: ans.answer,
+							feedback: ans.feedback,
+							correct: ans.correct,
+						})
+						.eq("id", ans.id);
+
+					if (error2) throw error2;
+					2;
+				}
+			} else {
+				let { error: error2 } = await supabase.from("testsolve_answers").insert(
+					answers.map((ans) => ({
 						testsolve_id: testsolveId,
 						problem_id: ans.problem_id,
 						answer: ans.answer,
 						feedback: ans.feedback,
 						correct: ans.correct,
-					})
-					.eq("id", ans.id);
-
-				if (error2) {
-					errorTrue = true;
-					errorMessage = error2.message;
-				}
-			}
-		} else {
-			let { error: error2 } = await supabase.from("testsolve_answers").insert(
-				answers.map((ans) => ({
-					testsolve_id: testsolveId,
-					problem_id: ans.problem_id,
-					answer: ans.answer,
-					feedback: ans.feedback,
-					correct: ans.correct,
-				}))
-			);
-
-			if (error2) {
-				errorTrue = true;
-				errorMessage = error2.message;
-			}
-		}
-
-		// update answer to feedback questions
-		if (loadedTestsolve) {
-			for (const ans of feedbackAnswers) {
-				let { error: error2 } = await supabase
-					.from("testsolve_feedback_answers")
-					.update({
-						testsolve_id: testsolveId,
-						feedback_question: ans.feedback_question,
-						answer: ans.answer,
-					})
-					.eq("id", ans.id);
-				if (error2) {
-					errorTrue = true;
-					errorMessage = error2.message;
-				}
-			}
-		} else {
-			let { error: error2 } = await supabase
-				.from("testsolve_feedback_answers")
-				.insert(
-					feedbackAnswers.map((ans) => ({
-						testsolve_id: testsolveId,
-						feedback_question: ans.feedback_question,
-						answer: ans.answer,
 					}))
 				);
 
-			if (error2) {
-				errorTrue = true;
-				errorMessage = error2.message;
+				if (error2) throw error2;
 			}
-		}
 
-		if (!errorTrue) {
+			// update answer to feedback questions
+			if (loadedTestsolve) {
+				for (const ans of feedbackAnswers) {
+					let { error: error2 } = await supabase
+						.from("testsolve_feedback_answers")
+						.update({
+							testsolve_id: testsolveId,
+							feedback_question: ans.feedback_question,
+							answer: ans.answer,
+						})
+						.eq("id", ans.id);
+					if (error2) throw error2;
+				}
+			} else {
+				let { error: error2 } = await supabase
+					.from("testsolve_feedback_answers")
+					.insert(
+						feedbackAnswers.map((ans) => ({
+							testsolve_id: testsolveId,
+							feedback_question: ans.feedback_question,
+							answer: ans.answer,
+						}))
+					);
+
+				if (error2) throw error2;
+			}
+
 			if (!completedSolve) {
 				window.location.href = "/testsolve";
 			} else {
 				window.location.href = "/testsolve/" + testsolveId;
 			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
@@ -285,17 +274,6 @@
 
 	onDestroy(() => clearInterval(timerInterval));
 </script>
-
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
 
 <br />
 {#if loading}
@@ -332,7 +310,7 @@
 		top: 0;
 		margin: 10px;
 		padding: 10px;
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 1px solid black;
 	}
 </style>

@@ -2,13 +2,11 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import { InlineNotification } from "carbon-components-svelte";
+	import toast from "svelte-french-toast";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
-
-	let errorTrue = false;
-	let errorMessage = "";
+	import { handleError } from "$lib/handleError.ts";
 
 	let loading = true;
 	let disallowed = true;
@@ -19,6 +17,7 @@
 
 	let startTime = null;
 	let endTime = null;
+	let isAdmin;
 
 	let testsolve = null;
 	let timeElapsed;
@@ -33,6 +32,8 @@
 				.from("test_feedback_questions")
 				.select("*")
 				.eq("test_id", testsolve.test_id);
+			if (error) throw error;
+
 			for (const x of test_feedback_questions) {
 				feedbackQuestions[x.id] = x;
 				feedbackAnswers.push({
@@ -42,164 +43,205 @@
 			}
 		} catch (error) {
 			if (error.code !== "PGRST116") {
-				errorTrue = true;
-				errorMessage = error;
+				handleError(error);
+				toast.error(error);
 			}
 		}
 	}
 
 	async function getFeedbackAnswers() {
-		let { data: data3, error: error3 } = await supabase
-			.from("testsolve_feedback_answers")
-			.select("*")
-			.eq("testsolve_id", $page.params.id);
-		if (error3) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			feedbackAnswers = data3;
+		try {
+			let { data: data3, error: error3 } = await supabase
+				.from("testsolve_feedback_answers")
+				.select("*")
+				.eq("testsolve_id", $page.params.id);
+			if (error3) throw error3;
+			else feedbackAnswers = data3;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	}
+
+	async function deleteTestsolve() {
+		try {
+			if (isAdmin) {
+				let { error } = await supabase
+					.from("testsolves")
+					.delete()
+					.eq("id", $page.params.id);
+				if (error) throw error;
+
+				toast.success("Successfully deleted testsolve!");
+				window.location.href = "/manage-testsolves";
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function permissionCheck() {
-		// check permission
-		let { data, error } = await supabase
-			.from("testsolves")
-			.select("*")
-			.eq("id", $page.params.id);
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else if (data.length === 0) {
-			errorTrue = true;
-			errorMessage = "Testsolve with id " + $page.params.id + " doesn't exist!";
-		} else {
-			testsolve = data[0];
-			if (
-				(await getThisUserRole()) === 40 ||
-				testsolve.solver_id === supabase.auth.user().id
-			) {
-				disallowed = false;
+		try {
+			// check permission
+			let { data, error } = await supabase
+				.from("testsolves")
+				.select("*")
+				.eq("id", $page.params.id);
+			if (error) {
+				throw error;
+			} else if (data.length === 0) {
+				throw new Error(
+					"Testsolve with id " + $page.params.id + " doesn't exist!"
+				);
 			} else {
-				// check if test coordinator
-				let { data2, error2, count } = await supabase
-					.from("test_coordinators")
-					.select("*", { count: "exact", head: true })
-					.eq("coordinator_id", supabase.auth.user().id)
-					.eq("test_id", testsolve.test_id);
-				if (error2) {
-					errorTrue = true;
-					errorMessage = error2.message;
-				} else if (count > 0) {
+				testsolve = data[0];
+				if (
+					(await getThisUserRole()) === 40 ||
+					testsolve.solver_id === supabase.auth.user().id
+				) {
 					disallowed = false;
+				} else {
+					// check if test coordinator
+					let { data2, error2, count } = await supabase
+						.from("test_coordinators")
+						.select("*", { count: "exact", head: true })
+						.eq("coordinator_id", supabase.auth.user().id)
+						.eq("test_id", testsolve.test_id);
+					if (error2) {
+						throw error2;
+					} else if (count > 0) {
+						disallowed = false;
+					}
 				}
 			}
-		}
 
-		if (disallowed) {
-			loading = false;
-		} else {
-			getAnswers();
-			getFeedbackQuestions();
-			getFeedbackAnswers();
+			if (disallowed) {
+				loading = false;
+			} else {
+				getAnswers();
+				getFeedbackQuestions();
+				getFeedbackAnswers();
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	async function getAnswers() {
-		let { data, error } = await supabase
-			.from("testsolve_answers")
-			.select("*")
-			.eq("testsolve_id", $page.params.id);
+		try {
+			let { data, error } = await supabase
+				.from("testsolve_answers")
+				.select("*")
+				.eq("testsolve_id", $page.params.id);
 
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			answers = data;
-
-			loading = false;
+			if (error) {
+				throw error;
+			} else {
+				answers = data;
+				loading = false;
+			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
 
 	permissionCheck();
 
 	async function submitTestsolve() {
-		endTime = new Date();
+		try {
+			endTime = new Date();
 
-		let { data, error } = await supabase
-			.from("testsolves")
-			.update({
-				feedback: "", // TODO: allow feedback update
-			})
-			.eq("id", $page.params.id);
+			let { data, error } = await supabase
+				.from("testsolves")
+				.update({
+					feedback: "", // TODO: allow feedback update
+				})
+				.eq("id", $page.params.id);
 
-		if (error) {
-			errorTrue = true;
-			errorMessage = error.message;
-		} else {
-			// delete old answers
-			let { error3 } = await supabase
-				.from("testsolve_answers")
-				.delete()
-				.eq("testsolve_id", $page.params.id);
-
-			if (error3) {
-				errorTrue = true;
-				errorMessage = error.message;
+			if (error) {
+				throw error;
 			} else {
-				let { data2, error2 } = await supabase.from("testsolve_answers").insert(
-					answers.map((ans) => ({
-						testsolve_id: $page.params.id,
-						problem_id: ans.problem_id,
-						answer: ans.answer,
-						feedback: ans.feedback,
-						correct: ans.correct,
-					}))
-				);
+				// delete old answers
+				let { error3 } = await supabase
+					.from("testsolve_answers")
+					.delete()
+					.eq("testsolve_id", $page.params.id);
 
-				if (error2) {
-					errorTrue = true;
-					errorMessage = error.message;
+				if (error3) {
+					throw error3;
 				} else {
-					loading = true;
-					for (const ans of feedbackAnswers) {
-						let { error: error2 } = await supabase
-							.from("testsolve_feedback_answers")
-							.update({
+					let { data2, error2 } = await supabase
+						.from("testsolve_answers")
+						.insert(
+							answers.map((ans) => ({
 								testsolve_id: $page.params.id,
-								feedback_question: ans.feedback_question,
+								problem_id: ans.problem_id,
 								answer: ans.answer,
-							})
-							.eq("id", ans.id);
-						if (error2) {
-							errorTrue = true;
-							errorMessage = error2.message;
+								feedback: ans.feedback,
+								correct: ans.correct,
+							}))
+						);
+
+					if (error2) {
+						throw error2;
+					} else {
+						loading = true;
+						for (const ans of feedbackAnswers) {
+							let { error: error2 } = await supabase
+								.from("testsolve_feedback_answers")
+								.update({
+									testsolve_id: $page.params.id,
+									feedback_question: ans.feedback_question,
+									answer: ans.answer,
+								})
+								.eq("id", ans.id);
+							if (error2) {
+								toast.error(error2.message);
+							}
 						}
+						getAnswers();
+						getFeedbackAnswers();
 					}
-					getAnswers();
-					getFeedbackAnswers();
 				}
 			}
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
 		}
 	}
-</script>
 
-{#if errorTrue}
-	<div style="position: fixed; bottom: 10px; left: 10px;">
-		<InlineNotification
-			lowContrast
-			kind="error"
-			title="ERROR:"
-			subtitle={errorMessage}
-		/>
-	</div>
-{/if}
+	async function loadIsAdmin() {
+		try {
+			const role = await getThisUserRole();
+			if (role >= 40) {
+				isAdmin = true;
+			} else {
+				isAdmin = false;
+			}
+			loading = false;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+			isAdmin = false;
+		}
+	}
+	loadIsAdmin();
+</script>
 
 {#if loading}
 	<p>Loading...</p>
 {:else if disallowed}
 	<p>You are not a testsolver for this test!</p>
 {:else}
+	<br />
+	{#if isAdmin}
+		<Button action={deleteTestsolve} title="Delete Testsolve" />
+	{/if}
+	<br />
+
 	<TestView
 		testId={testsolve.test_id}
 		bind:answers
@@ -210,6 +252,7 @@
 		{feedbackQuestions}
 	/>
 	<Button action={submitTestsolve} title="Submit" />
+	<br />
 	<div class="timer">
 		<p>Time taken: {formatTime(timeElapsed, { hideHours: true })}</p>
 	</div>
@@ -222,7 +265,7 @@
 		top: 0;
 		margin: 10px;
 		padding: 10px;
-		background-color: var(--white);
+		background-color: var(--text-color-light);
 		border: 1px solid black;
 	}
 </style>
