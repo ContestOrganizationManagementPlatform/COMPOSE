@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getThisUserRole } from "$lib/supabase/users";
+	import { getThisUserRole } from "$lib/supabase";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";

@@ -7,12 +7,13 @@
 	import toast from "svelte-french-toast";
 	import { getFullProblems } from "$lib/getProblems";
 	import { handleError } from "$lib/handleError.ts";
+	import { getThisUser } from "$lib/supabase";
 
 	let problems = [];
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
-	const userId = supabase.auth.user().id;
+	const userId = getThisUser().id;
 
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];

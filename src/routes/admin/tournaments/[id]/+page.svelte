@@ -10,10 +10,10 @@
 		archiveTournament,
 		getTournamentInfo,
 		getTournamentTests,
-	} from "$lib/supabase/tournaments";
-	import { getTestProblems } from "$lib/supabase/tests";
+		getTestProblems,
+		getAllProblems,
+	} from "$lib/supabase";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAllProblems } from "$lib/supabase/problems.ts";
 
 	let tournamentId = $page.params.id;
 	let tournament;
@@ -36,20 +36,6 @@
 			loading = true;
 			tests = await getTournamentTests(tournamentId);
 			loading = false;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
-	async function deleteTournament() {
-		try {
-			const { data, error } = await supabase
-				.from("tournaments")
-				.delete()
-				.eq("id", tournamentId);
-			if (error) throw error;
-			else window.location.replace("/admin/tournaments");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

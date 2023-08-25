@@ -2,32 +2,16 @@
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import { getProblemImages } from "$lib/getProblemImages";
-	import Problem from "$lib/components/Problem.svelte";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import Modal from "$lib/components/Modal.svelte";
 	import toast from "svelte-french-toast";
 	import { getSingleProblem } from "$lib/getProblems";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName, editProblem } from "$lib/supabase";
 
 	let problem;
 	let images = [];
 	let loaded = false;
-
-	async function getAuthorName() {
-		try {
-			let { data: user, error } = await supabase
-				.from("users")
-				.select("full_name")
-				.eq("id", supabase.auth.user().id)
-				.single();
-			if (error) throw error;
-			else return user.full_name;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
 
 	async function fetchTopic(problem_id) {
 		try {
@@ -66,11 +50,7 @@
 	async function submitProblem(payload) {
 		try {
 			const { topics, problem_files, ...payloadNoTopics } = payload;
-			let { data, error } = await supabase
-				.from("problems")
-				.update([payloadNoTopics])
-				.eq("id", $page.params.id);
-			if (error) throw error;
+			await editProblem(payloadNoTopics, $page.params.id);
 
 			let { error2 } = await supabase
 				.from("problem_topics")

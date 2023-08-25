@@ -228,8 +228,8 @@
 						<div style="padding: 10px;">
 							<pre><strong>User</strong>: {row.user}</pre>
 							<pre><strong>Math Competition Background</strong
-								>: {row.math_comp_background}</pre>
-							<pre><strong>AMC Score</strong>: {row.amc_score}</pre>
+								>: {row.user_math_background}</pre>
+							<pre><strong>AMC Score</strong>: {row.user_amc_score}</pre>
 						</div>
 					</svelte:fragment>
 				</DataTable>

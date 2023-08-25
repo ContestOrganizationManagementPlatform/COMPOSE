@@ -62,25 +62,27 @@ async function getFrontID(problem_id: number) {
  * Returns all problems from the database.
  * It includes non-archived problems if normal is true, and it includes archived problems if archived is true
  *
- * @param columns string
- * @param normal boolean
- * @param archived boolean
+ * @param customSelect optional, string
+ * @param normal optional, boolean
+ * @param archived optional, boolean
  * @returns problem list
  */
 export async function getAllProblems(
-	columns: string = "*",
+	customSelect: string = "*",
 	normal: boolean = true,
 	archived: boolean = false
 ) {
 	if (normal && archived) {
-		let { data, error } = await supabase.from("full_problems").select(columns);
+		let { data, error } = await supabase
+			.from("full_problems")
+			.select(customSelect);
 		if (error) throw error;
 		return data;
 	}
 	if (normal && !archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select(columns)
+			.select(customSelect)
 			.eq("archived", false);
 		if (error) throw error;
 		return data;
@@ -88,7 +90,7 @@ export async function getAllProblems(
 	if (!normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select(columns)
+			.select(customSelect)
 			.eq("archived", true);
 		if (error) throw error;
 		return data;
@@ -98,8 +100,45 @@ export async function getAllProblems(
 	}
 }
 
+export async function getAllProblemsOrder(
+	customOrder: string,
+	customSelect: string = "*",
+	normal: boolean = true,
+	archived: boolean = false
+) {
+	if (normal && archived) {
+		let { data, error } = await supabase
+			.from("full_problems")
+			.select(customSelect)
+			.order(customOrder);
+		if (error) throw error;
+		return data;
+	}
+	if (normal && !archived) {
+		let { data, error } = await supabase
+			.from("full_problems")
+			.select(customSelect)
+			.eq("archived", false)
+			.order(customOrder);
+		if (error) throw error;
+		return data;
+	}
+	if (!normal && archived) {
+		let { data, error } = await supabase
+			.from("full_problems")
+			.select(customSelect)
+			.eq("archived", true)
+			.order(customOrder);
+		if (error) throw error;
+		return data;
+	}
+	if (!normal && !archived) {
+		return [];
+	}
+}
+
 /**
- * Creates a single problem
+ * Creates a single problem. No topic support yet
  *
  * @param problem object
  * @returns problem data in database (including id)
@@ -180,6 +219,19 @@ export async function archiveProblem(problem_id: number) {
 	const { error } = await supabase
 		.from("problems")
 		.update({ archived: true })
+		.eq("id", problem_id);
+	if (error) throw error;
+}
+
+/**
+ * Restores a problem. Returns nothing.
+ *
+ * @param problem_id number
+ */
+export async function restoreProblem(problem_id: number) {
+	const { error } = await supabase
+		.from("problems")
+		.update({ archived: false })
 		.eq("id", problem_id);
 	if (error) throw error;
 }

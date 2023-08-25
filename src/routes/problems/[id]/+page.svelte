@@ -9,26 +9,11 @@
 	import { getSingleProblem } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName, archiveProblem, restoreProblem } from "$lib/supabase";
 
 	let problem;
 	let loaded = false;
-
 	let isAdmin = false;
-
-	async function getAuthorName() {
-		try {
-			let { data: user, error } = await supabase
-				.from("users")
-				.select("full_name")
-				.eq("id", supabase.auth.user().id)
-				.single();
-			if (error) throw error;
-			else return user.full_name;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
 
 	async function fetchTopic(problem_id) {
 		try {
@@ -73,39 +58,28 @@
 
 	async function deleteProblem() {
 		try {
-			const { data, error } = await supabase
-				.from("problems")
-				.update({ archived: true })
-				.eq("id", problem.id);
-			if (error) {
-				throw error;
-			} else {
-				const authorName = await getAuthorName();
-				await fetch("/api/discord-update", {
-					method: "POST",
-					body: JSON.stringify({
-						id: problem.id,
-						update: "deleted",
-						updater: authorName,
-					}),
-				});
+			await archiveProblem(problem.id);
 
-				window.location.replace("/problems");
-			}
+			const authorName = await getAuthorName();
+			await fetch("/api/discord-update", {
+				method: "POST",
+				body: JSON.stringify({
+					id: problem.id,
+					update: "deleted",
+					updater: authorName,
+				}),
+			});
+
+			window.location.replace("/problems");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
 
-	async function restoreProblem() {
+	async function restoreLocalProblem() {
 		try {
-			const { data, error } = await supabase
-				.from("problems")
-				.update({ archived: false })
-				.eq("id", problem.id);
-			if (error) throw error;
-
+			await restoreProblem(problem.id);
 			window.location.reload();
 		} catch (error) {
 			handleError(error);
@@ -126,11 +100,11 @@
 		<br />
 		<br />
 		{#if problem.archived && isAdmin}
-			<Modal runHeader="Restore Problem" onSubmit={restoreProblem} />
+			<Modal runHeader="Restore Problem" onSubmit={restoreLocalProblem} />
 			<br />
 			<br />
 		{:else if problem.author_id === supabase.auth.user().id || isAdmin}
-			<Modal runHeader="Delete Problem" onSubmit={deleteProblem} />
+			<Modal runHeader="Archive Problem" onSubmit={deleteProblem} />
 			<br />
 			<br />
 		{/if}
