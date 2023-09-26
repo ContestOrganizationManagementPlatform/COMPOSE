@@ -9,6 +9,12 @@
 	import { getFullProblems } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import {
+		getTestInfo,
+		getThisUser,
+		editTestInfo,
+		getTestProblems,
+	} from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let test;
@@ -25,19 +31,15 @@
 
 	async function getTest() {
 		try {
-			let { data: tests, error } = await supabase
-				.from("tests")
-				.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
-				.eq("id", testId)
-				.limit(1)
-				.single();
-			if (error) throw error;
-			test = tests;
+			test = await getTestInfo(
+				testId,
+				"*,test_coordinators(users(*)),tournaments(tournament_name)"
+			);
 			testVersion = test.test_version;
 
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
-				!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
+				!!testCoordinators.find((tc) => tc.id === getThisUser().id) ||
 				(await getThisUserRole()) >= 40;
 			loading = false;
 			getProblems();
@@ -49,12 +51,7 @@
 
 	async function getProblems() {
 		try {
-			let { data: problemList, error } = await supabase
-				.from("test_problems")
-				.select("*,full_problems(*)")
-				.eq("test_id", testId)
-				.order("problem_number");
-			if (error) throw error;
+			let problemList = await getTestProblems(testId);
 
 			//console.log(problemList);
 			// filter duplicates ?? idk why they appear
@@ -188,8 +185,6 @@
 						.eq("relation_id", curProblem.relation_id);
 					if (error) {
 						throw error;
-						refreshProblems();
-						return;
 					}
 				}
 			}
@@ -211,12 +206,8 @@
 	async function submitVersionChange() {
 		try {
 			testVersionWasChanged = false; // hide button to prevent multiple tries
-			let { error } = await supabase
-				.from("tests")
-				.update({ test_version: testVersion })
-				.eq("id", testId);
-			if (error) throw error;
-			else toast.success("Test version changed successfully.");
+			await editTestInfo({ test_version: testVersion }, testId);
+			toast.success("Test version changed successfully.");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

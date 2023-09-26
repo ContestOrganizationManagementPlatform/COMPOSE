@@ -5,6 +5,7 @@
 	import { getThisUserRole } from "$lib/getUserRole";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName, editProblem, getAllUsers } from "$lib/supabase";
 
 	const regexes = {
 		topic: /\\ques\[(\w*)\]/s,
@@ -127,45 +128,40 @@
 				payloadList.push(payloadNoTopics);
 			}
 
-			let { data, error } = await supabase.from("problems").insert(payloadList);
-			if (error) {
-				throw error;
-			} else {
-				let topicList = [];
+			let data = await bulkProblems(payloadList);
 
-				for (const payload of payloads) {
-					const topics = payload.topics;
-					// find it in the list
-					const foundProblem = data.find((pb) =>
-						[
-							"problem_latex",
-							"comment_latex",
-							"answer_latex",
-							"solution_latex",
-						].every((field) => pb[field] === payload[field])
-					); // don't worry about it
+			let topicList = [];
 
-					if (!foundProblem) {
-						console.log("error: problem submitted but not found");
-					} else {
-						for (const tp of topics) {
-							if (!idMap[tp]) continue;
-							topicList.push({
-								problem_id: foundProblem.id,
-								topic_id: idMap[tp],
-							});
-						}
+			for (const payload of payloads) {
+				const topics = payload.topics;
+				// find it in the list
+				const foundProblem = data.find((pb) =>
+					[
+						"problem_latex",
+						"comment_latex",
+						"answer_latex",
+						"solution_latex",
+					].every((field) => pb[field] === payload[field])
+				); // don't worry about it
+
+				if (!foundProblem) {
+					console.log("error: problem submitted but not found");
+				} else {
+					for (const tp of topics) {
+						if (!idMap[tp]) continue;
+						topicList.push({
+							problem_id: foundProblem.id,
+							topic_id: idMap[tp],
+						});
 					}
 				}
-
-				let { error2 } = await supabase
-					.from("problem_topics")
-					.insert(topicList);
-				if (error2) throw error2;
-
-				payloads = [];
-				success = true;
 			}
+
+			let { error2 } = await supabase.from("problem_topics").insert(topicList);
+			if (error2) throw error2;
+
+			payloads = [];
+			success = true;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -174,12 +170,7 @@
 
 	async function getAllUsers() {
 		try {
-			let { data: users, error } = await supabase
-				.from("users")
-				.select("full_name,id");
-			if (error) throw error;
-
-			allUsers = users;
+			allUsers = await getAllUsers("full_name,id");
 			loadedUsers = true;
 			isAdmin = (await getThisUserRole()) >= 40;
 		} catch (error) {

@@ -6,52 +6,20 @@
 	import Button from "$lib/components/Button.svelte";
 	import { invalidate } from "$app/navigation";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName, createProblem, getThisUser } from "$lib/supabase";
 
 	let authorName = "";
 	let openModal = false;
 	let problem_id = 0;
 
-	async function getAuthorName() {
-		try {
-			let { data: user, error } = await supabase
-				.from("users")
-				.select("full_name")
-				.eq("id", supabase.auth.user().id)
-				.single();
-			if (error) throw error;
-			else authorName = user.full_name;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
-	async function getFrontID(id) {
-		try {
-			let { data, error } = await supabase
-				.from("front_ids")
-				.select("front_id")
-				.eq("problem_id", id)
-				.single();
-
-			if (error) throw error;
-			else return data.front_id;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
 	async function submitProblem(payload) {
+		authorName = getAuthorName(getThisUser().id);
 		try {
 			if (authorName === "") {
-				toast.error("Please wait for author name to finish loading");
+				throw new Error("Author name is not defined");
 			} else {
 				const { topics, problem_files, ...payloadNoTopics } = payload;
-				let { data, error } = await supabase
-					.from("problems")
-					.insert([payloadNoTopics]);
-				if (error) throw error;
+				const data = await createProblem(payloadNoTopics);
 
 				let problemId = data[0].id;
 
@@ -90,18 +58,6 @@
 					}
 				}
 
-				await fetch("/api/discord-create", {
-					method: "POST",
-					body: JSON.stringify({
-						problem: payload,
-						authorName: authorName,
-						id: problemId,
-						created_at: data[0].created_at,
-						front_id: await getFrontID(problemId),
-						image: imageName,
-					}),
-				});
-
 				openModal = true;
 				problem_id = problemId;
 				window.location.replace(`/problems/${problemId}`);
@@ -111,8 +67,6 @@
 			toast.error(error.message);
 		}
 	}
-
-	getAuthorName();
 </script>
 
 <br />

@@ -78,10 +78,32 @@ export async function getUser(user_id: string) {
 /**
  * Fetches all users from database
  *
+ * @param customSelect optional, string
  * @returns all users
  */
-export async function getAllUsers() {
-	let { data: users, error } = await supabase.from("users").select("*");
+export async function getAllUsers(customSelect = "*") {
+	let { data: users, error } = await supabase
+		.from("users")
+		.select(customSelect);
+	if (error) throw error;
+	return users;
+}
+
+/**
+ * Allows you to apply a custom order to fetching users
+ *
+ * @param customOrder string
+ * @param customSelect optional, string
+ * @returns users from database sorted by order
+ */
+export async function getAllUsersOrder(
+	customOrder: string,
+	customSelect = "*"
+) {
+	let { data: users, error } = await supabase
+		.from("users")
+		.select(customSelect)
+		.order(customOrder);
 	if (error) throw error;
 	return users;
 }

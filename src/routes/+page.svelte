@@ -7,11 +7,11 @@
 		NumberInput,
 		TextArea,
 	} from "carbon-components-svelte";
-	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
 	import Header from "$lib/components/styles/Header.svelte";
+	import { getThisUser, getUser } from "$lib/supabase";
 
 	export let data;
 
@@ -26,16 +26,8 @@
 	const getProfile = async () => {
 		try {
 			loading = true;
-			const user = supabase.auth.user();
-
-			let { data, error } = await supabase
-				.from("users")
-				.select("*")
-				.eq("id", user.id)
-				.limit(1)
-				.single();
-
-			if (error) throw error;
+			const user = getThisUser();
+			const data = await getUser(user.id);
 
 			({ full_name, discord, initials, math_comp_background, amc_score } =
 				data);
@@ -83,7 +75,7 @@
 				throw new Error("Math competition background cannot be empty");
 			} else {
 				loading = true;
-				const user = supabase.auth.user();
+				const user = getThisUser();
 
 				const updates = {
 					id: user.id,
@@ -92,7 +84,7 @@
 					initials,
 					math_comp_background,
 					amc_score,
-					email: supabase.auth.user().email,
+					email: getThisUser().email,
 				};
 
 				let { error } = await supabase.from("users").upsert(updates, {

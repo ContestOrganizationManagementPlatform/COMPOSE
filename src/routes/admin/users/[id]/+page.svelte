@@ -1,5 +1,5 @@
 <script>
-	import { getUser, updateUserRole, getThisUser } from "$lib/supabase/users";
+	import { getUser, updateUserRole, getThisUser } from "$lib/supabase";
 	import { page } from "$app/stores";
 	import { Select, SelectItem, FormGroup } from "carbon-components-svelte";
 	import Modal from "$lib/components/Modal.svelte";

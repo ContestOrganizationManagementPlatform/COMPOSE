@@ -6,6 +6,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getFeedbackQuestions, addTestFeedbackQuestion } from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let feedbackQuestions = [];
@@ -16,13 +17,8 @@
 	async function getFeedbackQuestions() {
 		try {
 			loading = true;
-			let { data: test_feedback_questions, error } = await supabase
-				.from("test_feedback_questions")
-				.select("*")
-				.eq("test_id", testId);
-			if (error) throw error;
+			feedbackQuestions = await getFeedbackQuestions(testId);
 
-			feedbackQuestions = test_feedback_questions;
 			if (feedbackQuestions !== []) {
 				for (const i of feedbackQuestions) {
 					feedbackAnswers[i.id] = [];
@@ -66,15 +62,9 @@
 
 	async function addFeedbackQuestion() {
 		try {
-			const { data, error } = await supabase
-				.from("test_feedback_questions")
-				.insert([{ test_id: testId, question: curQuestion }]);
-			if (error) throw error;
-			else {
-				await getFeedbackQuestions();
-				curQuestion = "";
-			}
+			await addTestFeedbackQuestion({ test_id: testId, question: curQuestion });
 			await getFeedbackQuestions();
+			curQuestion = "";
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

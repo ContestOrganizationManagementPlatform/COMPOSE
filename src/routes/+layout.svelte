@@ -5,17 +5,17 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import { browser } from "$app/environment";
 	import { user } from "$lib/sessionStore";
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
 	import { Toaster } from "svelte-french-toast";
+	import { getThisUser } from "$lib/supabase";
 
 	let loaded = false;
 
 	let hasAccount = true;
 	// user.set(browser ? localStorage.getItem("user") : null);
-	user.set(supabase.auth.user());
+	user.set(getThisUser());
 
 	supabase.auth.onAuthStateChange((_, session) => {
 		user.set(session?.user);
@@ -144,6 +144,14 @@
 	:global(::selection) {
 		background-color: var(--primary-tint);
 		color: black;
+	}
+
+	:global(pre) {
+		white-space: pre-wrap;
+		white-space: -moz-pre-wrap;
+		white-space: -pre-wrap;
+		white-space: -o-pre-wrap;
+		word-wrap: break-word;
 	}
 
 	/* Different grid types */

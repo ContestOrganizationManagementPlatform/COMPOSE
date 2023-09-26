@@ -8,6 +8,7 @@
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
+	import { getAllTests } from "$lib/supabase";
 
 	let loading = true;
 	let isAdmin = false;
@@ -19,10 +20,8 @@
 		try {
 			if ((await getThisUserRole()) >= 40) {
 				isAdmin = true;
-				// admin can testsolve anything
-				let { data: tests, error } = await supabase
-					.from("tests")
-					.select("id,test_name");
+
+				const tests = await getAllTests("id,test_name");
 				if (error) {
 					throw error;
 				} else {

@@ -7,6 +7,7 @@
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { handleError } from "$lib/handleError.ts";
+	import { getFeedbackQuestions, removeTestsolver } from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -26,13 +27,11 @@
 		new Date(testsolve?.end_time).getTime() -
 			new Date(testsolve?.start_time).getTime();
 
-	async function getFeedbackQuestions() {
+	async function getLocalFeedbackQuestions() {
 		try {
-			let { data: test_feedback_questions, error } = await supabase
-				.from("test_feedback_questions")
-				.select("*")
-				.eq("test_id", testsolve.test_id);
-			if (error) throw error;
+			const test_feedback_questions = await getFeedbackQuestions(
+				testsolve.test_id
+			);
 
 			for (const x of test_feedback_questions) {
 				feedbackQuestions[x.id] = x;
@@ -66,12 +65,7 @@
 	async function deleteTestsolve() {
 		try {
 			if (isAdmin) {
-				let { error } = await supabase
-					.from("testsolves")
-					.delete()
-					.eq("id", $page.params.id);
-				if (error) throw error;
-
+				await removeTestsolver($page.params.id);
 				toast.success("Successfully deleted testsolve!");
 				window.location.href = "/manage-testsolves";
 			}
@@ -120,7 +114,7 @@
 				loading = false;
 			} else {
 				getAnswers();
-				getFeedbackQuestions();
+				getLocalFeedbackQuestions();
 				getFeedbackAnswers();
 			}
 		} catch (error) {

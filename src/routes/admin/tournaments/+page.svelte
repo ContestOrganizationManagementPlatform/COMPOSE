@@ -1,10 +1,9 @@
 <script>
 	import { TextInput } from "carbon-components-svelte";
-	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { createTournament } from "$lib/supabase/tournaments";
+	import { createTournament, getAllTournaments } from "$lib/supabase";
 
 	let tournaments = [];
 	let tournamentsArchive = [];
@@ -13,10 +12,7 @@
 
 	async function getTournaments() {
 		try {
-			let { data: tournamentList, error } = await supabase
-				.from("tournaments")
-				.select("*");
-			if (error) throw error;
+			let tournamentList = await getAllTournaments();
 			tournaments = tournamentList.filter((tournament) => {
 				return !tournament.archived;
 			});

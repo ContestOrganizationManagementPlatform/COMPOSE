@@ -12,15 +12,50 @@ export interface TournamentEditRequest {
 }
 
 /**
+ * Fetches the tournament info of all tournaments from the database
+ *
+ * @param customSelect optional, string
+ * @returns List of all tournaments from database
+ */
+export async function getAllTournaments(customSelect = "*") {
+	let { data, error } = await supabase.from("tournaments").select(customSelect);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Fetches the tournament info of all tournaments from database, ordered by customOrder
+ *
+ * @param customOrder string
+ * @param customSelect optional, string
+ * @returns Ordered list of all tournaments
+ */
+export async function getAllTournamentsOrder(
+	customOrder: string,
+	customSelect = "*"
+) {
+	let { data, error } = await supabase
+		.from("tournaments")
+		.select(customSelect)
+		.order(customOrder);
+	if (error) throw error;
+	return data;
+}
+
+/**
  * Returns tournament info object given tournament id
  *
  * @param tournament_id number
+ * @param customSelect optional, string
  * @returns tournament info from database
  */
-export async function getTournamentInfo(tournament_id: number) {
+export async function getTournamentInfo(
+	tournament_id: number,
+	customSelect = "*"
+) {
 	let { data, error } = await supabase
 		.from("tournaments")
-		.select("*")
+		.select(customSelect)
 		.eq("id", tournament_id)
 		.single();
 	if (error) throw error;

@@ -1,9 +1,9 @@
 <script>
-	import { supabase } from "$lib/supabaseClient.ts";
 	import toast from "svelte-french-toast";
 	import Button from "$lib/components/Button.svelte";
 	import TestList from "$lib/components/TestList.svelte";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAllTests, getAllTournaments } from "$lib/supabase";
 
 	let tournaments = {};
 	let tests = [];
@@ -12,10 +12,7 @@
 
 	async function getTests() {
 		try {
-			let { data: testList, error } = await supabase
-				.from("tests")
-				.select("*,tournaments(tournament_name)");
-			if (error) throw error;
+			let testList = await getAllTests("*,tournaments(tournament_name)");
 			for (let test of testList) {
 				tournaments[test.tournament_id].push(test);
 
@@ -31,10 +28,7 @@
 
 	async function getTournaments() {
 		try {
-			let { data: tournamentList, error } = await supabase
-				.from("tournaments")
-				.select("*");
-			if (error) throw error;
+			let tournamentList = await getAllTournaments();
 			for (let tournament of tournamentList) {
 				tournaments[tournament.id] = [tournament.tournament_name];
 			}
