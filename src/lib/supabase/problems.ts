@@ -69,13 +69,15 @@ async function getFrontID(problem_id: number) {
  */
 export async function getAllProblems(
 	customSelect: string = "*",
+	customOrder: string = "*",
 	normal: boolean = true,
 	archived: boolean = false
 ) {
 	if (normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select(customSelect);
+			.select(customSelect)
+			.order(customOrder);
 		if (error) throw error;
 		return data;
 	}
@@ -83,6 +85,7 @@ export async function getAllProblems(
 		let { data, error } = await supabase
 			.from("full_problems")
 			.select(customSelect)
+			.order(customOrder)
 			.eq("archived", false);
 		if (error) throw error;
 		return data;
@@ -91,6 +94,7 @@ export async function getAllProblems(
 		let { data, error } = await supabase
 			.from("full_problems")
 			.select(customSelect)
+			.order(customOrder)
 			.eq("archived", true);
 		if (error) throw error;
 		return data;
@@ -100,6 +104,15 @@ export async function getAllProblems(
 	}
 }
 
+/**
+ * Orders the problems as specified.
+ *
+ * @param customOrder
+ * @param customSelect
+ * @param normal
+ * @param archived
+ * @returns ordered list of problems
+ */
 export async function getAllProblemsOrder(
 	customOrder: string,
 	customSelect: string = "*",
@@ -234,4 +247,82 @@ export async function restoreProblem(problem_id: number) {
 		.update({ archived: false })
 		.eq("id", problem_id);
 	if (error) throw error;
+}
+
+/**
+ * Get a problem's problem topics.
+ *
+ * @param problem_id number
+ * @param customSelect optional, string
+ * @return list of problem topics
+ */
+export async function getProblemTopics(
+	problem_id: number,
+	customSelect: string = "*"
+) {
+	let { data: problem_topics, error } = await supabase
+		.from("problem_topics")
+		.select(customSelect)
+		.eq("problem_id", problem_id);
+	if (error) throw error;
+	return problem_topics;
+}
+
+/**
+ * Delete a problem's problem topics.
+ *
+ * @param problem_id number
+ * @return none
+ */
+export async function deleteProblemTopics(problem_id: number) {
+	let { error } = await supabase
+		.from("problem_topics")
+		.delete()
+		.eq("problem_id", problem_id);
+	if (error) throw error;
+}
+
+/**
+ * Insert a problem topic into a problem.
+ *
+ * @param problem_id number
+ * @param topics string[]
+ * @return none
+ */
+export async function insertProblemTopics(
+	problem_id: number,
+	topics: string[]
+) {
+	let { error } = await supabase.from("problem_topics").insert(
+		topics.map((tp) => ({
+			problem_id: problem_id,
+			topic_id: tp,
+		}))
+	);
+	if (error) throw error;
+}
+
+/**
+ * Insert topic options to the topic list
+ *
+ * @param topics string[]
+ * @return none
+ */
+export async function insertTopics(topics: string[]) {
+	let { error } = await supabase.from("problem_topics").insert(topics);
+	if (error) throw error;
+}
+
+/**
+ * Get the problem counts
+ *
+ * @param customSelect optional, string
+ * @return list of problem counts
+ */
+export async function getProblemCounts(customSelect: string = "*") {
+	let { data: problemCountsData, error } = await supabase
+		.from("problem_counts")
+		.select(customSelect);
+	if (error) throw error;
+	return problemCountsData;
 }

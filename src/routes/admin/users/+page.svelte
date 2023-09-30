@@ -9,6 +9,7 @@
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAllUsersOrder } from "$lib/supabase";
 
 	let pageSize = 25;
 	let page = 1;

@@ -32,7 +32,7 @@
 
 	async function addRoleToUser(role) {
 		try {
-			updateUserRole(userId, role);
+			await updateUserRole(userId, role);
 			toast.success("Successfully updated role.");
 			window.location.replace("/admin/users");
 		} catch (error) {
@@ -60,7 +60,7 @@
 				>{user.email}</a
 			>
 		</p>
-		<FormGroup disabled={userId === getThisUser().id}>
+		<FormGroup disabled={userId === thisUser.id}>
 			<Select labelText="Role" bind:selected={user.role}>
 				<SelectItem value="0" text="No role assigned (0)" />
 				<SelectItem value="10" text="No permissions (10)" />
@@ -71,8 +71,8 @@
 			<br />
 			<Modal
 				runHeader="Update Role"
-				onSubmit={() => {
-					addRoleToUser(user.role);
+				onSubmit={async () => {
+					await addRoleToUser(user.role);
 				}}
 			/>
 			<br /><br />

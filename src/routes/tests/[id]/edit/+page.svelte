@@ -1,22 +1,27 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
 	import { TextInput } from "carbon-components-svelte";
-	import { getFullProblems } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 	import {
 		getTestInfo,
 		getThisUser,
 		editTestInfo,
 		getTestProblems,
+		addAProblemOnTest,
+		deleteAProblemOnTest,
+		reorderProblemsOnTest,
+		massProblemReordering,
+
+		getAllProblems
+
 	} from "$lib/supabase";
 
-	let testId = $page.params.id;
+	let testId = Number($page.params.id);
 	let test;
 	let testCoordinators = [];
 	let loading = true;
@@ -66,7 +71,8 @@
 				...pb.full_problems,
 			}));
 			selectedTest = testProblems.map((pb) => pb.id);
-			let allProblemList = await getFullProblems();
+			let allProblemList = await getAllProblems("*", "front_id");
+
 			// prevent problems from appearing twice
 			allProblems = allProblemList.filter(
 				(pb) => !testProblems.find((tpb) => tpb.id === pb.id)
@@ -111,11 +117,7 @@
 		try {
 			selectedAll = [];
 			refreshingProblems = true;
-			let { error } = await supabase.rpc("add_test_problem", {
-				p_problem_id: problem.id,
-				p_test_id: testId,
-			});
-			if (error) throw error;
+			await addAProblemOnTest(testId, problem.id);
 			refreshProblems();
 		} catch (error) {
 			handleError(error);
@@ -127,11 +129,7 @@
 		try {
 			selectedAll = [];
 			refreshingProblems = true;
-			let { error } = await supabase.rpc("delete_test_problem", {
-				p_problem_id: problem.id,
-				cur_test_id: testId,
-			});
-			if (error) throw error;
+			await deleteAProblemOnTest(testId, problem.id);
 			refreshProblems();
 		} catch (error) {
 			handleError(error);
@@ -147,12 +145,7 @@
 		try {
 			refreshingProblems = true;
 			let { id, to } = e.detail;
-			let { error } = await supabase.rpc("reorder_test_problem", {
-				p_problem_id: id,
-				p_new_number: to,
-				cur_test_id: testId,
-			});
-			if (error) throw error;
+			await reorderProblemsOnTest(testId, id, to);
 			refreshProblems();
 		} catch (error) {
 			handleError(error);
@@ -175,17 +168,7 @@
 				const curProblem = testProblems[i];
 				if (curProblem.problem_number !== i) {
 					// needs reordering
-					let { error } = await supabase
-						.from("test_problems")
-						.update({
-							problem_id: curProblem.id,
-							test_id: curProblem.test_id,
-							problem_number: i,
-						})
-						.eq("relation_id", curProblem.relation_id);
-					if (error) {
-						throw error;
-					}
+					await massProblemReordering(curProblem.test_id, curProblem.id, i, curProblem.relation_id);
 				}
 			}
 

@@ -1,17 +1,17 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
 	import Button from "$lib/components/Button.svelte";
 	import { Form, TextInput, PasswordInput } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 
-	export let logIn;
+	export let logIn: boolean;
 	let loading = false;
 	let signupSuccess = false;
-	let email;
-	let password;
-	let retypePassword;
+	let email: string;
+	let password: string;
+	let retypePassword: string;
 
 	const handleLogin = async () => {
 		try {

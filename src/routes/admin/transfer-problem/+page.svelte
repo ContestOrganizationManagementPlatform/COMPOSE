@@ -64,6 +64,7 @@
 			setInterval(() => {
 				show = false;
 			}, 3000);
+			toast.success("Successfully transferred problem");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

@@ -1,11 +1,10 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import { TextArea, Select, SelectItem } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, editProblem, getAllUsers } from "$lib/supabase";
+	import { getThisUser, insertTopics, getAllUsers, bulkProblems } from "$lib/supabase";
 
 	const regexes = {
 		topic: /\\ques\[(\w*)\]/s,
@@ -78,7 +77,7 @@
 
 	function importProblem(text, name) {
 		try {
-			const user = supabase.auth.user();
+			const user = getThisUser();
 			const getResult = (regex) => {
 				const res = text.match(regex);
 				if (!res) return null;
@@ -124,7 +123,7 @@
 				payloadNoTopics.author_id =
 					userSelectRef && userSelectRef != ""
 						? userSelectRef
-						: supabase.auth.user().id;
+						: getThisUser().id;
 				payloadList.push(payloadNoTopics);
 			}
 
@@ -157,8 +156,7 @@
 				}
 			}
 
-			let { error2 } = await supabase.from("problem_topics").insert(topicList);
-			if (error2) throw error2;
+			await insertTopics(topicList);
 
 			payloads = [];
 			success = true;
@@ -168,7 +166,7 @@
 		}
 	}
 
-	async function getAllUsers() {
+	async function getUserData() {
 		try {
 			allUsers = await getAllUsers("full_name,id");
 			loadedUsers = true;
@@ -179,7 +177,7 @@
 		}
 	}
 
-	getAllUsers();
+	getUserData();
 </script>
 
 <br />

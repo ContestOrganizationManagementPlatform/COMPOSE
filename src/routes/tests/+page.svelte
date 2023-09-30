@@ -1,6 +1,5 @@
-<script>
-	import { supabase } from "$lib/supabaseClient.ts";
-	import Button from "$lib/components/Button.svelte";
+<script lang="ts">
+	import { supabase } from "$lib/supabaseClient";
 	import {
 		DataTable,
 		Link,
@@ -10,7 +9,7 @@
 		Pagination,
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 
 	let rows = [];
 	let pageSize = 25;

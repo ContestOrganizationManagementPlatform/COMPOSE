@@ -1,12 +1,11 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import toast from "svelte-french-toast";
 	import { ImageBucket } from "$lib/ImageBucket";
 	import Button from "$lib/components/Button.svelte";
 	import { invalidate } from "$app/navigation";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, createProblem, getThisUser } from "$lib/supabase";
+	import { getAuthorName, createProblem, getThisUser, insertProblemTopics, uploadImage } from "$lib/supabase";
 
 	let authorName = "";
 	let openModal = false;
@@ -17,26 +16,17 @@
 		try {
 			if (authorName === "") {
 				throw new Error("Author name is not defined");
+			} if (payload.topics.length == 0) {
+				throw new Error("Must specify at least one topic for this problem");
 			} else {
 				const { topics, problem_files, ...payloadNoTopics } = payload;
 				const data = await createProblem(payloadNoTopics);
 
-				let problemId = data[0].id;
-
-				let { error2 } = await supabase.from("problem_topics").insert(
-					payload.topics.map((tp) => ({
-						problem_id: problemId,
-						topic_id: tp,
-					}))
-				);
-				if (error2) throw error2;
+				let problemId = data.id;
+				await insertProblemTopics(problemId, payload.topics);
 
 				for (const file of problem_files) {
-					let { error3 } = await supabase.storage
-						.from("problem-images")
-						.upload(`pb${problemId}/problem/${file.name}`, file, {
-							upsert: true,
-						});
+					await uploadImage(`pb${problemId}/problem/${file.name}`, file);
 				}
 
 				let imageDownloadResult = await ImageBucket.downloadLatexImages(

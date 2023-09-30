@@ -20,18 +20,14 @@
 		try {
 			if ((await getThisUserRole()) >= 40) {
 				isAdmin = true;
-
+				
 				const tests = await getAllTests("id,test_name");
-				if (error) {
-					throw error;
-				} else {
-					availableTestsolves = tests.map((x) => ({
-						name: x.test_name,
-						id: x.id,
-						solves: [],
-						completed: true,
-					}));
-				}
+				availableTestsolves = tests.map((x) => ({
+					name: x.test_name,
+					id: x.id,
+					solves: [],
+					completed: true,
+				}));
 			} else {
 				let { data: testsolves, error } = await supabase
 					.from("testsolvers")

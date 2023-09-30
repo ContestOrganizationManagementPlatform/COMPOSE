@@ -2,14 +2,13 @@
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import { TextArea, Form, TextInput } from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getFeedbackQuestions, getTestInfo } from "$lib/supabase";
+	import { getFeedbackQuestions, getSelectTestsolvers, getTestInfo, getThisUser } from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -51,15 +50,8 @@
 			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
 			} else {
-				let { data, error, count } = await supabase
-					.from("testsolvers")
-					.select("*", { count: "exact", head: true })
-					.eq("test_id", $page.params.id)
-					.eq("solver_id", supabase.auth.user().id);
-				if (error) {
-					loading = false;
-					throw error;
-				} else if (count > 0) {
+				const count = await getSelectTestsolvers($page.params.id, getThisUser().id);
+				if (count > 0) {
 					disallowed = false;
 				}
 			}

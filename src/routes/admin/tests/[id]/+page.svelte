@@ -51,24 +51,20 @@
 		try {
 			test = await getTestInfo(Number(testId));
 
-			let queriedCoordinators = await getTestCoordinators(Number(testId));
+			let queriedCoordinators = await getTestCoordinators(
+				Number(testId),
+				"*,users(*)"
+			);
 			testCoordinators = queriedCoordinators.map((tc) => tc.users);
 
 			loading = false;
-			await getAllUsers();
-			await getFeedbackQuestions(testId);
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
 
-	async function getAllUsers() {
-		try {
 			let users = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
 			allUsers = users.filter(
 				(x) => !testCoordinators.some((tc) => tc.id === x.id)
 			);
+
+			await getFeedbackQuestions(testId);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -104,6 +100,7 @@
 				},
 				Number(testId)
 			);
+			toast.success("Successfully edited test information.");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -112,7 +109,8 @@
 
 	async function deleteTest() {
 		try {
-			archiveTest(testId);
+			await archiveTest(testId);
+			toast.success("Successfully deleted test.");
 			window.location.replace("/admin/tests");
 		} catch (error) {
 			handleError(error);

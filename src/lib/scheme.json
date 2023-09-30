@@ -1,0 +1,18 @@
+{
+    "title": "Mustang Math",
+    "abbreviation": "MM",
+    "styles": {
+    	"text-color-light": "#fff",
+		"text-color-dark": "#000",
+		"background": "#f5fffb",
+        "primary": "#1c6825",
+		"primary-light": "#65c083",
+		"primary-dark": "#5b8064",
+		"primary-tint": "#d9f5e2",
+		"secondary": "#213d44",
+		"secondary-light": "#1b9aaa",
+		"secondary-dark": "#061333",
+		"secondary-tint": "#b9c6d2",
+		"font-family": "Ubuntu"
+    }
+}

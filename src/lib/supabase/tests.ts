@@ -57,7 +57,7 @@ export async function getAllTestsOrder(
  * @param customSelect optional, string
  * @returns test object
  */
-export async function getTestInfo(test_id: number, customSelect = "*") {
+export async function getTestInfo(test_id: number, customSelect: string = "*") {
 	let { data, error } = await supabase
 		.from("tests")
 		.select(customSelect)
@@ -71,17 +71,16 @@ export async function getTestInfo(test_id: number, customSelect = "*") {
  * Gets test coordinator list given a test id
  *
  * @param test_id number
+ * @param customSelect optional, string
  * @returns list of test coordinator IDs
  */
-export async function getTestCoordinators(test_id: number) {
+export async function getTestCoordinators(test_id: number, customSelect: string = "coordinator_id") {
 	let { data, error } = await supabase
 		.from("test_coordinators")
-		.select("coordinator_id")
+		.select(customSelect)
 		.eq("test_id", test_id);
 	if (error) throw error;
-	return data.map((obj) => {
-		return obj.coordinator_id;
-	});
+	return data;
 }
 
 /**
@@ -256,4 +255,82 @@ export async function getFeedbackQuestions(test_id: number) {
 		.eq("test_id", test_id);
 	if (error) throw error;
 	return data;
+}
+
+/**
+ * Add a problem to a test. Returns nothing.
+ *
+ * @param test_id number
+ * @param problem_id number
+ */
+export async function addAProblemOnTest(test_id: number, problem_id: number) {
+	let { error } = await supabase.rpc("add_test_problem", {
+		p_problem_id: problem_id,
+		p_test_id: test_id,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Delete a problem to a test. Returns nothing.
+ *
+ * @param test_id number
+ * @param problem_id number
+ */
+export async function deleteAProblemOnTest(
+	test_id: number,
+	problem_id: number
+) {
+	let { error } = await supabase.rpc("delete_test_problem", {
+		p_problem_id: problem_id,
+		cur_test_id: test_id,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Reorder the problems on a test. Returns nothing.
+ *
+ * @param test_id number
+ * @param problem_id number
+ * @param problem_order number
+ */
+export async function reorderProblemsOnTest(
+	test_id: number,
+	problem_id: number,
+	problem_order: number
+) {
+	let { error } = await supabase.rpc("reorder_test_problem", {
+		p_problem_id: problem_id,
+		p_new_number: problem_order,
+		cur_test_id: test_id,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Reorder the problems on a test. Returns nothing.
+ *
+ * @param test_id number
+ * @param problem_id number
+ * @param problem_order number
+ * @param relation_id number
+ */
+export async function massProblemReordering(
+	test_id: number,
+	problem_id: number,
+	problem_order: number,
+	relation_id: number
+) {
+	let { error } = await supabase
+		.from("test_problems")
+		.update({
+			problem_id: problem_id,
+			test_id: test_id,
+			problem_number: problem_order,
+		})
+		.eq("relation_id", relation_id);
+	if (error) {
+		throw error;
+	}
 }

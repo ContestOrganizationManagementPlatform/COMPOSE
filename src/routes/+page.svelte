@@ -1,5 +1,4 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
 	import {
 		Form,
@@ -11,7 +10,7 @@
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
 	import Header from "$lib/components/styles/Header.svelte";
-	import { getThisUser, getUser } from "$lib/supabase";
+	import { getThisUser, getUser, updateUserData } from "$lib/supabase";
 
 	export let data;
 
@@ -87,12 +86,7 @@
 					email: getThisUser().email,
 				};
 
-				let { error } = await supabase.from("users").upsert(updates, {
-					returning: "minimal",
-				});
-
-				if (error) throw error;
-
+				await updateUserData(updates);
 				toast.success("Successfully updated profile.");
 			}
 		} catch (error) {

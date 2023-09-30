@@ -1,6 +1,5 @@
 <script>
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import Problem from "$lib/components/Problem.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
@@ -9,7 +8,7 @@
 	import { getSingleProblem } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, archiveProblem, restoreProblem } from "$lib/supabase";
+	import { getAuthorName, archiveProblem, restoreProblem, getThisUser, getProblemTopics } from "$lib/supabase";
 
 	let problem;
 	let loaded = false;
@@ -17,12 +16,7 @@
 
 	async function fetchTopic(problem_id) {
 		try {
-			let { data: problem_topics, error } = await supabase
-				.from("problem_topics")
-				.select("topic_id,global_topics(topic)")
-				.eq("problem_id", problem_id);
-			if (error) throw error;
-
+			const problem_topics = await getProblemTopics(problem_id, "topic_id,global_topics(topic)");
 			problem.topic = problem_topics.map((x) => x.topic_id);
 			problem.topicArray = problem_topics.map(
 				(x) => x.global_topics?.topic ?? "Unknown Topic"
@@ -60,7 +54,7 @@
 		try {
 			await archiveProblem(problem.id);
 
-			const authorName = await getAuthorName();
+			const authorName = await getAuthorName(getThisUser().id);
 			await fetch("/api/discord-update", {
 				method: "POST",
 				body: JSON.stringify({
@@ -103,7 +97,7 @@
 			<Modal runHeader="Restore Problem" onSubmit={restoreLocalProblem} />
 			<br />
 			<br />
-		{:else if problem.author_id === supabase.auth.user().id || isAdmin}
+		{:else if problem.author_id === getThisUser().id || isAdmin}
 			<Modal runHeader="Archive Problem" onSubmit={deleteProblem} />
 			<br />
 			<br />

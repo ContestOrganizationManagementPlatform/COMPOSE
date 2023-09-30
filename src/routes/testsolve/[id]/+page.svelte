@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
 	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
@@ -6,7 +6,7 @@
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 	import { getFeedbackQuestions, removeTestsolver } from "$lib/supabase";
 
 	let loading = true;
@@ -18,10 +18,10 @@
 
 	let startTime = null;
 	let endTime = null;
-	let isAdmin;
+	let isAdmin: boolean;
 
 	let testsolve = null;
-	let timeElapsed;
+	let timeElapsed: number;
 	$: timeElapsed =
 		testsolve?.time_elapsed * 1000 ??
 		new Date(testsolve?.end_time).getTime() -
@@ -65,7 +65,7 @@
 	async function deleteTestsolve() {
 		try {
 			if (isAdmin) {
-				await removeTestsolver($page.params.id);
+				await removeTestsolver(Number($page.params.id));
 				toast.success("Successfully deleted testsolve!");
 				window.location.href = "/manage-testsolves";
 			}
@@ -97,7 +97,7 @@
 					disallowed = false;
 				} else {
 					// check if test coordinator
-					let { data2, error2, count } = await supabase
+					let { data: data2, error: error2, count } = await supabase
 						.from("test_coordinators")
 						.select("*", { count: "exact", head: true })
 						.eq("coordinator_id", supabase.auth.user().id)
@@ -159,7 +159,7 @@
 				throw error;
 			} else {
 				// delete old answers
-				let { error3 } = await supabase
+				let { error: error3 } = await supabase
 					.from("testsolve_answers")
 					.delete()
 					.eq("testsolve_id", $page.params.id);
@@ -167,7 +167,7 @@
 				if (error3) {
 					throw error3;
 				} else {
-					let { data2, error2 } = await supabase
+					let { data: data2, error: error2 } = await supabase
 						.from("testsolve_answers")
 						.insert(
 							answers.map((ans) => ({

@@ -1,5 +1,5 @@
 import type { FileObject } from "@supabase/storage-js";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { downloadImagesFromPath, getImages } from "$lib/supabase";
 
 class ProblemImageConstructor {
 	name: string;
@@ -88,23 +88,19 @@ export class ProblemImage {
 }
 
 export async function getProblemImages(
-	supabase: SupabaseClient,
 	problem_id: number
 ) {
-	let images = [];
+	try {
+		let images = [];
 
-	const { data: fileList, error } = await supabase.storage
-		.from("problem-images")
-		.list(`pb${problem_id}/problem`);
-	if (error) throw error;
+		const fileList = await getImages(`pb${problem_id}/problem`);
+		for (const img of fileList) {
+			const imageFile = await downloadImagesFromPath(`pb${problem_id}/problem/${img.name}`);
+			images.push(ProblemImage.fromSupabase(img, imageFile));
+		}
 
-	for (const img of fileList) {
-		const { data: imageFile, error } = await supabase.storage
-			.from("problem-images")
-			.download(`pb${problem_id}/problem/${img.name}`);
-		if (error) throw error;
-		images.push(ProblemImage.fromSupabase(img, imageFile));
+		return images;
+	} catch (error) {
+		throw error;
 	}
-
-	return images;
 }

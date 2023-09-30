@@ -52,6 +52,31 @@ export function getThisUser() {
 }
 
 /**
+ * Reset a user's password through email. Returns nothing.
+ *
+ * @param email
+ */
+export async function resetUserPassword(email: string) {
+	const { data, error } = await supabase.auth.api.resetPasswordForEmail(email, {
+		redirectTo: window.location.origin + "/password-reset",
+	});
+	if (error) throw error;
+}
+
+/**
+ * Change user's password if verified. Returns nothing.
+ *
+ * @param accessToken
+ * @param password
+ */
+export async function updateUserAuth(accessToken: string, password: string) {
+	const { data, error } = await supabase.auth.api.updateUser(accessToken, {
+		password,
+	});
+	if (error) throw error;
+}
+
+/**
  * Takes in a user_id as a parameter, outputs the user info
  * Role number is in .role, not .user_roles.role
  *
@@ -90,6 +115,18 @@ export async function getAllUsers(customSelect = "*") {
 }
 
 /**
+ * Update the information within a user's profile. Returns nothing.
+ *
+ * @param updates dict
+ */
+export async function updateUserData(updates: {}) {
+	let { error } = await supabase.from("users").upsert(updates, {
+		returning: "minimal",
+	});
+	if (error) throw error;
+}
+
+/**
  * Allows you to apply a custom order to fetching users
  *
  * @param customOrder string
@@ -124,7 +161,10 @@ export async function updateUserRole(user_id: string, role: number) {
 	} else {
 		const { error } = await supabase
 			.from("user_roles")
-			.update({ role })
+			.upsert({
+				user_id: user_id,
+				role,
+			})
 			.eq("user_id", user_id);
 		if (error) throw error;
 	}

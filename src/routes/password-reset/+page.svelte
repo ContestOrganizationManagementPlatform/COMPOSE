@@ -1,11 +1,11 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import { TextInput, PasswordInput } from "carbon-components-svelte";
 	import { page } from "$app/stores";
 	import Banner from "$lib/components/Banner.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { resetUserPassword, updateUserAuth } from "$lib/supabase";
 
 	let hash = $page.url.hash;
 	let type = "";
@@ -28,14 +28,12 @@
 	let password = "";
 	let newPassword = "";
 
-	const user = supabase.auth.user();
-
 	function validateEmail(email) {
 		var re =
 			/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
 		return re.test(email);
 	}
-	async function resetPassword(payload) {
+	async function resetPassword() {
 		try {
 			clearInterval();
 			if (validateEmail(email)) {
@@ -45,11 +43,7 @@
 					toast.success(`A reset password email has been sent to ${email}.`);
 				}
 
-				const { data, error } = await supabase.auth.api.resetPasswordForEmail(
-					email,
-					{ redirectTo: window.location.origin + "/password-reset" }
-				);
-				if (error) throw error;
+				await resetUserPassword();
 			} else {
 				toast.error("Your email is not valid!");
 			}
@@ -64,7 +58,7 @@
 		return re.test(password);
 	}
 
-	async function updateUser(payload) {
+	async function updateUser() {
 		try {
 			clearInterval();
 			if (validatePassword(password)) {
@@ -74,15 +68,7 @@
 						showPasswordReset = false;
 					}, 5000);
 
-					const { data, error } = await supabase.auth.api.updateUser(
-						accessToken,
-						{
-							password,
-						}
-					);
-					if (error) {
-						throw error;
-					}
+					await updateUserAuth(accessToken, password);
 					window.location.href = "/";
 				} else {
 					throw new Error("Your passwords should match.");
