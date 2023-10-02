@@ -1,14 +1,13 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
 	import { TextArea, DataTable, Link } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import { formatDate } from "$lib/formatDate";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
-	import { getAllTests } from "$lib/supabase";
+	import { getAllTests, getThisUserRole } from "$lib/supabase";
 
 	let loading = true;
 	let isAdmin = false;

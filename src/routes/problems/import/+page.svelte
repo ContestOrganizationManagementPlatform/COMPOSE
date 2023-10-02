@@ -1,10 +1,9 @@
-<script>
+<script lang="ts">
 	import { TextArea, Select, SelectItem } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
-	import { getThisUser, insertTopics, getAllUsers, bulkProblems } from "$lib/supabase";
+	import { handleError } from "$lib/handleError";
+	import { getThisUser, insertTopics, getAllUsers, bulkProblems, getThisUserRole } from "$lib/supabase";
 
 	const regexes = {
 		topic: /\\ques\[(\w*)\]/s,

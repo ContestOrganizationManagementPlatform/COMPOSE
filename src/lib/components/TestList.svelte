@@ -1,8 +1,6 @@
-<script>
-	import { supabase } from "$lib/supabaseClient";
+<script lang="ts">
 	import {
 		DataTable,
-		DataTableSkeleton,
 		Link,
 		Toolbar,
 		ToolbarContent,
@@ -10,10 +8,11 @@
 		Pagination,
 	} from "carbon-components-svelte";
 	import { formatDate } from "$lib/formatDate.js";
-	import Problem from "$lib/components/Problem.svelte";
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
 	import { createEventDispatcher } from "svelte";
 	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError";
+	import { getProblemCounts } from "$lib/supabase";
 
 	export let tests = [];
 	export let condensed = false;
@@ -27,7 +26,6 @@
 	export let pageEnabled = true;
 	export let problemCounts = {};
 	const dispatch = createEventDispatcher();
-	import { handleError } from "$lib/handleError.ts";
 
 	let width = 0;
 	let mobileFriendly = {
@@ -48,10 +46,7 @@
 			// 	.order("front_id");
 			// problems = newProblems;
 
-			let { data: problemCountsData, error2 } = await supabase
-				.from("problem_counts")
-				.select("*");
-			if (error2) throw error2;
+			const problemCountsData = await getProblemCounts();
 			problemCounts = problemCountsData.sort(
 				(a, b) => b.problem_count - a.problem_count
 			);

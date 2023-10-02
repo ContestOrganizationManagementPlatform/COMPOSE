@@ -74,7 +74,10 @@ export async function getTestInfo(test_id: number, customSelect: string = "*") {
  * @param customSelect optional, string
  * @returns list of test coordinator IDs
  */
-export async function getTestCoordinators(test_id: number, customSelect: string = "coordinator_id") {
+export async function getTestCoordinators(
+	test_id: number,
+	customSelect: string = "coordinator_id"
+) {
 	let { data, error } = await supabase
 		.from("test_coordinators")
 		.select(customSelect)
@@ -87,12 +90,16 @@ export async function getTestCoordinators(test_id: number, customSelect: string 
  * Fetches test problems given a test id. Ordered by problem number
  *
  * @param test_id number
+ * @param customSelect optional, string
  * @returns Test problem data (TODO: change format)
  */
-export async function getTestProblems(test_id: number) {
+export async function getTestProblems(
+	test_id: number,
+	customSelect: string = "*,full_problems(*)"
+) {
 	let { data, error } = await supabase
 		.from("test_problems")
-		.select("*,full_problems(*)")
+		.select(customSelect)
 		.eq("test_id", test_id)
 		.order("problem_number");
 	if (error) throw error;

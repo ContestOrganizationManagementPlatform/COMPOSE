@@ -44,14 +44,29 @@ export async function deleteImages(filePaths: string[]) {
  * Upload an image to the image database. Returns nothing.
  *
  * @param filePath string
- * @param file File
+ * @param file
  * @param upsert optional, boolean
  */
-export async function uploadImage(filePath: string, file: File, upsert = true) {
+export async function uploadImage(filePath: string, file: any, upsert = true) {
 	let { error } = await supabase.storage
 		.from("problem-images")
 		.upload(filePath, file, {
 			upsert: upsert,
 		});
 	if (error) throw error;
+}
+
+/**
+ * Get an image URL
+ *
+ * @param filePath string
+ * @returns the image's public URL
+ */
+export async function getImageURL(filePath: string) {
+	let { data, error } = await supabase.storage
+		.from("problem-images")
+		.getPublicUrl(filePath);
+	if (error) throw error;
+	
+	return data.publicURL;
 }

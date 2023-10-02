@@ -1,6 +1,5 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
@@ -8,7 +7,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getFeedbackQuestions, getSelectTestsolvers, getTestInfo, getThisUser } from "$lib/supabase";
+	import { getFeedbackQuestions, getSelectTestsolvers, getTestInfo, getThisUser, getThisUserRole } from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;

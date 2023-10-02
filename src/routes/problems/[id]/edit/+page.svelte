@@ -4,9 +4,8 @@
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
-	import { getSingleProblem } from "$lib/getProblems";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, editProblem, getProblemTopics, deleteProblemTopics, insertProblemTopics, deleteImages, getImages, uploadImage, getThisUser } from "$lib/supabase";
+	import { getAuthorName, editProblem, getProblemTopics, deleteProblemTopics, insertProblemTopics, deleteImages, getImages, uploadImage, getThisUser, getProblem } from "$lib/supabase";
 
 	let problem;
 	let images = [];
@@ -27,9 +26,7 @@
 
 	async function fetchProblem() {
 		try {
-			problem = await getSingleProblem({
-				id: $page.params.id,
-			});
+			problem = await getProblem(Number($page.params.id));
 			await fetchTopic(problem.id);
 			images = await getProblemImages(problem.id);
 			loaded = true;

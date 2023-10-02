@@ -1,5 +1,4 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import PieChart from "./PieChart.svelte";
 	import { Checkbox } from "carbon-components-svelte";
 	import {
@@ -11,6 +10,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { addProblemTestsolveAnswer, getProblemTestsolveAnswers, updateTestsolveAnswer } from "$lib/supabase";
 
 	export let problemID;
 	let feedbackList = [];
@@ -25,10 +25,7 @@
 
 	async function loadFeedback() {
 		try {
-			let { data, error } = await supabase
-				.from("testsolve_answers")
-				.select("*,testsolves(users(*))")
-				.eq("problem_id", problemID);
+			const data = await getProblemTestsolveAnswers(problemID, "*,testsolves(users(*))");
 
 			// filter empty feedback
 			const totalFeedbackList = data.filter((fd) => !!fd.feedback);
@@ -105,13 +102,7 @@
 			let newFeedback = {
 				resolved: e.detail,
 			};
-
-			let { error } = await supabase
-				.from("testsolve_answers")
-				.update(newFeedback)
-				.eq("id", feedback_id);
-
-			if (error) throw error;
+			await updateTestsolveAnswer(feedback_id, newFeedback);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -120,19 +111,9 @@
 
 	async function addFeedback() {
 		try {
-			const { data, error } = await supabase.from("testsolve_answers").insert([
-				{
-					problem_id: problemID,
-					feedback: feedbackInput,
-				},
-			]);
-
-			if (error) {
-				throw error;
-			} else {
-				feedbackInput = "";
-				loadFeedback();
-			}
+			await addProblemTestsolveAnswer(problemID, feedbackInput);
+			feedbackInput = "";
+			loadFeedback();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

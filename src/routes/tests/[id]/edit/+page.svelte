@@ -2,7 +2,6 @@
 	import { page } from "$app/stores";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
 	import { TextInput } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
@@ -16,9 +15,8 @@
 		deleteAProblemOnTest,
 		reorderProblemsOnTest,
 		massProblemReordering,
-
+		getThisUserRole,
 		getAllProblems
-
 	} from "$lib/supabase";
 
 	let testId = Number($page.params.id);

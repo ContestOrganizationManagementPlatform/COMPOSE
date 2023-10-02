@@ -1,13 +1,12 @@
 <script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { handleError } from "$lib/handleError";
-	import { getFeedbackQuestions, removeTestsolver } from "$lib/supabase";
+	import { getFeedbackQuestions, removeTestsolver, getThisUserRole } from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;

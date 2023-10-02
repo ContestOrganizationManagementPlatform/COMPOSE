@@ -1,9 +1,8 @@
-<script>
-	import { getThisUserRole } from "$lib/getUserRole.js";
-	import Menu from "$lib/components/Menu.svelte";
+<script lang="ts">
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import { getThisUserRole } from "$lib/supabase";
 
 	let loaded = false;
 	let isPW;

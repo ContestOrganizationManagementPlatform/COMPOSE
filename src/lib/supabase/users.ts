@@ -1,6 +1,42 @@
 import { supabase } from "../supabaseClient";
 
 /**
+ * Creates a COMPOSE account for the user
+ *
+ * @param email string
+ * @param password string
+ */
+export async function createAccount(email: string, password: string) {
+	const { user, session, error } = await supabase.auth.signUp({
+		email: email,
+		password: password,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Signs into an existing COMPOSE account for the user
+ *
+ * @param email string
+ * @param password string
+ */
+export async function signIntoAccount(email: string, password: string) {
+	const { error } = await supabase.auth.signIn({
+		email: email,
+		password: password,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Signs out user from their account in their browser
+ */
+export async function signOut() {
+	let { error } = await supabase.auth.signOut();
+	if (error) throw error;
+}
+
+/**
  * Gets author name from id
  *
  * @param author_id uuid
@@ -33,22 +69,22 @@ export async function getUserRole(user_id: string) {
 }
 
 /**
- * Returns current user's role number
- *
- * @returns current user's role, number
- */
-export async function getThisUserRole() {
-	const user_id = supabase.auth.user().id;
-	return await getUserRole(user_id);
-}
-
-/**
  * Returns current user's info
  *
  * @returns current user info
  */
 export function getThisUser() {
 	return supabase.auth.user();
+}
+
+/**
+ * Returns current user's role number
+ *
+ * @returns current user's role, number
+ */
+export async function getThisUserRole() {
+	const user_id = getThisUser().id;
+	return await getUserRole(user_id);
 }
 
 /**

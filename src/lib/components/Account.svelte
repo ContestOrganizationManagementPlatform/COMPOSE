@@ -1,10 +1,10 @@
 <script lang="ts">
-	import { supabase } from "$lib/supabaseClient";
 	import "carbon-components-svelte/css/white.css";
 	import Button from "$lib/components/Button.svelte";
 	import { Form, TextInput, PasswordInput } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import { createAccount, signIntoAccount } from "$lib/supabase";
 
 	export let logIn: boolean;
 	let loading = false;
@@ -16,11 +16,7 @@
 	const handleLogin = async () => {
 		try {
 			loading = true;
-			const { error } = await supabase.auth.signIn({
-				email: email,
-				password: password,
-			});
-			if (error) throw error;
+			await signIntoAccount(email, password);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.error_description || error.message);
@@ -34,11 +30,7 @@
 			if (password == retypePassword) {
 				try {
 					loading = true;
-					const { user, session, error } = await supabase.auth.signUp({
-						email: email,
-						password: password,
-					});
-					if (error) throw error;
+					await createAccount(email, password);
 					signupSuccess = true;
 				} catch (error) {
 					throw error;

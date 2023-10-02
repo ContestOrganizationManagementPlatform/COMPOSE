@@ -314,6 +314,20 @@ export async function insertTopics(topics: string[]) {
 }
 
 /**
+ * Return all the global topics
+ *
+ * @param customSelect optional, string
+ * @return list of global topics
+ */
+export async function getGlobalTopics(customSelect: string = "*") {
+	let { data: global_topics, error } = await supabase
+		.from("global_topics")
+		.select(customSelect);
+	if (error) throw error;
+	return global_topics;
+}
+
+/**
  * Get the problem counts
  *
  * @param customSelect optional, string

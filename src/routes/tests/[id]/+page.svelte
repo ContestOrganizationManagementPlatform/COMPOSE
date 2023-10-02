@@ -1,14 +1,12 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
-	import { displayLatex } from "$lib/latexStuff";
-	import { handleError } from "$lib/handleError.ts";
-	import { getTestInfo, getTestProblems } from "$lib/supabase";
+	import { handleError } from "$lib/handleError";
+	import { getTestInfo, getTestProblems, getThisUserRole } from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let test;

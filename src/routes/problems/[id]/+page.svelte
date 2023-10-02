@@ -1,14 +1,12 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import Problem from "$lib/components/Problem.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
-	import { getThisUserRole } from "$lib/getUserRole";
-	import { getSingleProblem } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, archiveProblem, restoreProblem, getThisUser, getProblemTopics } from "$lib/supabase";
+	import { handleError } from "$lib/handleError";
+	import { getAuthorName, archiveProblem, restoreProblem, getThisUser, getProblemTopics, getProblem, getThisUserRole } from "$lib/supabase";
 
 	let problem;
 	let loaded = false;
@@ -30,10 +28,7 @@
 	async function fetchProblem() {
 		try {
 			isAdmin = (await getThisUserRole()) >= 40;
-			problem = await getSingleProblem({
-				id: $page.params.id,
-				archived: isAdmin,
-			});
+			problem = await getProblem(Number($page.params.id));
 
 			if (!problem) {
 				// problem wasn't found

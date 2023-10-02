@@ -126,6 +126,61 @@ export async function deleteTestsolve(testsolveId: number) {
 }
 
 /**
+ * Get a problem's testsolve answers
+ * 
+ * @param problemId number
+ * @param customSelect optional, string
+ * @returns list of testsolve answers
+ */
+export async function getProblemTestsolveAnswers(
+	problemId: number,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolve_answers")
+		.select(customSelect)
+		.eq("problem_id", problemId);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Insert a testsolve answer to a problem
+ * 
+ * @param problemId number
+ * @param feedback any
+ */
+export async function addProblemTestsolveAnswer(
+	problemId: number,
+	feedback: any
+) {
+	const { data, error } = await supabase.from("testsolve_answers").insert([
+		{
+			problem_id: problemId,
+			feedback: feedback,
+		},
+	]);
+	if (error) throw error;
+}
+
+/**
+ * Update a problem's testsolve answers
+ * 
+ * @param feedbackId number
+ * @param newFeedback any
+ */
+export async function updateTestsolveAnswer(
+	feedbackId: number,
+	newFeedback: any
+) {
+	let { error } = await supabase
+		.from("testsolve_answers")
+		.update(newFeedback)
+		.eq("id", feedbackId);
+	if (error) throw error;
+}
+
+/**
  * Get testsolve feedback answers
  *
  * @param orderedFeedbackQuestions

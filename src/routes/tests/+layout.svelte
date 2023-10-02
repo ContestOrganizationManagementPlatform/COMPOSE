@@ -1,6 +1,5 @@
 <script>
-	import { getThisUserRole } from "$lib/getUserRole.js";
-	import Menu from "$lib/components/Menu.svelte";
+	import { getThisUserRole } from "$lib/supabase";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";

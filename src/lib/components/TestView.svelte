@@ -1,13 +1,12 @@
-<script>
-	import { supabase } from "$lib/supabaseClient";
+<script lang="ts">
 	import Latex from "$lib/components/Latex.svelte";
 	import { Checkbox, TextArea, TextInput } from "carbon-components-svelte";
 	import { TestsolveAnswer } from "$lib/TestsolveAnswer";
 	import { createEventDispatcher } from "svelte";
-	import { page } from "$app/stores";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import { getTestProblems } from "$lib/supabase";
 
 	const dispatch = createEventDispatcher();
 
@@ -27,12 +26,7 @@
 
 	async function fetchProblems() {
 		try {
-			let { data: testProblems, error } = await supabase
-				.from("test_problems")
-				.select("*,full_problems(*)")
-				.eq("test_id", testId)
-				.order("problem_number");
-			if (error) throw error;
+			const testProblems = await getTestProblems(testId);
 
 			problems = testProblems;
 			if (answers.length > 0) {
@@ -168,7 +162,7 @@
 		</div>
 		<br />
 		{#if submittable}
-			<Button action={submitTest(true)} title="Submit" />
+			<Button action={submitTest()} title="Submit" />
 		{/if}
 	</div>
 </div>

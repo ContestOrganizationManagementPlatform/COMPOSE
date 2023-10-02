@@ -2,11 +2,10 @@
 	import Drawer from "svelte-drawer-component";
 	import Banner from "./Banner.svelte";
 	import { Link } from "carbon-components-svelte";
-	import { supabase } from "$lib/supabaseClient";
-	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName, getThisUser, getThisUserRole, signOut } from "$lib/supabase";
 
 	$: path = $page.route.id;
 
@@ -17,28 +16,19 @@
 	let isAdmin;
 	let userRole = 0;
 
-	const user = supabase.auth.user();
+	const user = getThisUser();
 
 	(async () => {
 		userRole = await getThisUserRole();
 		isAdmin = userRole >= 40;
-		let { data: users, error } = await supabase
-			.from("users")
-			.select("full_name")
-			.eq("id", user.id)
-			.limit(1)
-			.single();
-		if (error) {
-			fullname = "No Name";
-		} else fullname = users.full_name;
+		fullname = await getAuthorName(user.id);
 	})();
 
 	const handleSignout = async (e) => {
 		e.preventDefault();
 		try {
 			loading = true;
-			let { error } = await supabase.auth.signOut();
-			if (error) throw error;
+			await signOut();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
