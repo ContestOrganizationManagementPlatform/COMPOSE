@@ -32,6 +32,21 @@ export async function getAllTests(customSelect = "*") {
 }
 
 /**
+ * Selects unarchived tests from the database
+ *
+ * @param customSelect optional, string
+ * @returns Unarchived tests from database
+ */
+export async function getUnarchivedTests(customSelect = "*") {
+	let { data: testList, error } = await supabase
+		.from("tests")
+		.select(customSelect)
+		.eq("archived", false);
+	if (error) throw error;
+	return testList;
+}
+
+/**
  * Selects all tests from database, ordered by a certain column
  *
  * @param customOrder string

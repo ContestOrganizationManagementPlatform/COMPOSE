@@ -5,6 +5,7 @@ import {
 	ButtonBuilder,
 	ActionRowBuilder,
 } from "discord.js";
+import scheme from "$lib/scheme.json";
 
 export async function POST({ request }) {
 	let token = import.meta.env.VITE_DISCORD_TOKEN;
@@ -30,11 +31,11 @@ export async function POST({ request }) {
 			.setTitle("Problem Created: " + body.front_id)
 			.setColor(6660998)
 			//.setTimestamp(body.created_at)
-			.setURL("https://compose.mustangmath.com/problems/" + body.id)
+			.setURL(scheme.url + "/problems/" + body.id)
 			.setAuthor({
 				name: body.authorName,
-				url: "https://compose.mustangmath.com/problems/" + body.id,
-				iconURL: "https://mustangmath.com/logo.png",
+				url: scheme.url + "/problems/" + body.id,
+				iconURL: scheme.logo,
 			})
 			.setFooter({ text: "Problem Created By " + body.authorName })
 			.addFields(
@@ -79,17 +80,17 @@ export async function POST({ request }) {
 		const buttonRow = new ActionRowBuilder().addComponents(
 			new ButtonBuilder()
 				.setLabel("View Problem")
-				.setURL("https://compose.mustangmath.com/problems/" + body.id)
+				.setURL(scheme.url + "/problems/" + body.id)
 				.setStyle(ButtonStyle.Link),
 			new ButtonBuilder()
 				.setLabel("Edit Problem")
-				.setURL("https://compose.mustangmath.com/problems/" + body.id + "/edit")
+				.setURL(scheme.url + "/problems/" + body.id + "/edit")
 				.setStyle(ButtonStyle.Link)
 		);
 
 		webhookClient.send({
 			username: "Problem Writing Platform",
-			avatarURL: "https://mustangmath.com/logo.png",
+			avatarURL: scheme.logo,
 			embeds: [embed],
 			components: [buttonRow],
 		});

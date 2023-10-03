@@ -1,10 +1,7 @@
 import {
-	EmbedBuilder,
 	WebhookClient,
-	ButtonStyle,
-	ButtonBuilder,
-	ActionRowBuilder,
 } from "discord.js";
+import scheme from "$lib/scheme.json";
 
 export async function POST({ request }) {
 	let token = import.meta.env.VITE_DISCORD_TOKEN;
@@ -16,7 +13,7 @@ export async function POST({ request }) {
 
 		webhookClient.send({
 			username: "Problem Writing Platform",
-			avatarURL: "https://mustangmath.com/logo.png",
+			avatarURL: scheme.logo,
 			content: body.updater + " " + body.update + " problem " + body.id,
 		});
 
