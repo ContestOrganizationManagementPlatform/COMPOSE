@@ -15,13 +15,13 @@ CREATE TABLE IF NOT EXISTS user_roles (
 );
 
 CREATE TABLE IF NOT EXISTS problems (
-    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+    id SERIAL PRIMARY KEY,
     created_at timestamptz DEFAULT now(),
-    author_id uuid REFERENCES public.users(id) ON DELETE CASCADE NOT NULL DEFAULT uid(),
+    author_id uuid DEFAULT uuid_generate_v4() NOT NULL,
     problem_latex text,
     answer_latex text,
     solution_latex text,
-    difficulty int4,
+    difficulty int,
     sub_topics text,
     nickname text,
     comment_latex text,
@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS problems (
 CREATE TABLE IF NOT EXISTS tournaments (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     tournament_name text NOT NULL,
-    tournament_date date
+    tournament_date date,
     archived bool NOT NULL DEFAULT false
 );
 
