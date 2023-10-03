@@ -1,6 +1,42 @@
 import { supabase } from "../supabaseClient";
 
 /**
+ * Creates a COMPOSE account for the user
+ *
+ * @param email string
+ * @param password string
+ */
+export async function createAccount(email: string, password: string) {
+	const { user, session, error } = await supabase.auth.signUp({
+		email: email,
+		password: password,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Signs into an existing COMPOSE account for the user
+ *
+ * @param email string
+ * @param password string
+ */
+export async function signIntoAccount(email: string, password: string) {
+	const { error } = await supabase.auth.signIn({
+		email: email,
+		password: password,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Signs out user from their account in their browser
+ */
+export async function signOut() {
+	let { error } = await supabase.auth.signOut();
+	if (error) throw error;
+}
+
+/**
  * Gets author name from id
  *
  * @param author_id uuid
@@ -33,22 +69,47 @@ export async function getUserRole(user_id: string) {
 }
 
 /**
- * Returns current user's role number
- *
- * @returns current user's role, number
- */
-export async function getThisUserRole() {
-	const user_id = supabase.auth.user().id;
-	return await getUserRole(user_id);
-}
-
-/**
  * Returns current user's info
  *
  * @returns current user info
  */
 export function getThisUser() {
 	return supabase.auth.user();
+}
+
+/**
+ * Returns current user's role number
+ *
+ * @returns current user's role, number
+ */
+export async function getThisUserRole() {
+	const user_id = getThisUser().id;
+	return await getUserRole(user_id);
+}
+
+/**
+ * Reset a user's password through email. Returns nothing.
+ *
+ * @param email
+ */
+export async function resetUserPassword(email: string) {
+	const { data, error } = await supabase.auth.api.resetPasswordForEmail(email, {
+		redirectTo: window.location.origin + "/password-reset",
+	});
+	if (error) throw error;
+}
+
+/**
+ * Change user's password if verified. Returns nothing.
+ *
+ * @param accessToken
+ * @param password
+ */
+export async function updateUserAuth(accessToken: string, password: string) {
+	const { data, error } = await supabase.auth.api.updateUser(accessToken, {
+		password,
+	});
+	if (error) throw error;
 }
 
 /**
@@ -78,10 +139,44 @@ export async function getUser(user_id: string) {
 /**
  * Fetches all users from database
  *
+ * @param customSelect optional, string
  * @returns all users
  */
-export async function getAllUsers() {
-	let { data: users, error } = await supabase.from("users").select("*");
+export async function getAllUsers(customSelect = "*") {
+	let { data: users, error } = await supabase
+		.from("users")
+		.select(customSelect);
+	if (error) throw error;
+	return users;
+}
+
+/**
+ * Update the information within a user's profile. Returns nothing.
+ *
+ * @param updates dict
+ */
+export async function updateUserData(updates: {}) {
+	let { error } = await supabase.from("users").upsert(updates, {
+		returning: "minimal",
+	});
+	if (error) throw error;
+}
+
+/**
+ * Allows you to apply a custom order to fetching users
+ *
+ * @param customOrder string
+ * @param customSelect optional, string
+ * @returns users from database sorted by order
+ */
+export async function getAllUsersOrder(
+	customOrder: string,
+	customSelect = "*"
+) {
+	let { data: users, error } = await supabase
+		.from("users")
+		.select(customSelect)
+		.order(customOrder);
 	if (error) throw error;
 	return users;
 }
@@ -102,7 +197,10 @@ export async function updateUserRole(user_id: string, role: number) {
 	} else {
 		const { error } = await supabase
 			.from("user_roles")
-			.update({ role })
+			.upsert({
+				user_id: user_id,
+				role,
+			})
 			.eq("user_id", user_id);
 		if (error) throw error;
 	}

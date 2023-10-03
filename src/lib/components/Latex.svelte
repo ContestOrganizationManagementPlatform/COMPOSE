@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
 	import { displayLatex } from "$lib/latexStuff";
 	import { ImageBucket } from "$lib/ImageBucket";
 	import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
@@ -6,7 +6,7 @@
 	import { processLatexViaUnified } from "@unified-latex/unified-latex";
 	import rehypeStringify from "rehype-stringify";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 
 	export let style = "";
 	export let value;

@@ -5,17 +5,18 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
 	import Loading from "$lib/components/Loading.svelte";
-	import { browser } from "$app/environment";
 	import { user } from "$lib/sessionStore";
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
 	import { Toaster } from "svelte-french-toast";
+	import { getThisUser } from "$lib/supabase";
+	import scheme from '$lib/scheme.json';
 
 	let loaded = false;
 
 	let hasAccount = true;
 	// user.set(browser ? localStorage.getItem("user") : null);
-	user.set(supabase.auth.user());
+	user.set(getThisUser());
 
 	supabase.auth.onAuthStateChange((_, session) => {
 		user.set(session?.user);
@@ -25,11 +26,15 @@
 		loaded = true;
 	});
 
+	$: cssVarStyles = Object.entries(scheme.styles)
+		.map(([key, value]) => `--${key}:${value}`)
+		.join(';');
+
 	// user.subscribe(val => browser ? localStorage.setItem("user", val) : null);
 </script>
 
 <Toaster />
-<main>
+<main style="{cssVarStyles}">
 	{#if !loaded}
 		<Banner />
 		<div class="loadingPage flex">
@@ -105,22 +110,8 @@
 <style>
 	/* Overall styling */
 	:global(:root) {
-		--font-family: "Ubuntu", "Roboto", Arial, -apple-system, BlinkMacSystemFont,
+		--font-family: var(--font-family), "Roboto", Arial, -apple-system, BlinkMacSystemFont,
 			"Segoe UI", Oxygen, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-
-		--text-color-light: #fff;
-		--text-color-dark: #000;
-		--background: #f5fffb;
-
-		--primary: #1c6825;
-		--primary-light: #65c083;
-		--primary-dark: #5b8064;
-		--primary-tint: #d9f5e2;
-
-		--secondary: #213d44;
-		--secondary-light: #1b9aaa;
-		--secondary-dark: #061333;
-		--secondary-tint: #b9c6d2;
 
 		--large-gap: 30px;
 		--medium-gap: 20px;
@@ -144,6 +135,14 @@
 	:global(::selection) {
 		background-color: var(--primary-tint);
 		color: black;
+	}
+
+	:global(pre) {
+		white-space: pre-wrap;
+		white-space: -moz-pre-wrap;
+		white-space: -pre-wrap;
+		white-space: -o-pre-wrap;
+		word-wrap: break-word;
 	}
 
 	/* Different grid types */

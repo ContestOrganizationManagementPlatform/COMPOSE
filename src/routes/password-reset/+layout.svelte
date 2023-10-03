@@ -4,8 +4,9 @@
 	import Banner from "$lib/components/Banner.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import { onMount } from "svelte";
+	import { getThisUser } from "$lib/supabase";
 
-	user.set(supabase.auth.user());
+	user.set(getThisUser());
 
 	let loaded = false;
 	onMount(async () => {

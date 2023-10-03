@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { supabase } from "$lib/supabaseClient";
 	import {
 		Select,
 		SelectItem,
@@ -9,7 +8,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { createTest } from "$lib/supabase/tests";
+	import { createTest, getAllTournaments } from "$lib/supabase";
 
 	let tournaments = [];
 	let name = "";
@@ -18,11 +17,7 @@
 
 	async function getTournaments() {
 		try {
-			let { data: tournamentList, error } = await supabase
-				.from("tournaments")
-				.select("*");
-			if (error) throw error;
-			tournaments = tournamentList;
+			tournaments = await getAllTournaments();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

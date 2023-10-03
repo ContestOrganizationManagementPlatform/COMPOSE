@@ -1,14 +1,13 @@
 <script>
 	import { supabase } from "$lib/supabaseClient";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
-	import { TextArea, Form, TextInput } from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getFeedbackQuestions, getSelectTestsolvers, getTestInfo, getThisUser, getThisUserRole } from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -24,12 +23,11 @@
 	// if a user has a previously uncompleted testsolve, load it
 	let loadedTestsolve = null;
 
-	async function getFeedbackQuestions() {
+	async function getAllFeedbackQuestions() {
 		try {
-			let { data: test_feedback_questions, error } = await supabase
-				.from("test_feedback_questions")
-				.select("*")
-				.eq("test_id", $page.params.id);
+			const test_feedback_questions = await getFeedbackQuestions(
+				$page.params.id
+			);
 			for (const x of test_feedback_questions) {
 				feedbackQuestions[x.id] = x;
 				feedbackAnswers.push({
@@ -51,15 +49,8 @@
 			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
 			} else {
-				let { data, error, count } = await supabase
-					.from("testsolvers")
-					.select("*", { count: "exact", head: true })
-					.eq("test_id", $page.params.id)
-					.eq("solver_id", supabase.auth.user().id);
-				if (error) {
-					loading = false;
-					throw error;
-				} else if (count > 0) {
+				const count = await getSelectTestsolvers($page.params.id, getThisUser().id);
+				if (count > 0) {
 					disallowed = false;
 				}
 			}
@@ -75,7 +66,7 @@
 
 	async function loadTestsolve() {
 		try {
-			await getFeedbackQuestions();
+			await getAllFeedbackQuestions();
 
 			// check if there is a prior testsolve
 
@@ -137,13 +128,7 @@
 			let data;
 
 			// fetch the current test version
-			let { data: testData, error: testError } = await supabase
-				.from("tests")
-				.select("*")
-				.eq("id", $page.params.id)
-				.limit(1)
-				.single();
-			if (testError) throw testError;
+			const testData = await getTestInfo($page.params.id);
 
 			// check if this is a resubmission
 			if (loadedTestsolve) {

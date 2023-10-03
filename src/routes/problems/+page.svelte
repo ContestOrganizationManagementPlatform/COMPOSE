@@ -1,18 +1,16 @@
-<script>
-	import { supabase } from "$lib/supabaseClient";
+<script lang="ts">
 	import ProblemList from "$lib/components/ProblemList.svelte";
-	import { sortIDs } from "$lib/sortIDs";
 	import Button from "$lib/components/Button.svelte";
 	import { Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
-	import { getFullProblems } from "$lib/getProblems";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import { getImages, getProblemCounts, getThisUser, getAllProblems } from "$lib/supabase";
 
 	let problems = [];
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
-	const userId = supabase.auth.user().id;
+	const userId = getThisUser().id;
 
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];
@@ -20,12 +18,8 @@
 
 	(async () => {
 		try {
-			problems = await getFullProblems();
-
-			let { data: problemCountsData, error2 } = await supabase
-				.from("problem_counts")
-				.select("*");
-			if (error2) throw error2;
+			problems = await getAllProblems("*", "front_id");
+			const problemCountsData = await getProblemCounts();
 			problemCounts = problemCountsData.sort(
 				(a, b) => b.problem_count - a.problem_count
 			);
@@ -39,33 +33,28 @@
 
 	async function getBucketPaths(path) {
 		try {
-			const { data, error } = await supabase.storage
-				.from("problem-images")
-				.list(path);
-			if (error) throw error;
-			else {
-				let ans = [];
-				for (let i = 0; i < data.length; i++) {
-					if (data[i].id != null) {
-						if (path === "") {
-							ans.push(data[i].name);
-						} else {
-							ans.push(path + "/" + data[i].name);
-						}
+			const data = await getImages(path);
+			let ans = [];
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].id != null) {
+					if (path === "") {
+						ans.push(data[i].name);
 					} else {
-						let x;
-						if (path === "") {
-							x = await getBucketPaths(data[i].name);
-						} else {
-							x = await getBucketPaths(path + "/" + data[i].name);
-						}
-						for (let j = 0; j < x.length; j++) {
-							ans.push(x[j]);
-						}
+						ans.push(path + "/" + data[i].name);
+					}
+				} else {
+					let x;
+					if (path === "") {
+						x = await getBucketPaths(data[i].name);
+					} else {
+						x = await getBucketPaths(path + "/" + data[i].name);
+					}
+					for (let j = 0; j < x.length; j++) {
+						ans.push(x[j]);
 					}
 				}
-				return ans;
 			}
+			return ans;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

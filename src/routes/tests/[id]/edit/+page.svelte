@@ -1,16 +1,25 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole.js";
 	import Loading from "$lib/components/Loading.svelte";
 	import { TextInput } from "carbon-components-svelte";
-	import { getFullProblems } from "$lib/getProblems";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import {
+		getTestInfo,
+		getThisUser,
+		editTestInfo,
+		getTestProblems,
+		addAProblemOnTest,
+		deleteAProblemOnTest,
+		reorderProblemsOnTest,
+		massProblemReordering,
+		getThisUserRole,
+		getAllProblems
+	} from "$lib/supabase";
 
-	let testId = $page.params.id;
+	let testId = Number($page.params.id);
 	let test;
 	let testCoordinators = [];
 	let loading = true;
@@ -25,19 +34,15 @@
 
 	async function getTest() {
 		try {
-			let { data: tests, error } = await supabase
-				.from("tests")
-				.select("*,test_coordinators(users(*)),tournaments(tournament_name)")
-				.eq("id", testId)
-				.limit(1)
-				.single();
-			if (error) throw error;
-			test = tests;
+			test = await getTestInfo(
+				testId,
+				"*,test_coordinators(users(*)),tournaments(tournament_name)"
+			);
 			testVersion = test.test_version;
 
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
-				!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
+				!!testCoordinators.find((tc) => tc.id === getThisUser().id) ||
 				(await getThisUserRole()) >= 40;
 			loading = false;
 			getProblems();
@@ -49,12 +54,7 @@
 
 	async function getProblems() {
 		try {
-			let { data: problemList, error } = await supabase
-				.from("test_problems")
-				.select("*,full_problems(*)")
-				.eq("test_id", testId)
-				.order("problem_number");
-			if (error) throw error;
+			let problemList = await getTestProblems(testId);
 
 			//console.log(problemList);
 			// filter duplicates ?? idk why they appear
@@ -69,7 +69,8 @@
 				...pb.full_problems,
 			}));
 			selectedTest = testProblems.map((pb) => pb.id);
-			let allProblemList = await getFullProblems();
+			let allProblemList = await getAllProblems("*", "front_id");
+
 			// prevent problems from appearing twice
 			allProblems = allProblemList.filter(
 				(pb) => !testProblems.find((tpb) => tpb.id === pb.id)
@@ -114,11 +115,7 @@
 		try {
 			selectedAll = [];
 			refreshingProblems = true;
-			let { error } = await supabase.rpc("add_test_problem", {
-				p_problem_id: problem.id,
-				p_test_id: testId,
-			});
-			if (error) throw error;
+			await addAProblemOnTest(testId, problem.id);
 			refreshProblems();
 		} catch (error) {
 			handleError(error);
@@ -130,11 +127,7 @@
 		try {
 			selectedAll = [];
 			refreshingProblems = true;
-			let { error } = await supabase.rpc("delete_test_problem", {
-				p_problem_id: problem.id,
-				cur_test_id: testId,
-			});
-			if (error) throw error;
+			await deleteAProblemOnTest(testId, problem.id);
 			refreshProblems();
 		} catch (error) {
 			handleError(error);
@@ -150,12 +143,7 @@
 		try {
 			refreshingProblems = true;
 			let { id, to } = e.detail;
-			let { error } = await supabase.rpc("reorder_test_problem", {
-				p_problem_id: id,
-				p_new_number: to,
-				cur_test_id: testId,
-			});
-			if (error) throw error;
+			await reorderProblemsOnTest(testId, id, to);
 			refreshProblems();
 		} catch (error) {
 			handleError(error);
@@ -178,19 +166,7 @@
 				const curProblem = testProblems[i];
 				if (curProblem.problem_number !== i) {
 					// needs reordering
-					let { error } = await supabase
-						.from("test_problems")
-						.update({
-							problem_id: curProblem.id,
-							test_id: curProblem.test_id,
-							problem_number: i,
-						})
-						.eq("relation_id", curProblem.relation_id);
-					if (error) {
-						throw error;
-						refreshProblems();
-						return;
-					}
+					await massProblemReordering(curProblem.test_id, curProblem.id, i, curProblem.relation_id);
 				}
 			}
 
@@ -211,12 +187,8 @@
 	async function submitVersionChange() {
 		try {
 			testVersionWasChanged = false; // hide button to prevent multiple tries
-			let { error } = await supabase
-				.from("tests")
-				.update({ test_version: testVersion })
-				.eq("id", testId);
-			if (error) throw error;
-			else toast.success("Test version changed successfully.");
+			await editTestInfo({ test_version: testVersion }, testId);
+			toast.success("Test version changed successfully.");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

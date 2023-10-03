@@ -1,13 +1,10 @@
 /* ImageBucket.ts
  * This file exports an object that contains methods for interacting with the Supabase problem images bucket.
  */
-
-import { supabase } from "$lib/supabaseClient";
 import type { FileObject } from "@supabase/storage-js";
 import { ProblemImage } from "$lib/getProblemImages";
 import { searchImages } from "$lib/latexStuff";
-
-const BUCKET_NAME = "problem-images";
+import { deleteImages, downloadImagesFromPath, getImageURL, getImages, uploadImage } from "./supabase";
 
 export type ListingType = "folder" | "image";
 
@@ -59,10 +56,7 @@ export class ImageListing {
 		if (this.loadedImage) return this.downloaded;
 
 		const location = this.folderString + this.name;
-		let { data, error } = await supabase.storage
-			.from("problem-images")
-			.download(location);
-		if (error) throw error;
+		const data = await downloadImagesFromPath(location);
 
 		this.downloaded = ProblemImage.fromSupabase(this.raw, data);
 		this.loadedImage = true;
@@ -100,9 +94,7 @@ export const ImageBucket = {
 		let listings: ImageListing[] = [];
 
 		if (!ImageBucket.isFakeFolder(folderName + "/")) {
-			let { data, error } = await supabase.storage
-				.from(BUCKET_NAME)
-				.list(folderName);
+			const data = await getImages(folderName);
 
 			// loop through folders/images
 			for (const obj of data) {
@@ -146,23 +138,13 @@ export const ImageBucket = {
 	},
 	// note: name is not set
 	getImage: async (url: string) => {
-		let { data, error } = await supabase.storage
-			.from(BUCKET_NAME)
-			.download(url);
-		if (error) {
-			throw new Error(error.message);
-		}
+		const data = await downloadImagesFromPath(url);
 		return ProblemImage.fromBlob(data);
 	},
 	// note: imageLocation is in the form 'folder/avatar1.png'
 	getImageURL: async (imageLocation: string) => {
-		let { data, error } = await supabase.storage
-			.from(BUCKET_NAME)
-			.getPublicUrl(imageLocation);
-		if (error) {
-			throw new Error(error.message);
-		}
-		return data.publicURL;
+		const data = await getImageURL(imageLocation);
+		return data;
 	},
 	// Downloads all the images found in the given latex string.
 	downloadLatexImages: async (latex: string) => {
@@ -208,10 +190,7 @@ export const ImageBucket = {
 		if (!folder.endsWith("/")) folder += "/";
 		if (!folder.startsWith("/")) folder = "/" + folder;
 		const fullPath = folder + image.name;
-		const { error } = await supabase.storage
-			.from(BUCKET_NAME)
-			.upload(fullPath, image.blob);
-		if (error) throw new Error(error.message);
+		await uploadImage(fullPath, image.blob);
 
 		// remove fake folders, if contained in one
 		fakeFolderList = fakeFolderList.filter((ff) => {
@@ -220,9 +199,6 @@ export const ImageBucket = {
 	},
 	deleteImage: async (imagePath: string) => {
 		if (imagePath.startsWith("/")) imagePath = imagePath.substring(1);
-		const { error } = await supabase.storage
-			.from(BUCKET_NAME)
-			.remove([imagePath]);
-		if (error) throw new Error(error.message);
+		await deleteImages([imagePath]);
 	},
 };

@@ -1,10 +1,10 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import { Select, SelectItem } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAllTests, getAllUsers, addTestsolver } from "$lib/supabase";
 
 	let finalUser = "";
 	let finalTest = "";
@@ -15,9 +15,7 @@
 
 	async function getUsers() {
 		try {
-			let { data: usersInfo, error } = await supabase.from("users").select("*");
-			if (error) throw error;
-			else users = usersInfo;
+			users = await getAllUsers();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -26,9 +24,7 @@
 
 	async function getTests() {
 		try {
-			let { data: testsInfo, error } = await supabase.from("tests").select("*");
-			if (error) throw error;
-			else tests = testsInfo;
+			tests = await getAllTests();
 			loading = false;
 		} catch (error) {
 			handleError(error);
@@ -69,10 +65,7 @@
 						toast.error("Please select a test and a user");
 					} else {
 						message = "";
-						const { data, error } = await supabase
-							.from("testsolvers")
-							.insert([{ test_id: finalTest, solver_id: finalUser }]);
-						if (error) throw error;
+						await addTestsolver({ test_id: finalTest, solver_id: finalUser });
 						message = "Success! Added testsolve.";
 					}
 				} catch (error) {

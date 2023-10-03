@@ -1,5 +1,4 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import {
 		DataTable,
 		Link,
@@ -10,6 +9,7 @@
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAllUsersOrder } from "$lib/supabase";
 
 	let pageSize = 25;
 	let page = 1;
@@ -28,11 +28,10 @@
 
 	async function roleManager() {
 		try {
-			let { data: users, error } = await supabase
-				.from("users")
-				.select("id,full_name,initials,user_roles(role)")
-				.order("full_name");
-			if (error) throw error;
+			let users = await getAllUsersOrder(
+				"full_name",
+				"id,full_name,initials,user_roles(role)"
+			);
 			let roles2 = [];
 			for (let user of users) {
 				const curRole = user.user_roles?.role ?? 0;

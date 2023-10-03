@@ -1,7 +1,7 @@
 <script>
 	import { Button } from "carbon-components-svelte";
 	export let title;
-	export let action;
+	export let action = null;
 	export let classs = "button";
 	export let href = null;
 	export let fontSize = "1em";

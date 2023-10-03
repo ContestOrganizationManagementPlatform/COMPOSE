@@ -1,5 +1,4 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import { formatDate } from "$lib/formatDate";
 	import {
 		DataTable,
@@ -12,6 +11,7 @@
 	import toast from "svelte-french-toast";
 	import Button from "$lib/components/Button.svelte";
 	import { handleError } from "$lib/handleError.ts";
+	import { deleteTestsolve, getAllTestsolvers, getAllTestsolves } from "$lib/supabase";
 
 	let loading = true;
 	let testsolves = [];
@@ -23,47 +23,35 @@
 			loading = true;
 
 			let testsolves1 = [];
-
-			let { data: testsolveInfo, error } = await supabase
-				.from("testsolves")
-				.select("*,users(full_name,initials),tests(test_name)");
-			if (error) throw error;
-			else {
-				testsolves1 = testsolveInfo.map((e) => ({
-					id: e.id,
-					solver_id: e.solver_id,
-					test_id: e.test_id,
-					solver_name: e.users.full_name,
-					solver_initials: e.users.initials,
-					test_name: e.tests.test_name,
-					start_time: formatDate(new Date(e.start_time)),
-					end_time: formatDate(new Date(e.end_time)),
-					feedback: e.feedback,
-					test_version: e.test_version,
-					status: "Past",
-				}));
-			}
+			const testsolveInfo = await getAllTestsolves("*,users(full_name,initials),tests(test_name)");
+			testsolves1 = testsolveInfo.map((e) => ({
+				id: e.id,
+				solver_id: e.solver_id,
+				test_id: e.test_id,
+				solver_name: e.users.full_name,
+				solver_initials: e.users.initials,
+				test_name: e.tests.test_name,
+				start_time: formatDate(new Date(e.start_time)),
+				end_time: formatDate(new Date(e.end_time)),
+				feedback: e.feedback,
+				test_version: e.test_version,
+				status: "Past",
+			}));
 
 			let testsolves2 = [];
-
-			let { data: testsolveInfo2, error2 } = await supabase
-				.from("testsolvers")
-				.select("*,users(full_name,initials),tests(test_name)");
-			if (error2) throw error2;
-			else {
-				testsolves2 = testsolveInfo2.map((e) => ({
-					id: e.id,
-					solver_id: e.solver_id,
-					test_id: e.test_id,
-					solver_name: e.users.full_name,
-					solver_initials: e.users.initials,
-					test_name: e.tests.test_name,
-					start_time: "N/A",
-					end_time: "N/A",
-					feedback: "N/A",
-					status: "Upcoming",
-				}));
-			}
+			const testsolveInfo2 = await getAllTestsolvers("*,users(full_name,initials),tests(test_name)");
+			testsolves2 = testsolveInfo2.map((e) => ({
+				id: e.id,
+				solver_id: e.solver_id,
+				test_id: e.test_id,
+				solver_name: e.users.full_name,
+				solver_initials: e.users.initials,
+				test_name: e.tests.test_name,
+				start_time: "N/A",
+				end_time: "N/A",
+				feedback: "N/A",
+				status: "Upcoming",
+			}));
 
 			testsolves = testsolves1.concat(testsolves2);
 			loading = false;
@@ -107,7 +95,7 @@
 
 <br />
 <h1 style="margin-bottom: 5px;">Admin Testsolves</h1>
-<Button href="/manage-testsolves/upcoming/new" title="Create new testsolve" />
+<Button href="/manage-testsolves/new" title="Create new testsolve" />
 
 <div style="padding: 20px">
 	<DataTable
@@ -148,12 +136,11 @@
 								del
 								runHeader="Delete Testsolve"
 								onSubmit={async () => {
-									const { data, error } = await supabase
-										.from("testsolvers")
-										.delete()
-										.eq("id", row.id);
-									if (error) toast.error(error.message);
-									else getUpcomingTestsolves();
+									try {
+										await deleteTestsolve(row.id);
+									} catch (error) {
+										toast.error(error.message);
+									}
 								}}
 							/>
 						</div>

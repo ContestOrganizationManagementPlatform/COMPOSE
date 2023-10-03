@@ -1,6 +1,5 @@
 <script>
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import Button from "$lib/components/Button.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Loading from "../../../../lib/components/Loading.svelte";
@@ -10,10 +9,12 @@
 		archiveTournament,
 		getTournamentInfo,
 		getTournamentTests,
-	} from "$lib/supabase/tournaments";
-	import { getTestProblems } from "$lib/supabase/tests";
+		getTestProblems,
+		getAllProblems,
+		getImages,
+		downloadImagesFromPath,
+	} from "$lib/supabase";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAllProblems } from "$lib/supabase/problems.ts";
 
 	let tournamentId = $page.params.id;
 	let tournament;
@@ -42,49 +43,30 @@
 		}
 	}
 
-	async function deleteTournament() {
-		try {
-			const { data, error } = await supabase
-				.from("tournaments")
-				.delete()
-				.eq("id", tournamentId);
-			if (error) throw error;
-			else window.location.replace("/admin/tournaments");
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
 	async function getBucketPaths(path) {
 		try {
-			const { data, error } = await supabase.storage
-				.from("problem-images")
-				.list(path);
-			if (error) throw error;
-			else {
-				let ans = [];
-				for (let i = 0; i < data.length; i++) {
-					if (data[i].id != null) {
-						if (path === "") {
-							ans.push(data[i].name);
-						} else {
-							ans.push(path + "/" + data[i].name);
-						}
+			const data = await getImages(path);
+			let ans = [];
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].id != null) {
+					if (path === "") {
+						ans.push(data[i].name);
 					} else {
-						let x;
-						if (path === "") {
-							x = await getBucketPaths(data[i].name);
-						} else {
-							x = await getBucketPaths(path + "/" + data[i].name);
-						}
-						for (let j = 0; j < x.length; j++) {
-							ans.push(x[j]);
-						}
+						ans.push(path + "/" + data[i].name);
+					}
+				} else {
+					let x;
+					if (path === "") {
+						x = await getBucketPaths(data[i].name);
+					} else {
+						x = await getBucketPaths(path + "/" + data[i].name);
+					}
+					for (let j = 0; j < x.length; j++) {
+						ans.push(x[j]);
 					}
 				}
-				return ans;
 			}
+			return ans;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -184,14 +166,8 @@
 
 			let image_paths = await getBucketPaths("");
 			for (const x of image_paths) {
-				const { data: imageX, err3 } = await supabase.storage
-					.from("problem-images")
-					.download(x);
-				if (err3) {
-					toast.error(err3.message);
-				} else {
-					zip.file(x, imageX);
-				}
+				const imageX = await downloadImagesFromPath(x);
+				zip.file(x, imageX);
 			}
 
 			zip.generateAsync({ type: "blob" }).then(

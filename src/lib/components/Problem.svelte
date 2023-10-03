@@ -1,14 +1,9 @@
-<script>
-	import { supabase } from "$lib/supabaseClient";
-
-	import { displayLatex, searchImages } from "$lib/latexStuff";
+<script lang="ts">
+	import { displayLatex } from "$lib/latexStuff";
 	import { ImageBucket } from "$lib/ImageBucket";
-	import { unifiedLatexToHast } from "@unified-latex/unified-latex-to-hast";
-	import { unified } from "unified";
-	import { processLatexViaUnified } from "@unified-latex/unified-latex";
-	import rehypeStringify from "rehype-stringify";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName } from "$lib/supabase";
 
 	export let problem; // whole object from database
 	export let showMetadata = false;
@@ -25,13 +20,8 @@
 			if ("full_name" in problem) {
 				author = problem.full_name;
 			} else if ("author_id" in problem) {
-				let { data: users, error } = await supabase
-					.from("users")
-					.select("full_name")
-					.eq("id", problem.author_id);
-				if (error) throw error;
-
-				author = users[0].full_name;
+				let user = await getAuthorName(problem.author_id);
+				author = user.full_name;
 			}
 		} catch (error) {
 			handleError(error);

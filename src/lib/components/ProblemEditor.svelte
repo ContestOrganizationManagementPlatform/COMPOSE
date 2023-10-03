@@ -1,5 +1,4 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import {
 		MultiSelect,
 		TextInput,
@@ -18,6 +17,7 @@
 	import LatexKeyboard from "$lib/components/editor/LatexKeyboard.svelte";
 	import ImageManager from "$lib/components/images/ImageManager.svelte";
 	import { handleError } from "$lib/handleError.ts";
+	import { getGlobalTopics } from "$lib/supabase";
 
 	export let originalProblem = null;
 	export let originalImages = [];
@@ -126,10 +126,7 @@
 	async function getTopics() {
 		try {
 			loading = true;
-			let { data: global_topics, error } = await supabase
-				.from("global_topics")
-				.select("*");
-			if (error) throw error;
+			const global_topics = await getGlobalTopics();
 			all_topics = [];
 			for (const single_topic of global_topics) {
 				all_topics.push({

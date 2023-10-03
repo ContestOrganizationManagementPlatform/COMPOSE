@@ -1,42 +1,19 @@
 <script>
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import { getProblemImages } from "$lib/getProblemImages";
-	import Problem from "$lib/components/Problem.svelte";
 	import ProblemEditor from "$lib/components/ProblemEditor.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import Modal from "$lib/components/Modal.svelte";
 	import toast from "svelte-french-toast";
-	import { getSingleProblem } from "$lib/getProblems";
 	import { handleError } from "$lib/handleError.ts";
+	import { getAuthorName, editProblem, getProblemTopics, deleteProblemTopics, insertProblemTopics, deleteImages, getImages, uploadImage, getThisUser, getProblem } from "$lib/supabase";
 
 	let problem;
 	let images = [];
 	let loaded = false;
 
-	async function getAuthorName() {
-		try {
-			let { data: user, error } = await supabase
-				.from("users")
-				.select("full_name")
-				.eq("id", supabase.auth.user().id)
-				.single();
-			if (error) throw error;
-			else return user.full_name;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
 	async function fetchTopic(problem_id) {
 		try {
-			let { data: problem_topics, error } = await supabase
-				.from("problem_topics")
-				.select("topic_id,global_topics(topic)")
-				.eq("problem_id", problem_id);
-			if (error) throw error;
-
+			const problem_topics = await getProblemTopics(problem_id, "topic_id,global_topics(topic)");
 			problem.topic = problem_topics.map((x) => x.topic_id);
 			problem.topicArray = problem_topics.map(
 				(x) => x.global_topics?.topic ?? "Unknown Topic"
@@ -49,11 +26,9 @@
 
 	async function fetchProblem() {
 		try {
-			problem = await getSingleProblem({
-				id: $page.params.id,
-			});
+			problem = await getProblem(Number($page.params.id));
 			await fetchTopic(problem.id);
-			images = await getProblemImages(supabase, problem.id);
+			images = await getProblemImages(problem.id);
 			loaded = true;
 		} catch (error) {
 			handleError(error);
@@ -66,49 +41,22 @@
 	async function submitProblem(payload) {
 		try {
 			const { topics, problem_files, ...payloadNoTopics } = payload;
-			let { data, error } = await supabase
-				.from("problems")
-				.update([payloadNoTopics])
-				.eq("id", $page.params.id);
-			if (error) throw error;
+			const data = await editProblem(payloadNoTopics, $page.params.id);
 
-			let { error2 } = await supabase
-				.from("problem_topics")
-				.delete()
-				.eq("problem_id", data[0].id);
-			if (error2) throw error2;
-
-			let { error3 } = await supabase.from("problem_topics").insert(
-				payload.topics.map((tp) => ({
-					problem_id: data[0].id,
-					topic_id: tp,
-				}))
-			);
-			if (error3) throw error3;
+			await deleteProblemTopics(data[0].id);
+			await insertProblemTopics(data[0].id, payload.topics);
 
 			// delete all files already in the problem
-			const { data: fileList, error4 } = await supabase.storage
-				.from("problem-images")
-				.list(`pb${problem.id}/problem`);
-			if (error4) throw error4;
-
+			const fileList = await getImages(`pb${problem.id}/problem`);
 			if (fileList.length > 0) {
-				const { error5 } = await supabase.storage
-					.from("problem-images")
-					.remove(fileList.map((f) => `pb${problem.id}/problem/${f.name}`));
-				if (error5) throw error5;
+				await deleteImages(fileList.map((f) => `pb${problem.id}/problem/${f.name}`));
 			}
 
 			for (const file of problem_files) {
-				let { error3 } = await supabase.storage
-					.from("problem-images")
-					.upload(`pb${problem.id}/problem/${file.name}`, file, {
-						upsert: true,
-					});
-				if (error3) throw error3;
+				await uploadImage(`pb${problem.id}/problem/${file.name}`, file);
 			}
 
-			const authorName = await getAuthorName();
+			const authorName = await getAuthorName(getThisUser().id);
 			await fetch("/api/discord-update", {
 				method: "POST",
 				body: JSON.stringify({
@@ -119,6 +67,8 @@
 			});
 
 			fetchProblem();
+			
+			toast.success("Successfully updated problem.");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

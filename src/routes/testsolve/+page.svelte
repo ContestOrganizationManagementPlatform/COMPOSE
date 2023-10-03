@@ -1,13 +1,13 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
 	import { TextArea, DataTable, Link } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import { formatDate } from "$lib/formatDate";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
+	import { getAllTests, getThisUserRole } from "$lib/supabase";
 
 	let loading = true;
 	let isAdmin = false;
@@ -19,20 +19,14 @@
 		try {
 			if ((await getThisUserRole()) >= 40) {
 				isAdmin = true;
-				// admin can testsolve anything
-				let { data: tests, error } = await supabase
-					.from("tests")
-					.select("id,test_name");
-				if (error) {
-					throw error;
-				} else {
-					availableTestsolves = tests.map((x) => ({
-						name: x.test_name,
-						id: x.id,
-						solves: [],
-						completed: true,
-					}));
-				}
+				
+				const tests = await getAllTests("id,test_name");
+				availableTestsolves = tests.map((x) => ({
+					name: x.test_name,
+					id: x.id,
+					solves: [],
+					completed: true,
+				}));
 			} else {
 				let { data: testsolves, error } = await supabase
 					.from("testsolvers")

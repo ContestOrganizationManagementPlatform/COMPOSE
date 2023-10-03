@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { getAllProblems, editProblem } from "$lib/supabase/problems";
-	import { getAllUsers } from "$lib/supabase/users";
+	import { getAllProblems, editProblem, getAllUsers } from "$lib/supabase";
 	import {
 		Select,
 		SelectItem,
@@ -65,6 +64,7 @@
 			setInterval(() => {
 				show = false;
 			}, 3000);
+			toast.success("Successfully transferred problem");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

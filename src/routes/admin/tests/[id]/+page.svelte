@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import {
 		TextInput,
 		Select,
@@ -19,10 +18,12 @@
 		getTestCoordinators,
 		removeTestCoordinator,
 		editTestInfo,
-	} from "$lib/supabase/tests";
-	import { getUser } from "$lib/supabase/users";
+		getFeedbackQuestions,
+		archiveTest,
+		getAllUsersOrder,
+	} from "$lib/supabase";
 
-	let testId = $page.params.id;
+	let testId = parseInt($page.params.id);
 	let test;
 	let testCoordinators = [];
 	let loading = true;
@@ -32,41 +33,14 @@
 	let curQuestion = "";
 	let feedbackQuestions = [];
 
-	async function getFeedbackQuestions() {
-		try {
-			let { data: test_feedback_questions, error } = await supabase
-				.from("test_feedback_questions")
-				.select("*")
-				.eq("test_id", testId);
-			if (error) throw error;
-
-			feedbackQuestions = test_feedback_questions;
-		} catch (error) {
-			if (error.code !== "PGRST116") {
-				handleError(error);
-				toast.error(error.messsage);
-			}
-		}
-	}
-
 	async function addFeedbackQuestion() {
 		try {
 			await addTestFeedbackQuestion({
 				test_id: Number(testId),
 				question: curQuestion,
 			});
-			await getFeedbackQuestions();
+			await getFeedbackQuestions(testId);
 			curQuestion = "";
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
-	async function getOneUser(id: string) {
-		try {
-			const user = await getUser(id);
-			return user;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -77,35 +51,27 @@
 		try {
 			test = await getTestInfo(Number(testId));
 
-			let queriedCoordinators = await getTestCoordinators(Number(testId));
+			let queriedCoordinators = await getTestCoordinators(
+				Number(testId),
+				"*,users(*)"
+			);
 			testCoordinators = queriedCoordinators.map((tc) => tc.users);
 
 			loading = false;
-			await getAllUsers();
-			await getFeedbackQuestions();
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
 
-	async function getAllUsers() {
-		try {
-			let { data: users, error } = await supabase
-				.from("users")
-				.select("*,test_coordinators(*)")
-				.order("full_name");
-			if (error) throw error;
+			let users = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
 			allUsers = users.filter(
 				(x) => !testCoordinators.some((tc) => tc.id === x.id)
 			);
+
+			await getFeedbackQuestions(testId);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
 
-	async function addTestCoordinatorSubmit(e) {
+	async function addTestCoordinatorSubmit() {
 		try {
 			await addTestCoordinator(Number(testId), selectRef.value);
 			getTest();
@@ -134,6 +100,7 @@
 				},
 				Number(testId)
 			);
+			toast.success("Successfully edited test information.");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -142,12 +109,9 @@
 
 	async function deleteTest() {
 		try {
-			const { data, error } = await supabase
-				.from("tests")
-				.delete()
-				.eq("id", testId);
-			if (error) throw error;
-			else window.location.replace("/admin/tests");
+			await archiveTest(testId);
+			toast.success("Successfully deleted test.");
+			window.location.replace("/admin/tests");
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

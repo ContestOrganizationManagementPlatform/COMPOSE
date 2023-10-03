@@ -13,6 +13,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { getTestInfo, getAllUsersOrder } from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let loading = true;
@@ -25,15 +26,7 @@
 
 	async function getTest() {
 		try {
-			let { data, error } = await supabase
-				.from("tests")
-				.select("test_name")
-				.eq("id", testId)
-				.limit(1)
-				.single();
-			if (error) throw error;
-
-			test = data;
+			test = await getTestInfo(testId, "test_name");
 			getTestsolvers();
 		} catch (error) {
 			handleError(error);
@@ -70,11 +63,7 @@
 
 	async function getAllUsers() {
 		try {
-			let { data: users, error } = await supabase
-				.from("users")
-				.select("*,test_coordinators(*)")
-				.order("full_name");
-			if (error) throw error;
+			const users = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
 			allUsers = users.filter(
 				(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
 			);

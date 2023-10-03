@@ -1,12 +1,12 @@
-<script>
+<script lang="ts">
 	import { supabase } from "$lib/supabaseClient";
-	import { getThisUserRole } from "$lib/getUserRole";
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import { getFeedbackQuestions, removeTestsolver, getThisUserRole } from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -17,22 +17,20 @@
 
 	let startTime = null;
 	let endTime = null;
-	let isAdmin;
+	let isAdmin: boolean;
 
 	let testsolve = null;
-	let timeElapsed;
+	let timeElapsed: number;
 	$: timeElapsed =
 		testsolve?.time_elapsed * 1000 ??
 		new Date(testsolve?.end_time).getTime() -
 			new Date(testsolve?.start_time).getTime();
 
-	async function getFeedbackQuestions() {
+	async function getLocalFeedbackQuestions() {
 		try {
-			let { data: test_feedback_questions, error } = await supabase
-				.from("test_feedback_questions")
-				.select("*")
-				.eq("test_id", testsolve.test_id);
-			if (error) throw error;
+			const test_feedback_questions = await getFeedbackQuestions(
+				testsolve.test_id
+			);
 
 			for (const x of test_feedback_questions) {
 				feedbackQuestions[x.id] = x;
@@ -66,12 +64,7 @@
 	async function deleteTestsolve() {
 		try {
 			if (isAdmin) {
-				let { error } = await supabase
-					.from("testsolves")
-					.delete()
-					.eq("id", $page.params.id);
-				if (error) throw error;
-
+				await removeTestsolver(Number($page.params.id));
 				toast.success("Successfully deleted testsolve!");
 				window.location.href = "/manage-testsolves";
 			}
@@ -103,7 +96,7 @@
 					disallowed = false;
 				} else {
 					// check if test coordinator
-					let { data2, error2, count } = await supabase
+					let { data: data2, error: error2, count } = await supabase
 						.from("test_coordinators")
 						.select("*", { count: "exact", head: true })
 						.eq("coordinator_id", supabase.auth.user().id)
@@ -120,7 +113,7 @@
 				loading = false;
 			} else {
 				getAnswers();
-				getFeedbackQuestions();
+				getLocalFeedbackQuestions();
 				getFeedbackAnswers();
 			}
 		} catch (error) {
@@ -165,7 +158,7 @@
 				throw error;
 			} else {
 				// delete old answers
-				let { error3 } = await supabase
+				let { error: error3 } = await supabase
 					.from("testsolve_answers")
 					.delete()
 					.eq("testsolve_id", $page.params.id);
@@ -173,7 +166,7 @@
 				if (error3) {
 					throw error3;
 				} else {
-					let { data2, error2 } = await supabase
+					let { data: data2, error: error2 } = await supabase
 						.from("testsolve_answers")
 						.insert(
 							answers.map((ans) => ({

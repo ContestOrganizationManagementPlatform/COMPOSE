@@ -1,13 +1,12 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { getThisUserRole } from "$lib/getUserRole.js";
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
-	import { displayLatex } from "$lib/latexStuff";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
+	import { getTestInfo, getTestProblems, getThisUserRole } from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let test;
@@ -32,17 +31,10 @@
 
 	async function getTest() {
 		try {
-			let { data: tests, error } = await supabase
-				.from("tests")
-				.select(
-					"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
-				)
-				.eq("id", testId)
-				.limit(1)
-				.single();
-			if (error) throw error;
-			test = tests;
-
+			test = await getTestInfo(
+				testId,
+				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
 				!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
@@ -57,12 +49,7 @@
 
 	async function getProblems() {
 		try {
-			let { data: problemList, error } = await supabase
-				.from("test_problems")
-				.select("*,full_problems(*)")
-				.eq("test_id", testId)
-				.order("problem_number");
-			if (error) throw error;
+			let problemList = await getTestProblems(testId);
 
 			let { data: feedbackList, error2 } = await supabase
 				.from("testsolve_answers")
