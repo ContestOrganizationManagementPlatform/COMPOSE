@@ -6,9 +6,9 @@
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { getTestInfo, getTestProblems, getThisUserRole } from "$lib/supabase";
+	import { getImages, getTestInfo, getTestProblems, getThisUser, getThisUserRole } from "$lib/supabase";
 
-	let testId = $page.params.id;
+	let testId = Number($page.params.id);
 	let test;
 	let testCoordinators = [];
 	let loading = true;
@@ -37,7 +37,7 @@
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
-				!!testCoordinators.find((tc) => tc.id === supabase.auth.user().id) ||
+				!!testCoordinators.find((tc) => tc.id === getThisUser().id) ||
 				(await getThisUserRole()) >= 40;
 			getProblems();
 			loading = false;
@@ -82,33 +82,28 @@
 
 	async function getBucketPaths(path) {
 		try {
-			const { data, error } = await supabase.storage
-				.from("problem-images")
-				.list(path);
-			if (error) throw error;
-			else {
-				let ans = [];
-				for (let i = 0; i < data.length; i++) {
-					if (data[i].id != null) {
-						if (path === "") {
-							ans.push(data[i].name);
-						} else {
-							ans.push(path + "/" + data[i].name);
-						}
+			const data = await getImages(path);
+			let ans = [];
+			for (let i = 0; i < data.length; i++) {
+				if (data[i].id != null) {
+					if (path === "") {
+						ans.push(data[i].name);
 					} else {
-						let x;
-						if (path === "") {
-							x = await getBucketPaths(data[i].name);
-						} else {
-							x = await getBucketPaths(path + "/" + data[i].name);
-						}
-						for (let j = 0; j < x.length; j++) {
-							ans.push(x[j]);
-						}
+						ans.push(path + "/" + data[i].name);
+					}
+				} else {
+					let x;
+					if (path === "") {
+						x = await getBucketPaths(data[i].name);
+					} else {
+						x = await getBucketPaths(path + "/" + data[i].name);
+					}
+					for (let j = 0; j < x.length; j++) {
+						ans.push(x[j]);
 					}
 				}
-				return ans;
 			}
+			return ans;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

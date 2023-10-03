@@ -33,6 +33,16 @@
 	// user.subscribe(val => browser ? localStorage.setItem("user", val) : null);
 </script>
 
+<svelte:head>
+	<link rel="icon" type="image/png" href={scheme.logo} />
+	<link rel="og:image" type="image/png" href={scheme.logo} />
+	<title>{scheme.title} COMPOSE</title>
+	<meta
+		name="description"
+		content="{scheme.description} This is Collaborative Online Math Problem Organization and Sharing Environment (COMPOSE), a place to write problems for these tournaments!"
+	/>
+</svelte:head>
+
 <Toaster />
 <main style="{cssVarStyles}">
 	{#if !loaded}

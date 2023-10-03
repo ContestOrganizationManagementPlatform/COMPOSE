@@ -4,7 +4,7 @@
 </script>
 
 <div class="header">
-	<img src="/MMTLogo.png" alt="MMTLogo" width="50" height="50" />
+	<img src={scheme.logo} alt="MMTLogo" width="50" height="50" />
 	<h4>{scheme.title}</h4>
 </div>
 

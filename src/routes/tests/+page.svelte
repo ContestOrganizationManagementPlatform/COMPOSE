@@ -1,5 +1,4 @@
 <script lang="ts">
-	import { supabase } from "$lib/supabaseClient";
 	import {
 		DataTable,
 		Link,
@@ -10,6 +9,7 @@
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import { getUnarchivedTests } from "$lib/supabase";
 
 	let rows = [];
 	let pageSize = 25;
@@ -18,12 +18,7 @@
 
 	async function getTests() {
 		try {
-			let { data: testList, error } = await supabase
-				.from("tests")
-				.select("*,tournaments(tournament_name)")
-				.eq("archived", false);
-			if (error) throw error;
-
+			const testList = await getUnarchivedTests("*,tournaments(tournament_name)");
 			let rowValues = [];
 
 			for (const test of testList) {
