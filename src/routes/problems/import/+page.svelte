@@ -95,7 +95,7 @@
 
 			const payload = {
 				problem_latex: getResult(regexes.question) ?? "",
-				comment_latex: getResult(regexes.comment) ?? "",
+				comment_latex: getResult(regexes.comment) + "\n Original File: " + name ?? "",
 				answer_latex: getResult(regexes.answer) ?? "",
 				solution_latex: newSolution ?? getResult(regexes.solution) ?? "",
 				topics: [getResult(regexes.topic) ?? ""],
