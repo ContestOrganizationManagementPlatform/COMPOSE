@@ -3,7 +3,13 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { getThisUser, insertTopics, getAllUsers, bulkProblems, getThisUserRole } from "$lib/supabase";
+	import {
+		getThisUser,
+		insertTopics,
+		getAllUsers,
+		bulkProblems,
+		getThisUserRole,
+	} from "$lib/supabase";
 
 	const regexes = {
 		topic: /\\ques\[(\w*)\]/s,
@@ -95,7 +101,8 @@
 
 			const payload = {
 				problem_latex: getResult(regexes.question) ?? "",
-				comment_latex: getResult(regexes.comment) + "\n Original File: " + name ?? "",
+				comment_latex:
+					getResult(regexes.comment) + "\nOriginal File: " + name ?? "",
 				answer_latex: getResult(regexes.answer) ?? "",
 				solution_latex: newSolution ?? getResult(regexes.solution) ?? "",
 				topics: [getResult(regexes.topic) ?? ""],
