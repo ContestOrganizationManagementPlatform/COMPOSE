@@ -8,6 +8,7 @@
 		"text-color-light": "#fff",
 		"text-color-dark": "#000",
 		"background": "#FFFBF0",
+		"background-dark": "#FFEEBE",
 		"primary": "#981C1D",
 		"primary-light": "#dc7291",
 		"primary-dark": "#65100f",
