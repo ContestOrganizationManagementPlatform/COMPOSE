@@ -1,14 +1,14 @@
 {
-    "title": "Stanford Math Tournament",
-    "abbreviation": "SMT",
-	"logo": "https://www.stanfordmathtournament.com/SMT%20Color.png",
+	"title": "Stanford Math Tournament",
+	"abbreviation": "SMT",
+	"logo": "https://www.stanfordmathtournament.com/SMT%20Black.png",
 	"description": "The Stanford Math Tournament (SMT) is a high school math tournament run by students at Stanford University. We are passionate about providing a high quality and challenging event to students interested in mathematics globally.",
 	"url": "compose.stanfordmathtournament.com",
-    "styles": {
-    	"text-color-light": "#fff",
+	"styles": {
+		"text-color-light": "#fff",
 		"text-color-dark": "#000",
 		"background": "#FFFBF0",
-        "primary": "#981C1D",
+		"primary": "#981C1D",
 		"primary-light": "#dc7291",
 		"primary-dark": "#65100f",
 		"primary-tint": "#e9d8d8",
@@ -17,5 +17,5 @@
 		"secondary-dark": "#485445",
 		"secondary-tint": "#e3f2df",
 		"font-family": "Source Sans Pro"
-    }
+	}
 }
