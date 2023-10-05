@@ -57,7 +57,7 @@
 	}
 
 	.latexKeyboard {
-		background-color: rgb(219, 248, 229);
+		background-color: var(--background-dark);
 		border: 1px solid #333333;
 		display: block;
 		padding: 10px;
