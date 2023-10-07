@@ -16,7 +16,7 @@
 		reorderProblemsOnTest,
 		massProblemReordering,
 		getThisUserRole,
-		getAllProblems
+		getAllProblems,
 	} from "$lib/supabase";
 
 	let testId = Number($page.params.id);
@@ -42,8 +42,9 @@
 
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
-				!!testCoordinators.find((tc) => tc.id === getThisUser().id) ||
-				(await getThisUserRole()) >= 40;
+				!!testCoordinators.find(
+					async (tc) => tc.id === (await getThisUser()).id
+				) || (await getThisUserRole()) >= 40;
 			loading = false;
 			getProblems();
 		} catch (error) {
@@ -166,7 +167,12 @@
 				const curProblem = testProblems[i];
 				if (curProblem.problem_number !== i) {
 					// needs reordering
-					await massProblemReordering(curProblem.test_id, curProblem.id, i, curProblem.relation_id);
+					await massProblemReordering(
+						curProblem.test_id,
+						curProblem.id,
+						i,
+						curProblem.relation_id
+					);
 				}
 			}
 

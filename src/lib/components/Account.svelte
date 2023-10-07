@@ -4,7 +4,11 @@
 	import { Form, TextInput, PasswordInput } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { createAccount, signIntoAccount } from "$lib/supabase";
+	import {
+		createAccount,
+		signIntoAccount,
+		signInWithDiscord,
+	} from "$lib/supabase";
 
 	export let logIn: boolean;
 	let loading = false;
@@ -13,10 +17,15 @@
 	let password: string;
 	let retypePassword: string;
 
-	const handleLogin = async () => {
+	const handleLogin = async (discord: boolean) => {
 		try {
 			loading = true;
-			await signIntoAccount(email, password);
+			if (discord) {
+				await signInWithDiscord();
+				//await signIntoAccount(email, password);
+			} else {
+				await signIntoAccount(email, password);
+			}
 		} catch (error) {
 			handleError(error);
 			toast.error(error.error_description || error.message);
@@ -83,7 +92,9 @@
 	{/if}
 	<div class="profileButtons">
 		{#if logIn}
-			<Button title="Enter" action={handleLogin} />
+			<Button title="Enter" action={handleLogin(false)} />
+			<Button title="Discord" classs={"discordbutton"} action={handleLogin(true)} />
+			
 		{:else}
 			<Button title="Enter" action={handleSignUp} />
 		{/if}

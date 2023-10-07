@@ -1,13 +1,19 @@
 <script lang="ts">
-	import { supabase } from "$lib/supabaseClient";
-	import { TextArea, DataTable, Link } from "carbon-components-svelte";
+	import { DataTable, Link } from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { formatDate } from "$lib/formatDate";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
-	import { getAllTests, getThisUserRole } from "$lib/supabase";
+	import {
+		getAllTests,
+		getThisUserRole,
+		getThisUser,
+		getSolverTestsolvers,
+		getAllTestsolves,
+		getSelectTestsolves,
+	} from "$lib/supabase";
 
 	let loading = true;
 	let isAdmin = false;
@@ -15,11 +21,16 @@
 	let availableTestsolves = [];
 	let tableData = [];
 
+	let user;
+	(async () => {
+		user = await getThisUser();
+	})();
+
 	async function getTestsolves() {
 		try {
 			if ((await getThisUserRole()) >= 40) {
 				isAdmin = true;
-				
+
 				const tests = await getAllTests("id,test_name");
 				availableTestsolves = tests.map((x) => ({
 					name: x.test_name,
@@ -28,20 +39,16 @@
 					completed: true,
 				}));
 			} else {
-				let { data: testsolves, error } = await supabase
-					.from("testsolvers")
-					.select("test_id,tests(test_name)")
-					.eq("solver_id", supabase.auth.user().id);
-				if (error) {
-					throw error;
-				} else {
-					availableTestsolves = testsolves.map((x) => ({
-						name: x.tests.test_name,
-						id: x.test_id,
-						solves: [],
-						completed: true,
-					}));
-				}
+				const testsolves = await getSolverTestsolvers(
+					user.id,
+					"test_id,tests(test_name)"
+				);
+				availableTestsolves = testsolves.map((x) => ({
+					name: x.tests.test_name,
+					id: x.test_id,
+					solves: [],
+					completed: true,
+				}));
 			}
 			getFinishedSolves();
 		} catch (error) {
@@ -54,25 +61,16 @@
 		try {
 			let finishedSolves;
 			if (isAdmin) {
-				let { data, error } = await supabase
-					.from("testsolves")
-					.select("*,users(full_name,initials)");
-				if (error) throw error;
-				finishedSolves = data;
+				finishedSolves = await getAllTestsolves("*,users(full_name,initials)");
 			} else {
-				let { data, error } = await supabase
-					.from("testsolves")
-					.select("*,users(full_name,initials)")
-					.eq("solver_id", supabase.auth.user().id);
-				if (error) throw error;
-				finishedSolves = data;
+				finishedSolves = await getSelectTestsolves(user.id, "*,users(full_name,initials)");
 			}
 			for (const solve of finishedSolves) {
 				let test = availableTestsolves.find((ts) => ts.id === solve.test_id);
 				if (test) {
 					test.solves.push(solve);
 					// if this solve is uncompleted
-					if (!solve.completed && solve.solver_id === supabase.auth.user().id) {
+					if (!solve.completed && solve.solver_id === user.id) {
 						test.completed = false;
 					}
 				}

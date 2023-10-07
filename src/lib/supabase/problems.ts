@@ -69,15 +69,13 @@ async function getFrontID(problem_id: number) {
  */
 export async function getAllProblems(
 	customSelect: string = "*",
-	customOrder: string = "*",
 	normal: boolean = true,
 	archived: boolean = false
 ) {
 	if (normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select(customSelect)
-			.order(customOrder);
+			.select(customSelect);
 		if (error) throw error;
 		return data;
 	}
@@ -85,7 +83,6 @@ export async function getAllProblems(
 		let { data, error } = await supabase
 			.from("full_problems")
 			.select(customSelect)
-			.order(customOrder)
 			.eq("archived", false);
 		if (error) throw error;
 		return data;
@@ -94,7 +91,6 @@ export async function getAllProblems(
 		let { data, error } = await supabase
 			.from("full_problems")
 			.select(customSelect)
-			.order(customOrder)
 			.eq("archived", true);
 		if (error) throw error;
 		return data;

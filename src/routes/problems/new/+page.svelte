@@ -5,18 +5,25 @@
 	import Button from "$lib/components/Button.svelte";
 	import { invalidate } from "$app/navigation";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, createProblem, getThisUser, insertProblemTopics, uploadImage } from "$lib/supabase";
+	import {
+		getAuthorName,
+		createProblem,
+		getThisUser,
+		insertProblemTopics,
+		uploadImage,
+	} from "$lib/supabase";
 
 	let authorName = "";
 	let openModal = false;
 	let problem_id = 0;
 
 	async function submitProblem(payload) {
-		authorName = getAuthorName(getThisUser().id);
+		authorName = getAuthorName(await getThisUser().id);
 		try {
 			if (authorName === "") {
 				throw new Error("Author name is not defined");
-			} if (payload.topics.length == 0) {
+			}
+			if (payload.topics.length == 0) {
 				throw new Error("Must specify at least one topic for this problem");
 			} else {
 				const { topics, problem_files, ...payloadNoTopics } = payload;

@@ -1,12 +1,18 @@
 <script lang="ts">
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { getImages, getTestInfo, getTestProblems, getThisUser, getThisUserRole } from "$lib/supabase";
+	import {
+		getImages,
+		getProblemTestsolveAnswersOrder,
+		getTestInfo,
+		getTestProblems,
+		getThisUser,
+		getThisUserRole,
+	} from "$lib/supabase";
 
 	let testId = Number($page.params.id);
 	let test;
@@ -37,8 +43,9 @@
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
-				!!testCoordinators.find((tc) => tc.id === getThisUser().id) ||
-				(await getThisUserRole()) >= 40;
+				!!testCoordinators.find(
+					async (tc) => tc.id === (await getThisUser()).id
+				) || (await getThisUserRole()) >= 40;
 			getProblems();
 			loading = false;
 		} catch (error) {
@@ -50,14 +57,7 @@
 	async function getProblems() {
 		try {
 			let problemList = await getTestProblems(testId);
-
-			let { data: feedbackList, error2 } = await supabase
-				.from("testsolve_answers")
-				.select("*")
-				.order("problem_id");
-			if (error2) throw error2;
-
-			feedback = feedbackList;
+			feedback = await getProblemTestsolveAnswersOrder("problem_id");
 
 			problems = problemList.map((pb) => ({
 				problem_number: pb.problem_number,

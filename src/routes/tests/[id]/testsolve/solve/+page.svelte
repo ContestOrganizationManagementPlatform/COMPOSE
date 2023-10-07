@@ -1,5 +1,4 @@
 <script>
-	import { supabase } from "$lib/supabaseClient";
 	import { page } from "$app/stores";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
@@ -7,7 +6,22 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getFeedbackQuestions, getSelectTestsolvers, getTestInfo, getThisUser, getThisUserRole } from "$lib/supabase";
+	import {
+		addProblemTestsolveAnswer,
+		checkPriorTestsolve,
+		getFeedbackQuestions,
+		getSelectTestsolveAnswers,
+		getSelectTestsolvers,
+		getTestInfo,
+		getTestsolveTestsolveAnswers,
+		getThisUser,
+		getThisUserRole,
+		insertTestsolve,
+		insertTestsolveFeedbackAnswers,
+		updateTestsolve,
+		updateTestsolveAnswer,
+		updateTestsolveFeedbackAnswers,
+	} from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -22,6 +36,11 @@
 
 	// if a user has a previously uncompleted testsolve, load it
 	let loadedTestsolve = null;
+
+	let user;
+	(async () => {
+		user = await getThisUser();
+	})();
 
 	async function getAllFeedbackQuestions() {
 		try {
@@ -49,7 +68,7 @@
 			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
 			} else {
-				const count = await getSelectTestsolvers($page.params.id, getThisUser().id);
+				const count = await getSelectTestsolvers($page.params.id, user.id);
 				if (count > 0) {
 					disallowed = false;
 				}
@@ -69,42 +88,17 @@
 			await getAllFeedbackQuestions();
 
 			// check if there is a prior testsolve
+			const existing = await checkPriorTestsolve(
+				$page.params.id,
+				user.id,
+				false
+			);
 
-			let { data, error } = await supabase
-				.from("testsolves")
-				.select("*")
-				.eq("test_id", $page.params.id)
-				.eq("solver_id", supabase.auth.user().id)
-				.eq("completed", false);
-
-			if (error) throw error;
-
-			if (data.length > 0) {
+			if (existing) {
 				loadedTestsolve = data[0];
 
-				//console.log(loadedTestsolve);
-
-				// need to fetch all the previous answers
-				let { data: data2, error: error2 } = await supabase
-					.from("testsolve_answers")
-					.select("*")
-					.eq("testsolve_id", loadedTestsolve.id);
-
-				if (error2) throw error2;
-				else {
-					answers = data2;
-				}
-
-				// need to fetch all the previous feedback answers
-				let { data: data3, error: error3 } = await supabase
-					.from("testsolve_feedback_answers")
-					.select("*")
-					.eq("testsolve_id", loadedTestsolve.id);
-				if (error3) {
-					throw error3;
-				} else {
-					feedbackAnswers = data3;
-				}
+				answers = await getTestsolveTestsolveAnswers(loadedTestsolve.id);
+				feedbackAnswers = await getSelectTestsolveAnswers(loadedTestsolve.id);
 
 				// load in start time
 				timeOffset = loadedTestsolve.time_elapsed;
@@ -132,44 +126,26 @@
 
 			// check if this is a resubmission
 			if (loadedTestsolve) {
-				let { data: tsData, error } = await supabase
-					.from("testsolves")
-					.update({
-						test_id: $page.params.id,
-						solver_id: supabase.auth.user().id,
-						start_time: startTime.toISOString(),
-						end_time: endTime.toISOString(),
-						time_elapsed: timeElapsed,
-						completed: completedSolve,
-						test_version: testData.test_version,
-					})
-					.eq("id", loadedTestsolve.id);
-
-				if (error) {
-					loading = false;
-					throw error;
-				}
-
-				data = tsData;
+				data = await updateTestsolve(loadedTestsolve.id, {
+					test_id: $page.params.id,
+					solver_id: user.id,
+					start_time: startTime.toISOString(),
+					end_time: endTime.toISOString(),
+					time_elapsed: timeElapsed,
+					completed: completedSolve,
+					test_version: testData.test_version,
+				});
 			} else {
-				let { data: tsData, error } = await supabase.from("testsolves").insert([
-					{
-						test_id: $page.params.id,
-						solver_id: supabase.auth.user().id,
-						start_time: startTime.toISOString(),
-						end_time: endTime.toISOString(),
-						time_elapsed: timeElapsed,
-						completed: completedSolve,
-						test_version: testData.test_version,
-					},
-				]);
-
-				if (error) {
-					loading = false;
-					throw error;
-				}
-
-				data = tsData;
+				data = await insertTestsolve({
+					test_id: $page.params.id,
+					solver_id: user.id,
+					start_time: startTime.toISOString(),
+					end_time: endTime.toISOString(),
+					time_elapsed: timeElapsed,
+					completed: completedSolve,
+					test_version: testData.test_version,
+				});
+				loading = false;
 			}
 
 			let testsolveId = data[0].id;
@@ -177,22 +153,16 @@
 			// update all answers if previous testsolve, else insert
 			if (loadedTestsolve) {
 				for (const ans of answers) {
-					let { error: error2 } = await supabase
-						.from("testsolve_answers")
-						.update({
-							testsolve_id: testsolveId,
-							problem_id: ans.problem_id,
-							answer: ans.answer,
-							feedback: ans.feedback,
-							correct: ans.correct,
-						})
-						.eq("id", ans.id);
-
-					if (error2) throw error2;
-					2;
+					await updateTestsolveAnswer(ans.id, {
+						testsolve_id: testsolveId,
+						problem_id: ans.problem_id,
+						answer: ans.answer,
+						feedback: ans.feedback,
+						correct: ans.correct,
+					});
 				}
 			} else {
-				let { error: error2 } = await supabase.from("testsolve_answers").insert(
+				await addProblemTestsolveAnswer(
 					answers.map((ans) => ({
 						testsolve_id: testsolveId,
 						problem_id: ans.problem_id,
@@ -201,35 +171,25 @@
 						correct: ans.correct,
 					}))
 				);
-
-				if (error2) throw error2;
 			}
 
 			// update answer to feedback questions
 			if (loadedTestsolve) {
 				for (const ans of feedbackAnswers) {
-					let { error: error2 } = await supabase
-						.from("testsolve_feedback_answers")
-						.update({
-							testsolve_id: testsolveId,
-							feedback_question: ans.feedback_question,
-							answer: ans.answer,
-						})
-						.eq("id", ans.id);
-					if (error2) throw error2;
+					await updateTestsolveFeedbackAnswers(ans.id, {
+						testsolve_id: testsolveId,
+						feedback_question: ans.feedback_question,
+						answer: ans.answer,
+					});
 				}
 			} else {
-				let { error: error2 } = await supabase
-					.from("testsolve_feedback_answers")
-					.insert(
-						feedbackAnswers.map((ans) => ({
-							testsolve_id: testsolveId,
-							feedback_question: ans.feedback_question,
-							answer: ans.answer,
-						}))
-					);
-
-				if (error2) throw error2;
+				await insertTestsolveFeedbackAnswers(
+					feedbackAnswers.map((ans) => ({
+						testsolve_id: testsolveId,
+						feedback_question: ans.feedback_question,
+						answer: ans.answer,
+					}))
+				);
 			}
 
 			if (!completedSolve) {

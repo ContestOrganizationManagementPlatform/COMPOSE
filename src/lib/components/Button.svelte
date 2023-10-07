@@ -5,6 +5,7 @@
 	export let classs = "button";
 	export let href = null;
 	export let fontSize = "1em";
+	export let buttonColor = null;
 	export let bwidth = "30em";
 </script>
 

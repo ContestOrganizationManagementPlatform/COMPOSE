@@ -11,7 +11,12 @@
 	let userId = $page.params.id;
 	let user = {};
 	let loading = true;
-	let thisUser = getThisUser();
+
+	let thisUser;
+
+	(async () => {
+		thisUser = await getThisUser();
+	})();
 
 	async function fetchUser() {
 		try {
