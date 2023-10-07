@@ -25,7 +25,7 @@
 	const getProfile = async () => {
 		try {
 			loading = true;
-			const user = getThisUser();
+			const user = await getThisUser();
 			const data = await getUser(user.id);
 
 			({ full_name, discord, initials, math_comp_background, amc_score } =
@@ -74,7 +74,7 @@
 				throw new Error("Math competition background cannot be empty");
 			} else {
 				loading = true;
-				const user = getThisUser();
+				const user = await getThisUser();
 
 				const updates = {
 					id: user.id,
@@ -83,7 +83,7 @@
 					initials,
 					math_comp_background,
 					amc_score,
-					email: getThisUser().email,
+					email: user.email,
 				};
 
 				await updateUserData(updates);
@@ -160,9 +160,5 @@
 	.quote {
 		margin-bottom: var(--large-gap);
 		font-style: italic;
-	}
-
-	.inputField {
-		width: 100%;
 	}
 </style>

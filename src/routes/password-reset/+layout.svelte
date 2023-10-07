@@ -6,7 +6,9 @@
 	import { onMount } from "svelte";
 	import { getThisUser } from "$lib/supabase";
 
-	user.set(getThisUser());
+	(async () => {
+		user.set(await getThisUser());
+	})();
 
 	let loaded = false;
 	onMount(async () => {

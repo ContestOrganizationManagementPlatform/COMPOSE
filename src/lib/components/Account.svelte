@@ -4,19 +4,29 @@
 	import { Form, TextInput, PasswordInput } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { createAccount, signIntoAccount } from "$lib/supabase";
+	import {
+		createAccount,
+		signIntoAccount,
+		signInWithDiscord,
+	} from "$lib/supabase";
 
 	export let logIn: boolean;
 	let loading = false;
 	let signupSuccess = false;
 	let email: string;
 	let password: string;
+	let discord = false;
 	let retypePassword: string;
 
 	const handleLogin = async () => {
 		try {
 			loading = true;
-			await signIntoAccount(email, password);
+			if (discord) {
+				//await signInWithDiscord();
+				await signIntoAccount(email, password);
+			} else {
+				await signIntoAccount(email, password);
+			}
 		} catch (error) {
 			handleError(error);
 			toast.error(error.error_description || error.message);

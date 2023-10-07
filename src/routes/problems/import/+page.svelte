@@ -67,9 +67,9 @@
 		}
 	}
 
-	function manualAdd() {
+	async function manualAdd() {
 		try {
-			if (!importProblem(problemText)) {
+			if (!(await importProblem(problemText, ""))) {
 				throw new Error("Manual import failed due to improper format");
 			} else {
 				problemText = "";
@@ -80,9 +80,9 @@
 		}
 	}
 
-	function importProblem(text, name) {
+	async function importProblem(text, name) {
 		try {
-			const user = getThisUser();
+			const user = await getThisUser();
 			const getResult = (regex) => {
 				const res = text.match(regex);
 				if (!res) return null;
@@ -205,7 +205,7 @@
 		style="margin-left: 10%; margin-right: 10%;"
 	/>
 	<br />
-	<Button action={manualAdd} title="Manually add" />
+	<Button action={await manualAdd} title="Manually add" />
 
 	{#if isAdmin && loadedUsers}
 		<Select

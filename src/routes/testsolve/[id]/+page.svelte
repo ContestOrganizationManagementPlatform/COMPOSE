@@ -6,7 +6,11 @@
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { handleError } from "$lib/handleError";
-	import { getFeedbackQuestions, removeTestsolver, getThisUserRole } from "$lib/supabase";
+	import {
+		getFeedbackQuestions,
+		removeTestsolver,
+		getThisUserRole,
+	} from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -96,7 +100,11 @@
 					disallowed = false;
 				} else {
 					// check if test coordinator
-					let { data: data2, error: error2, count } = await supabase
+					let {
+						data: data2,
+						error: error2,
+						count,
+					} = await supabase
 						.from("test_coordinators")
 						.select("*", { count: "exact", head: true })
 						.eq("coordinator_id", supabase.auth.user().id)

@@ -7,7 +7,13 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getFeedbackQuestions, getSelectTestsolvers, getTestInfo, getThisUser, getThisUserRole } from "$lib/supabase";
+	import {
+		getFeedbackQuestions,
+		getSelectTestsolvers,
+		getTestInfo,
+		getThisUser,
+		getThisUserRole,
+	} from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -49,7 +55,12 @@
 			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
 			} else {
-				const count = await getSelectTestsolvers($page.params.id, getThisUser().id);
+				const count = await getSelectTestsolvers(
+					$page.params.id,
+					(
+						await getThisUser()
+					).id
+				);
 				if (count > 0) {
 					disallowed = false;
 				}

@@ -4,13 +4,22 @@
 	import { Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { getImages, getProblemCounts, getThisUser, getAllProblems } from "$lib/supabase";
+	import {
+		getImages,
+		getProblemCounts,
+		getThisUser,
+		getAllProblems,
+	} from "$lib/supabase";
 
 	let problems = [];
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
-	const userId = getThisUser().id;
+	let userId;
+
+	(async () => {
+		userId = (await getThisUser()).id;
+	})();
 
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];

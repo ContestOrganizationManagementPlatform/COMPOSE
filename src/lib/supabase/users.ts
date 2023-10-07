@@ -21,9 +21,22 @@ export async function createAccount(email: string, password: string) {
  * @param password string
  */
 export async function signIntoAccount(email: string, password: string) {
-	const { error } = await supabase.auth.signIn({
+	const { error } = await supabase.auth.signInWithPassword({
 		email: email,
 		password: password,
+	});
+	if (error) throw error;
+}
+
+/**
+ * Signs into an existing COMPOSE account for the user
+ *
+ * @param email string
+ * @param password string
+ */
+export async function signInWithDiscord() {
+	const { data, error } = await supabase.auth.signInWithOAuth({
+		provider: "discord",
 	});
 	if (error) throw error;
 }
@@ -73,8 +86,12 @@ export async function getUserRole(user_id: string) {
  *
  * @returns current user info
  */
-export function getThisUser() {
-	return supabase.auth.user();
+export async function getThisUser() {
+	const {
+		data: { session },
+	} = await supabase.auth.getSession();
+	const user = session;
+	return user;
 }
 
 /**
@@ -83,8 +100,8 @@ export function getThisUser() {
  * @returns current user's role, number
  */
 export async function getThisUserRole() {
-	const user_id = getThisUser().id;
-	return await getUserRole(user_id);
+	const user = await getThisUser();
+	return await getUserRole(user.id);
 }
 
 /**
@@ -93,7 +110,7 @@ export async function getThisUserRole() {
  * @param email
  */
 export async function resetUserPassword(email: string) {
-	const { data, error } = await supabase.auth.api.resetPasswordForEmail(email, {
+	const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
 		redirectTo: window.location.origin + "/password-reset",
 	});
 	if (error) throw error;
@@ -120,12 +137,15 @@ export async function updateUserAuth(accessToken: string, password: string) {
  * @returns user object with role number
  */
 export async function getUser(user_id: string) {
+	console.log("here");
 	let { data: user, error } = await supabase
 		.from("users")
 		.select("*,user_roles(role)")
 		.eq("id", user_id)
+		.limit(1)
 		.single();
 	if (error) throw error;
+	console.log(user);
 	let final_user = {};
 	for (const key of Object.keys(user)) {
 		if (key !== "user_roles") {
