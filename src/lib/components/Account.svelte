@@ -21,8 +21,8 @@
 		try {
 			loading = true;
 			if (discord) {
-				await signInWithDiscord();
-				//await signIntoAccount(email, password);
+				//await signInWithDiscord();
+				await signIntoAccount(email, password);
 			} else {
 				await signIntoAccount(email, password);
 			}
@@ -93,8 +93,11 @@
 	<div class="profileButtons">
 		{#if logIn}
 			<Button title="Enter" action={handleLogin(false)} />
-			<Button title="Discord" classs={"discordbutton"} action={handleLogin(true)} />
-			
+			<Button
+				title="Discord"
+				classs={"discordbutton"}
+				action={handleLogin(true)}
+			/>
 		{:else}
 			<Button title="Enter" action={handleSignUp} />
 		{/if}

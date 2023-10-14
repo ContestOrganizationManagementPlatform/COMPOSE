@@ -39,6 +39,7 @@ export async function signInWithDiscord() {
 		provider: "discord",
 	});
 	if (error) throw error;
+	return data;
 }
 
 /**
