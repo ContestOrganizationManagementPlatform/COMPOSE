@@ -98,7 +98,7 @@ export async function getTestCoordinators(
 		.select(customSelect)
 		.eq("test_id", test_id);
 	if (error) throw error;
-	return data;
+	return data[0];
 }
 
 /**

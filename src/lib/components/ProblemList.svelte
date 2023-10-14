@@ -29,29 +29,23 @@
 	export let draggable = false;
 	export let pageEnabled = true;
 	export let showUnresolved = true;
+	export let showSubtopic = true;
 
-	let showList = showUnresolved
-		? [
-				"front_id",
-				"full_name",
-				"unresolved_count",
-				"topics_short",
-				"sub_topics",
-				"difficulty",
-				"problem_tests",
-				"created_at",
-				"edited_at",
-		  ]
-		: [
-				"front_id",
-				"full_name",
-				"topics_short",
-				"sub_topics",
-				"difficulty",
-				"problem_tests",
-				"created_at",
-				"edited_at",
-		  ];
+	let showList = [
+		"front_id",
+		"full_name",
+		"topics_short",
+		"difficulty",
+		"problem_tests",
+		"created_at",
+		"edited_at",
+	];
+	$: if (showUnresolved) {
+		showList.push("unresolved_count");
+	}
+	$: if (showSubtopic) {
+		showList.push("sub_topics");
+	}
 
 	const dispatch = createEventDispatcher();
 
@@ -85,10 +79,6 @@
 			value: "Topics",
 		},
 		{
-			key: "sub_topics",
-			value: width > 700 ? "SubTopic" : "SubTop",
-		},
-		{
 			key: "difficulty",
 			width: "70px",
 			value: width > 700 ? "Difficulty" : "Diff.",
@@ -96,6 +86,10 @@
 		{
 			key: "problem_tests",
 			value: "Test(s)",
+		},
+		{
+			key: "sub_topics",
+			value: "SubTop"
 		},
 		{
 			key: "unresolved_count",
@@ -116,7 +110,7 @@
 		{ key: "full_name", value: "Author" },
 		{ key: "unresolved_count", value: "Unresolved" },
 		{ key: "topics_short", value: "Topics" },
-		{ key: "sub_topics", value: width > 700 ? "SubTopic" : "SubTop" },
+		{ key: "sub_topics", value: "SubTop" },
 		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
 		{ key: "problem_tests", value: "Test(s)" },
 	];
