@@ -176,10 +176,7 @@ export async function getSelectTestsolves(
  * @param customSelect optional, string
  * @returns testsolves list
  */
-export async function getOneTestsolve(
-	id: number,
-	customSelect: string = "*"
-) {
+export async function getOneTestsolve(id: number, customSelect: string = "*") {
 	let { data, error } = await supabase
 		.from("testsolves")
 		.select(customSelect)
@@ -349,9 +346,7 @@ export async function updateTestsolveAnswer(
  *
  * @param testsolveId number
  */
-export async function deleteTestsolveAnswer(
-	feedbackId: number
-) {
+export async function deleteTestsolveAnswer(feedbackId: number) {
 	let { error } = await supabase
 		.from("testsolve_answers")
 		.delete()
