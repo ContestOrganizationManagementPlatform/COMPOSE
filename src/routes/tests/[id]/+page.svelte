@@ -57,7 +57,14 @@
 	async function getProblems() {
 		try {
 			let problemList = await getTestProblems(testId);
-			feedback = await getProblemTestsolveAnswersOrder("problem_id");
+
+			let { data: feedbackList, error2 } = await supabase
+				.from("testsolve_answers")
+				.select("*")
+				.order("problem_id");
+			if (error2) throw error2;
+
+			feedback = feedbackList;
 
 			problems = problemList.map((pb) => ({
 				problem_number: pb.problem_number,
