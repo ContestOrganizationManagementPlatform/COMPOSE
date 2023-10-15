@@ -66,7 +66,7 @@ export async function GET({ request, url, cookies }) {
 		const updates = {
 			id: userId,
 			discord_id: userDiscordId,
-			discord: meData.user.discord,
+			discord: meData.user.username,
 			discord_tokens: tokenStruct,
 		};
 		await upsertUserData(updates);
