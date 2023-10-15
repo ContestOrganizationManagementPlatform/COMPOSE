@@ -170,15 +170,17 @@
 		{#if !discord_id}
 			<Button
 				action={discordAuth}
-				title="Connect your Discord Account"
+				title="Connect"
 				classs="discordbutton"
 				fontSize="1.5em"
+				icon="fa-brands fa-discord"
 			/>
 		{:else}
 			<Button
-				title="Discord Synced With: {discord}"
+				title={discord}
 				classs="disabled discordbutton"
-				fontSize="1em"
+				fontSize="1.5em"
+				icon="fa-brands fa-discord"
 			/>
 		{/if}
 		<br />
