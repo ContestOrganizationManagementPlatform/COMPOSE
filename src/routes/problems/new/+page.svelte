@@ -18,7 +18,8 @@
 	let problem_id = 0;
 
 	async function submitProblem(payload) {
-		authorName = getAuthorName(await getThisUser().id);
+		authorName = await getAuthorName(getThisUser().id);
+		console.log(payload);
 		try {
 			if (authorName === "") {
 				throw new Error("Author name is not defined");
