@@ -15,5 +15,5 @@ export async function GET({ request, url, cookies }) {
 	cookies.set("userId", userId, { maxAge: 1000 * 60 * 5 });
 	//cookies.set("userId", user.id, { maxAge: 1000 * 60 * 5 });
 
-	redirect(308, authUrl);
+	throw redirect(308, authUrl);
 }
