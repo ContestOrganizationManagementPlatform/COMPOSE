@@ -154,10 +154,12 @@ export async function getAllProblemsOrder(
  * @returns problem data in database (including id)
  */
 export async function createProblem(problem: ProblemRequest) {
+	console.log(problem);
 	let { data, error } = await supabase
 		.from("problems")
 		.insert([problem])
 		.select();
+	console.log("ERROR", error);
 	if (error) throw error;
 	console.log(data);
 	await fetch("/api/discord-create", {

@@ -18,7 +18,8 @@
 	let problem_id = 0;
 
 	async function submitProblem(payload) {
-		authorName = await getAuthorName(getThisUser().id);
+		authorName = await getAuthorName((await getThisUser()).id);
+
 		console.log(payload);
 		try {
 			if (authorName === "") {
@@ -28,6 +29,7 @@
 				throw new Error("Must specify at least one topic for this problem");
 			} else {
 				const { topics, problem_files, ...payloadNoTopics } = payload;
+				console.log(payloadNoTopics);
 				const data = await createProblem(payloadNoTopics);
 
 				let problemId = data.id;
