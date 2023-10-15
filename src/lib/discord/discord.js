@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { v4 as uuidv4 } from "uuid";
 import fetch from "node-fetch";
 
 import { upsertUserData } from "$lib/supabase";
@@ -19,7 +19,7 @@ import config from "./config.js";
  * bot, and see the list of requested scopes.
  */
 export function getOAuthUrl(userId) {
-	const state = crypto.randomUUID();
+	const state = uuidv4();
 	const url = new URL("https://discord.com/api/oauth2/authorize");
 	url.searchParams.set("client_id", config.DISCORD_CLIENT_ID);
 	url.searchParams.set("redirect_uri", config.DISCORD_REDIRECT_URI);
@@ -92,7 +92,7 @@ export async function getAccessToken(userId, tokens) {
 				discord_tokens: tokens,
 			};
 			await upsertUserData(updates, "discord_id");
-			await storage.storeDiscordTokens(userId, tokens);
+			//await storage.storeDiscordTokens(userId, tokens);
 			return tokens.access_token;
 		} else {
 			throw new Error(
