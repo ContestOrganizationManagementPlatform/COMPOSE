@@ -11,6 +11,7 @@ export async function POST({ request }) {
 	let token = import.meta.env.VITE_DISCORD_TOKEN;
 	let id = import.meta.env.VITE_DISCORD_ID;
 	const body = await request.json();
+	console.log("DISCORDBODY", body);
 
 	try {
 		const webhookClient = new WebhookClient({ id: id, token: token });

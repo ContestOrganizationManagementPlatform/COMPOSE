@@ -17,15 +17,10 @@
 	let password: string;
 	let retypePassword: string;
 
-	const handleLogin = async (discord: boolean) => {
+	const handleLogin = async () => {
 		try {
 			loading = true;
-			if (discord) {
-				//await signInWithDiscord();
-				await signIntoAccount(email, password);
-			} else {
-				await signIntoAccount(email, password);
-			}
+			await signIntoAccount(email, password);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.error_description || error.message);
@@ -92,12 +87,7 @@
 	{/if}
 	<div class="profileButtons">
 		{#if logIn}
-			<Button title="Enter" action={handleLogin(false)} />
-			<Button
-				title="Discord"
-				classs={"discordbutton"}
-				action={handleLogin(true)}
-			/>
+			<Button title="Enter" action={handleLogin} />
 		{:else}
 			<Button title="Enter" action={handleSignUp} />
 		{/if}

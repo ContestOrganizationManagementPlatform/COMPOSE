@@ -41,7 +41,7 @@
 	<title>{scheme.title} COMPOSE</title>
 	<meta
 		name="description"
-		content="{scheme.description} This is Collaborative Online Math Problem Organization and Sharing Environment (COMPOSE), a place to write problems for these tournaments!"
+		content="{scheme.description} This is the Collaborative Online Math Problem Organization and Storage Environment (COMPOSE), a place to write problems for these tournaments!"
 	/>
 </svelte:head>
 
@@ -243,10 +243,15 @@
 		background-color: var(--primary) !important;
 		transition: all 0.3s ease-out;
 	}
-	:global(.discordbutton)
-	{
-		background-color: #5865F2 !important;
+	:global(.discordbutton) {
+		background-color: #5865f2 !important;
 		color: white !important;
+	}
+	:global(.disabled) {
+		pointer-events: none;
+		cursor: not-allowed;
+		-webkit-box-shadow: none;
+		box-shadow: none;
 	}
 	:global(.buttonPrimaryLight) {
 		border-color: var(--secondary-tint) !important;

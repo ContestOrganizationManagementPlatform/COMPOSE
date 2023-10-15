@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { getAuthorName } from "./users";
+import { getUser } from "$lib/supabase";
 
 export interface ProblemRequest {
 	problem_latex: string;
@@ -153,22 +154,28 @@ export async function getAllProblemsOrder(
  * @returns problem data in database (including id)
  */
 export async function createProblem(problem: ProblemRequest) {
-	const { data, error } = await supabase
+	let { data, error } = await supabase
 		.from("problems")
 		.insert([problem])
 		.select();
 	if (error) throw error;
-
+	console.log(data);
 	await fetch("/api/discord-create", {
 		method: "POST",
 		body: JSON.stringify({
 			problem: problem,
-			authorName: getAuthorName(problem.author_id),
+			authorName: getAuthorName(data[0].author_id),
 			id: data[0]?.id,
 			created_at: data[0].created_at,
 			front_id: await getFrontID(data[0]?.id),
 			image: problem.image_name,
 		}),
+	});
+	console.log("AUTHORID", problem.author_id);
+	const user = await getUser(data[0].author_id);
+	const response = await fetch("/api/update-metadata", {
+		method: "POST",
+		body: JSON.stringify({ userId: user.discord_id }),
 	});
 
 	return data[0];

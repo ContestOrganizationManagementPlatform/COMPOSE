@@ -101,6 +101,7 @@ export async function getThisUser() {
  */
 export async function getThisUserRole() {
 	const user = await getThisUser();
+	console.log(user.id);
 	return await getUserRole(user.id);
 }
 
@@ -136,11 +137,11 @@ export async function updateUserAuth(accessToken: string, password: string) {
  * @param user_id uuid
  * @returns user object with role number
  */
-export async function getUser(user_id: string) {
+export async function getUser(user_id: string, search_by = "id") {
 	let { data: user, error } = await supabase
 		.from("users")
 		.select("*,user_roles(role)")
-		.eq("id", user_id)
+		.eq(search_by, user_id)
 		.limit(1)
 		.single();
 	if (error) throw error;
@@ -169,15 +170,46 @@ export async function getAllUsers(customSelect = "*") {
 }
 
 /**
+ * Upsert the information within a user's profile. Returns nothing.
+ *
+ * @param updates dict
+ */
+export async function upsertUserData(updates: {}, conflict = "id") {
+	const { data, error } = await supabase.from("users").upsert(updates, {
+		ignoreDuplicates: false,
+		onConflict: conflict,
+	});
+	if (error) throw error;
+}
+
+/**
  * Update the information within a user's profile. Returns nothing.
  *
  * @param updates dict
  */
-export async function updateUserData(updates: {}) {
-	let { error } = await supabase.from("users").upsert(updates, {
-		returning: "minimal",
-	});
+export async function updateUserData(uuid, updates: {}) {
+	console.log(uuid, updates);
+	let { data, error } = await supabase
+		.from("users")
+		.update(updates)
+		.eq("id", uuid);
+	console.log("DATA", data, error);
 	if (error) throw error;
+}
+
+/**
+ * Get the user stats
+ *
+ * @param customSelect optional, string
+ * @return list of problem counts
+ */
+export async function getUserStats(discordId, customSelect: string = "*") {
+	let { data, error } = await supabase
+		.from("user_stats")
+		.select(customSelect)
+		.eq("discord_id", discordId);
+	if (error) throw error;
+	return data;
 }
 
 /**
