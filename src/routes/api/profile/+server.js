@@ -1,4 +1,4 @@
-import { updateUserData } from "$lib/supabase";
+import { upsertUserData } from "$lib/supabase";
 
 export async function POST({ request }) {
 	try {
@@ -24,7 +24,7 @@ export async function POST({ request }) {
 			discord: body.discord,
 			initials: body.initials,
 		};
-		await updateUserData(req);
+		await upsertUserData(req);
 
 		return new Response(undefined, { status: 300 });
 	} catch (error) {

@@ -5,7 +5,12 @@
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, getThisUser, getThisUserRole, signOut } from "$lib/supabase";
+	import {
+		getAuthorName,
+		getThisUser,
+		getThisUserRole,
+		signOut,
+	} from "$lib/supabase";
 
 	$: path = $page.route.id;
 
@@ -15,10 +20,10 @@
 	let width = 0;
 	let isAdmin;
 	let userRole = 0;
-
-	const user = getThisUser();
+	let user;
 
 	(async () => {
+		user = await getThisUser();
 		userRole = await getThisUserRole();
 		isAdmin = userRole >= 40;
 		fullname = await getAuthorName(user.id);
@@ -42,7 +47,7 @@
 
 <Drawer
 	{open}
-	size={width > 1250 ? "30%" : width > 770 ? "50%" : "100%"}
+	size={width > 1350 ? "40%" : width > 770 ? "50%" : "100%"}
 	placement="left"
 	on:clickAway={() => (open = false)}
 >

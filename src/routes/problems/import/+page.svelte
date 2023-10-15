@@ -40,6 +40,11 @@
 	let loadedUsers = false;
 	let userSelectRef;
 	let isAdmin = false;
+	let user;
+
+	(async () => {
+		user = await getThisUser();
+	})();
 
 	$: if (files) {
 		checkFiles();
@@ -69,7 +74,7 @@
 
 	function manualAdd() {
 		try {
-			if (!importProblem(problemText)) {
+			if (!(importProblem(problemText, ""))) {
 				throw new Error("Manual import failed due to improper format");
 			} else {
 				problemText = "";
@@ -82,7 +87,6 @@
 
 	function importProblem(text, name) {
 		try {
-			const user = getThisUser();
 			const getResult = (regex) => {
 				const res = text.match(regex);
 				if (!res) return null;
@@ -129,7 +133,7 @@
 				payloadNoTopics.author_id =
 					userSelectRef && userSelectRef != ""
 						? userSelectRef
-						: getThisUser().id;
+						: user.id;
 				payloadList.push(payloadNoTopics);
 			}
 

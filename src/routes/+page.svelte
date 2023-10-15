@@ -10,13 +10,14 @@
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
 	import Header from "$lib/components/styles/Header.svelte";
-	import { getThisUser, getUser, updateUserData } from "$lib/supabase";
+	import { getThisUser, getUser, upsertUserData } from "$lib/supabase";
 
 	export let data;
-
+	let user;
 	let loading = false;
 	let full_name;
 	let discord;
+	let discord_id;
 	let initials;
 	let quote;
 	let math_comp_background;
@@ -25,15 +26,21 @@
 	const getProfile = async () => {
 		try {
 			loading = true;
-			const user = getThisUser();
+			user = await getThisUser();
 			const data = await getUser(user.id);
 
-			({ full_name, discord, initials, math_comp_background, amc_score } =
-				data);
+			({
+				full_name,
+				discord,
+				initials,
+				math_comp_background,
+				amc_score,
+				discord_id,
+			} = data);
 
-			if (discord.includes("#")) {
+			/**if (discord.includes("#")) {
 				throw new Error("Must update discord username from discriminator");
-			}
+			}*/
 		} catch (error) {
 			if (error.code === "PGRST116") {
 				// no user
@@ -51,6 +58,10 @@
 		}
 	};
 
+	function discordAuth() {
+		window.location.replace(`/api/linked-role?userId=${user.id}`);
+	}
+
 	async function updateProfile(e) {
 		e.preventDefault();
 		try {
@@ -60,33 +71,32 @@
 				);
 			} else if (full_name.length <= 0) {
 				throw new Error("You must enter a full name");
-			} else if (discord.length > 50) {
+			} /**else if (discord.length > 50) {
 				throw new Error("Discord is too long");
 			} else if (discord.includes("#")) {
 				throw new Error("Must update discord username from discriminator");
-			} else if (initials.length > 5) {
+			} */ else if (initials.length > 5) {
 				throw new Error("Initials are too long");
 			} else if (!/^[A-Z]+$/.test(initials)) {
 				throw new Error("Initials must be all uppercase letters");
-			} else if (amc_score < 0 || amc_score > 150) {
+			} /**else if (amc_score < 0 || amc_score > 150) {
 				throw new Error("AMC Score needs to be valid");
-			} else if (math_comp_background.length <= 0) {
+			} */ else if (math_comp_background.length <= 0) {
 				throw new Error("Math competition background cannot be empty");
 			} else {
 				loading = true;
-				const user = getThisUser();
+				const user = await getThisUser();
 
 				const updates = {
 					id: user.id,
 					full_name,
-					discord,
 					initials,
 					math_comp_background,
 					amc_score,
-					email: getThisUser().email,
+					email: user.email,
 				};
 
-				await updateUserData(updates);
+				await upsertUserData(updates);
 				toast.success("Successfully updated profile.");
 			}
 		} catch (error) {
@@ -130,7 +140,9 @@
 					class="inputField"
 					bind:value={initials}
 				/>
+				<!--
 				<TextInput
+					readonly
 					placeholder="Discord"
 					class="inputField"
 					bind:value={discord}
@@ -143,6 +155,7 @@
 					step={0.1}
 					bind:value={amc_score}
 				/>
+				-->
 			</div>
 			<br />
 			<TextArea
@@ -151,7 +164,23 @@
 				bind:value={math_comp_background}
 			/> <br />
 			<Button title="Submit" fontSize="1.5em" />
+			<br />
+			<br />
 		</Form>
+		{#if !discord_id}
+			<Button
+				action={discordAuth}
+				title="Connect your Discord Account"
+				classs="discordbutton"
+				fontSize="1.5em"
+			/>
+		{:else}
+			<Button
+				title="Discord Synced With: {discord}"
+				classs="disabled discordbutton"
+				fontSize="1em"
+			/>
+		{/if}
 		<br />
 	</div>
 </div>
@@ -160,9 +189,5 @@
 	.quote {
 		margin-bottom: var(--large-gap);
 		font-style: italic;
-	}
-
-	.inputField {
-		width: 100%;
 	}
 </style>

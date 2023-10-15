@@ -111,7 +111,12 @@
 
 	async function addFeedback() {
 		try {
-			await addProblemTestsolveAnswer(problemID, feedbackInput);
+			await addProblemTestsolveAnswer([
+				{
+					problem_id: problemID,
+					feedback: feedbackInput,
+				},
+			]);
 			feedbackInput = "";
 			loadFeedback();
 		} catch (error) {

@@ -56,7 +56,7 @@
 				await uploadImage(`pb${problem.id}/problem/${file.name}`, file);
 			}
 
-			const authorName = await getAuthorName(getThisUser().id);
+			const authorName = await getAuthorName(await (getThisUser()).id);
 			await fetch("/api/discord-update", {
 				method: "POST",
 				body: JSON.stringify({

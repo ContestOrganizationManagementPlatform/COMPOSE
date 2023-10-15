@@ -10,13 +10,15 @@
 	import { page } from "$app/stores";
 	import { Toaster } from "svelte-french-toast";
 	import { getThisUser } from "$lib/supabase";
-	import scheme from '$lib/scheme.json';
+	import scheme from "$lib/scheme.json";
 
 	let loaded = false;
 
 	let hasAccount = true;
 	// user.set(browser ? localStorage.getItem("user") : null);
-	user.set(getThisUser());
+	(async () => {
+		user.set(await getThisUser());
+	})();
 
 	supabase.auth.onAuthStateChange((_, session) => {
 		user.set(session?.user);
@@ -28,7 +30,7 @@
 
 	$: cssVarStyles = Object.entries(scheme.styles)
 		.map(([key, value]) => `--${key}:${value}`)
-		.join(';');
+		.join(";");
 
 	// user.subscribe(val => browser ? localStorage.setItem("user", val) : null);
 </script>
@@ -39,12 +41,12 @@
 	<title>{scheme.title} COMPOSE</title>
 	<meta
 		name="description"
-		content="{scheme.description} This is Collaborative Online Math Problem Organization and Sharing Environment (COMPOSE), a place to write problems for these tournaments!"
+		content="{scheme.description} This is the Collaborative Online Math Problem Organization and Storage Environment (COMPOSE), a place to write problems for these tournaments!"
 	/>
 </svelte:head>
 
 <Toaster />
-<main style="{cssVarStyles}">
+<main style={cssVarStyles}>
 	{#if !loaded}
 		<Banner />
 		<div class="loadingPage flex">
@@ -120,8 +122,9 @@
 <style>
 	/* Overall styling */
 	:global(:root) {
-		--font-family: var(--font-family), "Roboto", Arial, -apple-system, BlinkMacSystemFont,
-			"Segoe UI", Oxygen, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+		--font-family: var(--font-family), "Roboto", Arial, -apple-system,
+			BlinkMacSystemFont, "Segoe UI", Oxygen, Cantarell, "Open Sans",
+			"Helvetica Neue", sans-serif;
 
 		--large-gap: 30px;
 		--medium-gap: 20px;
@@ -239,6 +242,16 @@
 		border-color: transparent !important;
 		background-color: var(--primary) !important;
 		transition: all 0.3s ease-out;
+	}
+	:global(.discordbutton) {
+		background-color: #5865f2 !important;
+		color: white !important;
+	}
+	:global(.disabled) {
+		pointer-events: none;
+		cursor: not-allowed;
+		-webkit-box-shadow: none;
+		box-shadow: none;
 	}
 	:global(.buttonPrimaryLight) {
 		border-color: var(--secondary-tint) !important;

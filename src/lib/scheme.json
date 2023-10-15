@@ -1,11 +1,11 @@
 {
-    "title": "Mustang Math",
-    "abbreviation": "MM",
+	"title": "Mustang Math",
+	"abbreviation": "MM",
 	"logo": "https://mustangmath.com/favicon.png",
 	"description": "The Mustang Math Tournament (MMT) is an online middle school contest hosted by experienced high school and college students, designed to get participants excited about working together on math problems.",
-	"url": "compose.mustangmath.com",
-    "styles": {
-    	"text-color-light": "#fff",
+	"url": "https://compose.mustangmath.com",
+	"styles": {
+		"text-color-light": "#fff",
 		"text-color-dark": "#000",
 		"background": "#f5fffb",
 		"background-dark": "#dcfff1",
@@ -18,5 +18,5 @@
 		"secondary-dark": "#061333",
 		"secondary-tint": "#b9c6d2",
 		"font-family": "Ubuntu"
-    }
+	}
 }

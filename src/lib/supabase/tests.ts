@@ -102,6 +102,31 @@ export async function getTestCoordinators(
 }
 
 /**
+ * Check if test coordinator
+ *
+ * @param test_id number
+ * @param coordinator_id number
+ * @param customSelect optional, string
+ * @returns boolean
+ */
+export async function checkIfTestCoordinator(
+	test_id: number,
+	coordinator_id: number,
+	customSelect: string = "coordinator_id"
+) {
+	let {
+		error: error,
+		count,
+	} = await supabase
+		.from("test_coordinators")
+		.select(customSelect, { count: "exact", head: true })
+		.eq("coordinator_id", coordinator_id)
+		.eq("test_id", test_id);
+	if (error) throw error;
+	return count > 0;
+}
+
+/**
  * Fetches test problems given a test id. Ordered by problem number
  *
  * @param test_id number

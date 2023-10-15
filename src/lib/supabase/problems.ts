@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient";
 import { getAuthorName } from "./users";
+import { getUser } from "$lib/supabase";
 
 export interface ProblemRequest {
 	problem_latex: string;
@@ -69,15 +70,13 @@ async function getFrontID(problem_id: number) {
  */
 export async function getAllProblems(
 	customSelect: string = "*",
-	customOrder: string = "*",
 	normal: boolean = true,
 	archived: boolean = false
 ) {
 	if (normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
-			.select(customSelect)
-			.order(customOrder);
+			.select(customSelect);
 		if (error) throw error;
 		return data;
 	}
@@ -85,7 +84,6 @@ export async function getAllProblems(
 		let { data, error } = await supabase
 			.from("full_problems")
 			.select(customSelect)
-			.order(customOrder)
 			.eq("archived", false);
 		if (error) throw error;
 		return data;
@@ -94,7 +92,6 @@ export async function getAllProblems(
 		let { data, error } = await supabase
 			.from("full_problems")
 			.select(customSelect)
-			.order(customOrder)
 			.eq("archived", true);
 		if (error) throw error;
 		return data;
@@ -157,22 +154,28 @@ export async function getAllProblemsOrder(
  * @returns problem data in database (including id)
  */
 export async function createProblem(problem: ProblemRequest) {
-	const { data, error } = await supabase
+	let { data, error } = await supabase
 		.from("problems")
 		.insert([problem])
 		.select();
 	if (error) throw error;
-
+	console.log(data);
 	await fetch("/api/discord-create", {
 		method: "POST",
 		body: JSON.stringify({
 			problem: problem,
-			authorName: getAuthorName(problem.author_id),
+			authorName: getAuthorName(data[0].author_id),
 			id: data[0]?.id,
 			created_at: data[0].created_at,
 			front_id: await getFrontID(data[0]?.id),
 			image: problem.image_name,
 		}),
+	});
+	console.log("AUTHORID", problem.author_id);
+	const user = await getUser(data[0].author_id);
+	const response = await fetch("/api/update-metadata", {
+		method: "POST",
+		body: JSON.stringify({ userId: user.discord_id }),
 	});
 
 	return data[0];

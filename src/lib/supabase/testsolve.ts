@@ -47,6 +47,44 @@ export async function getAllTestsolvers(customSelect: string = "*") {
 }
 
 /**
+ * Get a test's testsolvers from the database
+ *
+ * @param test_id number
+ * @param customSelect optional, string
+ * @returns testsolvers list
+ */
+export async function getTestTestsolvers(
+	test_id: number,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolvers")
+		.select(customSelect)
+		.eq("test_id", test_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Get a solver's id from the database
+ *
+ * @param solver_id number
+ * @param customSelect optional, string
+ * @returns testsolvers list
+ */
+export async function getSolverTestsolvers(
+	solver_id: number,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolvers")
+		.select(customSelect)
+		.eq("solver_id", solver_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
  * Get select testsolvers from the database
  *
  * @param test_id number
@@ -113,6 +151,98 @@ export async function getAllTestsolves(customSelect: string = "*") {
 }
 
 /**
+ * Select specific testsolve from the database
+ *
+ * @param solver_id number
+ * @param customSelect optional, string
+ * @returns testsolves list
+ */
+export async function getSelectTestsolves(
+	solver_id: number,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolves")
+		.select(customSelect)
+		.eq("solver_id", solver_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Select testsolve id from the database
+ *
+ * @param id number
+ * @param customSelect optional, string
+ * @returns testsolves list
+ */
+export async function getOneTestsolve(id: number, customSelect: string = "*") {
+	let { data, error } = await supabase
+		.from("testsolves")
+		.select(customSelect)
+		.eq("id", id);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Check if prior testsolve
+ *
+ * @param test_id number
+ * @param solver_id number
+ * @param completed boolean
+ * @returns testsolves list
+ */
+export async function checkPriorTestsolve(
+	test_id: number,
+	solver_id: number,
+	completed: boolean
+) {
+	let { data, error } = await supabase
+		.from("testsolves")
+		.select("*")
+		.eq("test_id", test_id)
+		.eq("solver_id", solver_id)
+		.eq("completed", completed);
+	if (error) throw error;
+	return data.length > 0;
+}
+
+/**
+ * Update specific testsolve from the database
+ *
+ * @param testsolve_id number
+ * @param testsolve_data any
+ * @returns testsolve data
+ */
+export async function updateTestsolve(
+	testsolve_id: number,
+	testsolve_data: any
+) {
+	let { data, error } = await supabase
+		.from("testsolves")
+		.update(testsolve_data)
+		.eq("id", testsolve_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Insert a testsolve into the database
+ *
+ * @param testsolve_data TestsolveRequest
+ * @returns testsolve data
+ */
+export async function insertTestsolve(testsolve_data: TestsolveRequest) {
+	let { data, error } = await supabase
+		.from("testsolves")
+		.insert([testsolve_data]);
+
+	if (error) throw error;
+	return data;
+}
+
+/**
  * Delete a testsolve from the database. Returns nothing.
  *
  * @param testsolveId
@@ -127,7 +257,7 @@ export async function deleteTestsolve(testsolveId: number) {
 
 /**
  * Get a problem's testsolve answers
- * 
+ *
  * @param problemId number
  * @param customSelect optional, string
  * @returns list of testsolve answers
@@ -145,27 +275,58 @@ export async function getProblemTestsolveAnswers(
 }
 
 /**
- * Insert a testsolve answer to a problem
- * 
- * @param problemId number
- * @param feedback any
+ * Get testsolve answer from testsolve id
+ *
+ * @param testsolve_id number
+ * @param customSelect optional, string
+ * @returns list of testsolve answers
  */
-export async function addProblemTestsolveAnswer(
-	problemId: number,
-	feedback: any
+export async function getTestsolveTestsolveAnswers(
+	testsolve_id: number,
+	customSelect: string = "*"
 ) {
-	const { data, error } = await supabase.from("testsolve_answers").insert([
-		{
-			problem_id: problemId,
-			feedback: feedback,
-		},
-	]);
+	let { data, error } = await supabase
+		.from("testsolve_answers")
+		.select(customSelect)
+		.eq("testsolve_id", testsolve_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Get all testsolve answers with an order
+ *
+ * @param customOrder string
+ * @param customSelect optional, string
+ * @returns list of testsolve answers
+ */
+export async function getAllTestsolveAnswersOrder(
+	customOrder: string,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolve_answers")
+		.select(customSelect)
+		.order(customOrder);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Insert testsolve answers to a problem
+ *
+ * @param testsolve_answers any[]
+ */
+export async function addProblemTestsolveAnswer(testsolve_answers: any[]) {
+	const { error: error } = await supabase
+		.from("testsolve_answers")
+		.insert(testsolve_answers);
 	if (error) throw error;
 }
 
 /**
  * Update a problem's testsolve answers
- * 
+ *
  * @param feedbackId number
  * @param newFeedback any
  */
@@ -177,6 +338,19 @@ export async function updateTestsolveAnswer(
 		.from("testsolve_answers")
 		.update(newFeedback)
 		.eq("id", feedbackId);
+	if (error) throw error;
+}
+
+/**
+ * Delete a problem's testsolve answers
+ *
+ * @param testsolveId number
+ */
+export async function deleteTestsolveAnswer(feedbackId: number) {
+	let { error } = await supabase
+		.from("testsolve_answers")
+		.delete()
+		.eq("testsolve_id", feedbackId);
 	if (error) throw error;
 }
 
@@ -196,4 +370,48 @@ export async function getTestsolveAnswers(orderedFeedbackQuestions: []) {
 		);
 	if (error) throw error;
 	return testsolve_feedback_answers;
+}
+
+/**
+ * Get specific testsolve feedback answers based on testsolve_id
+ *
+ * @param testsolve_id number
+ * @returns testsolve feedback answers
+ */
+export async function getSelectTestsolveAnswers(testsolve_id: number) {
+	let { data, error } = await supabase
+		.from("testsolve_feedback_answers")
+		.select("*")
+		.eq("testsolve_id", testsolve_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Update testsolve feedback answer
+ *
+ * @param testsolve_id number
+ * @param testsolve_data any
+ */
+export async function updateTestsolveFeedbackAnswers(
+	testsolve_id: number,
+	testsolve_data: any
+) {
+	let { error: error } = await supabase
+		.from("testsolve_feedback_answers")
+		.update(testsolve_data)
+		.eq("id", testsolve_id);
+	if (error) throw error;
+}
+
+/**
+ * Insert testsolve feedback answers
+ *
+ * @param testsolve_data any[]
+ */
+export async function insertTestsolveFeedbackAnswers(testsolve_data: any[]) {
+	let { error: error } = await supabase
+		.from("testsolve_feedback_answers")
+		.insert(testsolve_data);
+	if (error) throw error;
 }

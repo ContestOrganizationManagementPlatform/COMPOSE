@@ -1,6 +1,5 @@
 <script>
 	import { page } from "$app/stores";
-	import { supabase } from "$lib/supabaseClient";
 	import {
 		Select,
 		SelectItem,
@@ -13,7 +12,7 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getTestInfo, getAllUsersOrder } from "$lib/supabase";
+	import { getTestInfo, getAllUsersOrder, getTestTestsolvers, removeTestsolver } from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let loading = true;
@@ -36,13 +35,7 @@
 
 	async function getTestsolvers() {
 		try {
-			let { data, error } = await supabase
-				.from("testsolvers")
-				.select("solver_id,users(full_name,initials)")
-				.eq("test_id", testId);
-			if (error) throw error;
-
-			testsolvers = data;
+			testsolvers = await getTestTestsolvers(testId, "solver_id,users(full_name,initials)");
 
 			testsolvers.forEach((user) => {
 				tableData.push({
@@ -78,12 +71,7 @@
 
 	async function addTestsolver() {
 		try {
-			let { error } = await supabase
-				.from("testsolvers")
-				.insert([{ test_id: testId, solver_id: selectRef.value }], {
-					returning: "minimal",
-				});
-			if (error) throw error;
+			await addTestsolver({ test_id: testId, solver_id: selectRef.value });
 			getTestsolvers();
 		} catch (error) {
 			handleError(error);
@@ -93,11 +81,7 @@
 
 	async function deleteTestsolver(id) {
 		try {
-			const { error } = await supabase
-				.from("testsolvers")
-				.delete({ returning: "minimal" })
-				.eq("solver_id", id);
-			if (error) throw error;
+			await removeTestsolver(id);
 			getTestsolvers();
 		} catch (error) {
 			handleError(error);

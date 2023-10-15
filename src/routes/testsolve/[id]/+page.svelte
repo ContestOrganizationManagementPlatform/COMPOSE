@@ -1,12 +1,24 @@
 <script lang="ts">
-	import { supabase } from "$lib/supabaseClient";
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { handleError } from "$lib/handleError";
-	import { getFeedbackQuestions, removeTestsolver, getThisUserRole } from "$lib/supabase";
+	import {
+		getFeedbackQuestions,
+		removeTestsolver,
+		getThisUserRole,
+		getThisUser,
+		getSelectTestsolveAnswers,
+		getProblemTestsolveAnswers,
+		updateTestsolve,
+		addProblemTestsolveAnswer,
+		updateTestsolveFeedbackAnswers,
+		getOneTestsolve,
+		checkIfTestCoordinator,
+		deleteTestsolveAnswer,
+	} from "$lib/supabase";
 
 	let loading = true;
 	let disallowed = true;
@@ -25,6 +37,11 @@
 		testsolve?.time_elapsed * 1000 ??
 		new Date(testsolve?.end_time).getTime() -
 			new Date(testsolve?.start_time).getTime();
+
+	let user;
+	(async () => {
+		user = await getThisUser();
+	})();
 
 	async function getLocalFeedbackQuestions() {
 		try {
@@ -49,12 +66,9 @@
 
 	async function getFeedbackAnswers() {
 		try {
-			let { data: data3, error: error3 } = await supabase
-				.from("testsolve_feedback_answers")
-				.select("*")
-				.eq("testsolve_id", $page.params.id);
-			if (error3) throw error3;
-			else feedbackAnswers = data3;
+			feedbackAnswers = await getSelectTestsolveAnswers(
+				Number($page.params.id)
+			);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -77,13 +91,9 @@
 	async function permissionCheck() {
 		try {
 			// check permission
-			let { data, error } = await supabase
-				.from("testsolves")
-				.select("*")
-				.eq("id", $page.params.id);
-			if (error) {
-				throw error;
-			} else if (data.length === 0) {
+			const data = await getOneTestsolve(Number($page.params.id));
+
+			if (data.length === 0) {
 				throw new Error(
 					"Testsolve with id " + $page.params.id + " doesn't exist!"
 				);
@@ -91,19 +101,13 @@
 				testsolve = data[0];
 				if (
 					(await getThisUserRole()) === 40 ||
-					testsolve.solver_id === supabase.auth.user().id
+					testsolve.solver_id === user.id
 				) {
 					disallowed = false;
 				} else {
 					// check if test coordinator
-					let { data: data2, error: error2, count } = await supabase
-						.from("test_coordinators")
-						.select("*", { count: "exact", head: true })
-						.eq("coordinator_id", supabase.auth.user().id)
-						.eq("test_id", testsolve.test_id);
-					if (error2) {
-						throw error2;
-					} else if (count > 0) {
+					const exists = await checkIfTestCoordinator(testsolve.test_id, user.id);
+					if (exists) {
 						disallowed = false;
 					}
 				}
@@ -124,17 +128,8 @@
 
 	async function getAnswers() {
 		try {
-			let { data, error } = await supabase
-				.from("testsolve_answers")
-				.select("*")
-				.eq("testsolve_id", $page.params.id);
-
-			if (error) {
-				throw error;
-			} else {
-				answers = data;
-				loading = false;
-			}
+			answers = await getProblemTestsolveAnswers(Number($page.params.id));
+			loading = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -147,59 +142,30 @@
 		try {
 			endTime = new Date();
 
-			let { data, error } = await supabase
-				.from("testsolves")
-				.update({
-					feedback: "", // TODO: allow feedback update
-				})
-				.eq("id", $page.params.id);
+			await updateTestsolve(Number($page.params.id), { feedback: "" });
 
-			if (error) {
-				throw error;
-			} else {
-				// delete old answers
-				let { error: error3 } = await supabase
-					.from("testsolve_answers")
-					.delete()
-					.eq("testsolve_id", $page.params.id);
+			// delete old answers
+			await deleteTestsolveAnswer(Number($page.params.id));
+			await addProblemTestsolveAnswer(
+				answers.map((ans) => ({
+					testsolve_id: $page.params.id,
+					problem_id: ans.problem_id,
+					answer: ans.answer,
+					feedback: ans.feedback,
+					correct: ans.correct,
+				}))
+			);
 
-				if (error3) {
-					throw error3;
-				} else {
-					let { data: data2, error: error2 } = await supabase
-						.from("testsolve_answers")
-						.insert(
-							answers.map((ans) => ({
-								testsolve_id: $page.params.id,
-								problem_id: ans.problem_id,
-								answer: ans.answer,
-								feedback: ans.feedback,
-								correct: ans.correct,
-							}))
-						);
-
-					if (error2) {
-						throw error2;
-					} else {
-						loading = true;
-						for (const ans of feedbackAnswers) {
-							let { error: error2 } = await supabase
-								.from("testsolve_feedback_answers")
-								.update({
-									testsolve_id: $page.params.id,
-									feedback_question: ans.feedback_question,
-									answer: ans.answer,
-								})
-								.eq("id", ans.id);
-							if (error2) {
-								toast.error(error2.message);
-							}
-						}
-						getAnswers();
-						getFeedbackAnswers();
-					}
-				}
+			loading = true;
+			for (const ans of feedbackAnswers) {
+				await updateTestsolveFeedbackAnswers(ans.id, {
+					testsolve_id: $page.params.id,
+					feedback_question: ans.feedback_question,
+					answer: ans.answer,
+				});
 			}
+			getAnswers();
+			getFeedbackAnswers();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
