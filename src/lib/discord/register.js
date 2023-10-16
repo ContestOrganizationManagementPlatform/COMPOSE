@@ -17,13 +17,13 @@ const body = [
 	{
 		key: "problemswritten",
 		name: "Problems Written",
-		description: "Written more problems than",
+		description: "Number of Problems Written",
 		type: 2,
 	},
 	{
-		key: "permissions",
-		name: "COMPOSE Permissions",
-		description: "Permissions greater than",
+		key: "unresolvedfeedback",
+		name: "Unresolved Feedback",
+		description: "Total Unresolved Feedback",
 		type: 2,
 	},
 ];

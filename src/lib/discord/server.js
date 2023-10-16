@@ -40,6 +40,7 @@ export async function updateMetadata(userId) {
 	console.log(user);
 	const tokens = user.discord_tokens;
 	//const tokens = await storage.getDiscordTokens(userId);
+	console.log(userId);
 	const rows = await getUserStats(userId);
 	console.log(rows);
 	let metadata = {};
@@ -52,11 +53,13 @@ export async function updateMetadata(userId) {
 			metadata = {
 				verified: true,
 				problemswritten: rows[0].problem_count,
+				unresolvedfeedback: rows[0].unresolved_count,
 			};
 		} else {
 			metadata = {
 				verified: false,
 				problemswritten: 0,
+				unresolvedfeedback: 0,
 			};
 		}
 	} catch (e) {
