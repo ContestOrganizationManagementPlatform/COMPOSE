@@ -21,6 +21,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@supabase/auth-helpers-sveltekit": "^0.10.3",
 		"@supabase/supabase-js": "^2.38.0",
 		"@unified-latex/unified-latex": "^1.2.2",
 		"@unified-latex/unified-latex-to-hast": "^1.2.2",
