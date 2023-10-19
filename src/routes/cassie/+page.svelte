@@ -1,5 +1,6 @@
 <script>
 	import { useChat } from "ai/svelte";
+	//https://sdk.vercel.ai/docs/guides/frameworks/sveltekit
 
 	const { input, handleSubmit, messages } = useChat({
 		initialMessages: [
