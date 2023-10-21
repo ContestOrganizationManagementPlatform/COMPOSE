@@ -1,7 +1,7 @@
 <script>
 	import { useChat } from "ai/svelte";
 	import ProblemList from "$lib/components/ProblemList.svelte";
-	import { supabase } from "$lib/src/supabaseClient";
+	//import { supabase } from "$lib/src/supabaseClient";
 	//https://sdk.vercel.ai/docs/guides/frameworks/sveltekit
 	const promptParts = [
 		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
@@ -10,24 +10,29 @@
 		"Your job is to answer user's questions regarding the COMPOSE database to the best of your knowledge.",
 		"Each entry in the database corresponds to one math problem.",
 		"The database you have access to is a view called full_problems. Each row has the following attributes: {answer_latex: string | null, archived: boolean | null, author_id: string | null, comment_latex: string | null, created_at: string | null, difficulty: number | null, edited_at: string | null, front_id: string | null, full_name: string | null, id: number | null, nickname: string | null, problem_latex: string | null, problem_tests: string | null, solution_latex: string | null, sub_topics: string | null, topics: string | null, topics_short: string | null, unresolved_count: number | null}",
-		"Database queries should fill in the [TODO] in the following supabase-js function template: ```let { data, error } = await supabase.from('full_problems').select('*').[TODO]```"	];
-	const { input, handleSubmit, messages } = useChat({
+		"Database queries should fill in the [TODO] in the following supabase-js function template: ```let { data, error } = await supabase.from('full_problems').select('*').[TODO]```",
+	];
+
+	const { input, handleSubmit, messages, isLoading } = useChat({
 		initialMessages: [
 			{
 				role: "system",
 				content: promptParts.join(" "),
 			},
 		],
+		onFinish: submitWrapper,
 	});
 
 	function submitWrapper() {
-		handleSubmit();
+		console.log(messages, messages.length, isLoading);
+		console.log(messages[0]);
 		if (
 			(messages[-1].role =
 				"assistant" && messages[-1].includes("await supabase."))
 		) {
 			console.log("Function logged");
 		}
+		console.log(messages);
 	}
 
 	const problems = [];
