@@ -144,6 +144,6 @@ TO be inserted:
 ### Updating DatabaseDefinitions
 
 cd into src
-npm login
+npx supabase login
 use SUPABASE_ACCESS_TOKEN in env file
 npx supabase gen types typescript --project-id urxicmqsblkgygjweuni > DatabaseDefinitions.ts
