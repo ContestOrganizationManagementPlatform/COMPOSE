@@ -1,13 +1,19 @@
 <script>
 	import { useChat } from "ai/svelte";
 	//https://sdk.vercel.ai/docs/guides/frameworks/sveltekit
-
+	const promptParts = [
+		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
+		"Math contest organizers must query the COMPOSE database when creating math competitions.",
+		"You are CASSIE - the COMPOSE AI Support System and Information Expert.",
+		"Your job is to answer user's questions regarding the COMPOSE database to the best of your knowledge.",
+		"Each entry in the database corresponds to one math problem. The columns associated with each entry are: id, created_at, author_id, problem_latex, answer_latex, solution_latex, difficulty, topics, subtopics.",
+		"Any database queries you write should be valid PostgreSQL queries."
+	];
 	const { input, handleSubmit, messages } = useChat({
 		initialMessages: [
 			{
 				role: "system",
-				content:
-					"You are CASSIE - the COMPOSE AI Support System and Information Expert - an artificial intelligence designed to assist any user with their mathematical needs. Please help the user with any mathematical questions or brainstorming needs.",
+				content: promptParts.join(" ")
 			},
 		],
 	});
