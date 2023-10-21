@@ -21,7 +21,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@supabase/supabase-js": "^2.38.0",
+		"@supabase/auth-helpers-sveltekit": "^0.10.3",
+		"@supabase/supabase-js": "^2.38.2",
 		"@unified-latex/unified-latex": "^1.2.2",
 		"@unified-latex/unified-latex-to-hast": "^1.2.2",
 		"carbon-components-svelte": "^0.70.12",
@@ -32,6 +33,7 @@
 		"jszip": "^3.10.1",
 		"node-fetch": "^3.3.2",
 		"rehype-stringify": "^9.0.3",
+		"supabase": "^1.106.1",
 		"svelte-chartjs": "^3.0.1",
 		"svelte-drawer-component": "^1.2.2",
 		"svelte-french-toast": "^1.1.0",

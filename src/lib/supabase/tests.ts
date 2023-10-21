@@ -114,10 +114,7 @@ export async function checkIfTestCoordinator(
 	coordinator_id: number,
 	customSelect: string = "coordinator_id"
 ) {
-	let {
-		error: error,
-		count,
-	} = await supabase
+	let { error: error, count } = await supabase
 		.from("test_coordinators")
 		.select(customSelect, { count: "exact", head: true })
 		.eq("coordinator_id", coordinator_id)

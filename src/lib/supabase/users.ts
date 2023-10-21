@@ -1,4 +1,5 @@
-import { supabase } from "../supabaseClient";
+export let data;
+const { supabase } = data;
 
 /**
  * Creates a COMPOSE account for the user
@@ -21,6 +22,7 @@ export async function createAccount(email: string, password: string) {
  * @param password string
  */
 export async function signIntoAccount(email: string, password: string) {
+	console.log("Signing in");
 	const { error } = await supabase.auth.signInWithPassword({
 		email: email,
 		password: password,
@@ -46,7 +48,9 @@ export async function signInWithDiscord() {
  * Signs out user from their account in their browser
  */
 export async function signOut() {
-	let { error } = await supabase.auth.signOut();
+	console.log("SIGNING OUT");
+	let { data, error } = await supabase.auth.signOut();
+	console.log(data, error);
 	if (error) throw error;
 }
 

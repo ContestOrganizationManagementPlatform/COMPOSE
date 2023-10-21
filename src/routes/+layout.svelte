@@ -1,6 +1,7 @@
 <script>
 	import "carbon-components-svelte/css/white.css";
-	import { supabase } from "$lib/supabaseClient";
+	//import { supabase } from "$lib/supabaseClient";
+	import { invalidate } from "$app/navigation";
 	import Account from "$lib/components/Account.svelte";
 	import Banner from "$lib/components/Banner.svelte";
 	import Menu from "$lib/components/Menu.svelte";
@@ -12,6 +13,11 @@
 	import { getThisUser } from "$lib/supabase";
 	import scheme from "$lib/scheme.json";
 
+	export let data;
+
+	//const { supabase, session } = data;
+	$: ({ supabase, session } = data);
+
 	let loaded = false;
 
 	let hasAccount = true;
@@ -20,12 +26,16 @@
 		user.set(await getThisUser());
 	})();
 
-	supabase.auth.onAuthStateChange((_, session) => {
-		user.set(session?.user);
-	});
-
-	onMount(async () => {
+	onMount(() => {
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((event, _session) => {
+			if (_session?.expires_at !== session?.expires_at) {
+				invalidate("supabase:auth");
+			}
+		});
 		loaded = true;
+		return () => subscription.unsubscribe();
 	});
 
 	$: cssVarStyles = Object.entries(scheme.styles)
