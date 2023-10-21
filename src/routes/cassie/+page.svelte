@@ -1,5 +1,7 @@
 <script>
 	import { useChat } from "ai/svelte";
+	import ProblemList from "$lib/components/ProblemList.svelte";
+	import { supabase } from "$lib/src/supabaseClient";
 	//https://sdk.vercel.ai/docs/guides/frameworks/sveltekit
 	const promptParts = [
 		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
@@ -13,10 +15,24 @@
 		initialMessages: [
 			{
 				role: "system",
-				content: promptParts.join(" ")
+				content: promptParts.join(" "),
 			},
 		],
 	});
+
+	function submitWrapper() {
+		handleSubmit();
+		if (
+			(messages[-1].role =
+				"assistant" && messages[-1].includes("await supabase."))
+		) {
+			console.log("Function logged");
+		}
+	}
+
+	const problems = [];
+
+	const query = "";
 </script>
 
 <svelte:head>
@@ -35,6 +51,10 @@
 		<input bind:value={$input} />
 		<button type="submit">Send</button>
 	</form>
+
+	<div style="width:80%; margin: auto;margin-bottom: 20px;">
+		<ProblemList {problems} />
+	</div>
 </section>
 
 <style>
