@@ -2,7 +2,7 @@
 
 Hi! This is Collaborative Online Math Problem Organization and Sharing Environment (COMPOSE), a place to write problems for these tournaments! The COMPOSE platform was originally developed by [Mustang Math](https://mustangmath.com/), a 501(c)(3) nonprofit organization of committed high school and college volunteers who are dedicated to promoting a spirit of collaboration among middle school students around the world and piquing their curiosity in mathematics.
 
-## Tourmaments Using COMPOSE
+## Tournaments Using COMPOSE
 
 Here are the current tournaments that are utilizing COMPOSE:
 

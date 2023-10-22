@@ -102,7 +102,6 @@
 					full_name,
 					initials,
 					math_comp_background,
-					amc_score,
 					email: user.email,
 				};
 
