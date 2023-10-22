@@ -138,3 +138,7 @@ Contact tech@mustangmath.com if you want the value to VITE_PDF_GENERATOR_URL.
 Now, COMPOSE should be set up and ready to use for your organization!
 
 ## Thank you!
+
+#### CASSIE
+
+Documentation: https://sdk.vercel.ai/docs/guides/frameworks/sveltekit

@@ -1,7 +1,10 @@
-<script lang="ts">
+<script lang="js">
+	import { useChat } from "ai/svelte";
+	import { supabase } from "$lib/supabaseClient";
+	import { get } from "svelte/store";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { Checkbox } from "carbon-components-svelte";
+	import { Checkbox, TextArea } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 	import {
@@ -11,15 +14,56 @@
 		getAllProblems,
 	} from "$lib/supabase";
 
+	const datasetPrompt = `
+		The database you have access to is a view called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
+			answer_latex (string | null): The answer to the problem written in LaTeX;  
+			archived (boolean | null): Whether the problem has been archived;
+			author_id (string | null): Supabase ID of the user who wrote the problem; 
+			comment_latex (string | null): Comments given by the author of the problem written in LaTeX; 
+			created_at (string | null): Timestamp problem was created at; 
+			difficulty (number | null): Difficulty rating of the problem; 
+			edited_at (string | null): Timestamp the problem was last edited at; 
+			front_id (string | null): An identifier for each problem given by the first 3 letters of the author's full name with the id number;
+			full_name (string | null): Name of the author of the problem; 
+			id (number | null): Unique ID number of the problem; 
+			nickname (string | null): Nickname for each problem; 
+			problem_latex (string | null): The problem written in LaTeX;
+			problem_tests (string | null): Comma-separated list of all tests that the problem appears on written as a single string;
+			solution_latex (string | null): The solution to the problem written in LaTeX;
+			sub_topics (string | null): Comma-separated list of topics which appear in the problem – sub-topics are more granular than topics and tend to cover tactics or themes present in the problem and solution; 
+			topics (string | null): Comma-separated list of the overall topics that appear in the problem – all topics are chosen from Algebra, Combinatorics, Number Theory, Geometry; 
+			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Combo, NT, Geo for Algebra, Combinatorics, Number Theory, Geometry respectively; 
+			unresolved_count (number | null): The number of unresolved pieces of feedback the problem has;
+	`;
+
+	const promptParts = [
+		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
+		"Math contest organizers must query the COMPOSE database when creating math competitions.",
+		"You are CASSIE - the COMPOSE AI Support System and Information Expert.",
+		"Your job is to answer user's questions regarding the COMPOSE database to the best of your knowledge.",
+		"Each entry in the database corresponds to one math problem.",
+		datasetPrompt,
+		"Database queries should fill in the [TODO] in the following supabase-js function template: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
+		//"This user's ID is " + user.id,
+		"If your message includes a database query, do not include any additional text.",
+	];
+
+	const { input, handleSubmit, messages, isLoading } = useChat({
+		initialMessages: [
+			{
+				role: "system",
+				content: promptParts.join(" "),
+			},
+		],
+		onFinish: processLastMessage,
+	});
+
 	let problems = [];
+	let all_problems = [];
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
 	let userId;
-
-	(async () => {
-		userId = (await getThisUser()).id;
-	})();
 
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];
@@ -28,10 +72,12 @@
 	(async () => {
 		try {
 			problems = await getAllProblems("*", "front_id");
+			all_problems = [...problems];
 			const problemCountsData = await getProblemCounts();
 			problemCounts = problemCountsData.sort(
 				(a, b) => b.problem_count - a.problem_count
 			);
+			userId = (await getThisUser()).id;
 			//getProblemLink();
 			loaded = true;
 		} catch (error) {
@@ -39,6 +85,63 @@
 			toast.error(error.message);
 		}
 	})();
+
+	function resetProblems() {
+		problems = all_problems;
+	}
+
+	function submitWrapper(e) {
+		loaded = false;
+		handleSubmit(e);
+	}
+
+	function processLastMessage() {
+		console.log(messages);
+		const allMessages = get(messages);
+		console.log(messages);
+		const curMessage = allMessages[allMessages.length - 1];
+		console.log(curMessage);
+		if (
+			curMessage.role == "assistant" &&
+			curMessage.content.includes("await supabase")
+		) {
+			console.log(curMessage.content);
+			const regex = /```javascript(.*?)```/s;
+			const match = curMessage.content.match(regex);
+			console.log(match);
+			let codeBlock = curMessage.content;
+			if (match) {
+				codeBlock = match[1].trim();
+			}
+			const asyncFunction = new Function(
+				"supabase",
+				`
+                    return (async () => {
+                        const { data } = ${codeBlock}
+                        return data;
+                    })();
+                    `
+			);
+			try {
+				const result = asyncFunction(supabase)
+					.then((result) => {
+						console.log(result);
+						problems = result;
+						console.log("Async code execution completed.");
+					})
+					.catch((error) => {
+						console.error("Async code execution error:", error);
+					});
+				console.log("Code executed successfully. Result:", result);
+			} catch (error) {
+				console.error("Error executing code:", error);
+			}
+		} else {
+			console.log("Not a function");
+		}
+
+		loaded = true;
+	}
 
 	async function getBucketPaths(path) {
 		try {
@@ -182,7 +285,25 @@
 	title="My Problems"
 />
 <br /><br />
-
+<ul visibility: hidden>
+	{#each $messages as message}
+		<li>{message.role}: {message.content}</li>
+	{/each}
+</ul>
+<form on:submit={submitWrapper}>
+	<TextArea
+		class="textArea"
+		labelText="Use CASSIE to filter (Beta)!"
+		placeholder="Type some sort of command to filter (e.g. Show me all problems with difficulty harder than 4 and sort it hardest to easiest.). You can build queries off of the previous one."
+		bind:value={$input}
+		required={true}
+	/>
+	<br />
+	<Button type="submit" title="Apply Filter" />
+</form>
+<br />
+<Button action={resetProblems} title="Clear Filter" />
+<br /><br />
 <div style="width:80%; margin: auto;margin-bottom: 20px;">
 	<ProblemList {problems} />
 </div>
