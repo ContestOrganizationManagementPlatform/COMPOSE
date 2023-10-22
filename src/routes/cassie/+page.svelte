@@ -3,14 +3,18 @@
 	import { get } from "svelte/store";
 	import { supabase } from "$lib/supabaseClient";
 	import ProblemList from "$lib/components/ProblemList.svelte";
-    import { getUser } from "$lib/supabase";
+	import { getThisUser } from "$lib/supabase";
 	//import { supabase } from "$lib/src/supabaseClient";
 	//https://sdk.vercel.ai/docs/guides/frameworks/sveltekit
-    (async() => {
-        const user = await getUser();
-        console.log(user)
-    }());
-    
+	/*
+	let user;
+	let promptParts;
+	(async () => {
+		user = await getThisUser();
+		console.log(user);
+	})();
+    */
+
 	const promptParts = [
 		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
 		"Math contest organizers must query the COMPOSE database when creating math competitions.",
@@ -19,6 +23,7 @@
 		"Each entry in the database corresponds to one math problem.",
 		"The database you have access to is a view called full_problems. Each row has the following attributes: {answer_latex: string | null, archived: boolean | null, author_id: string | null, comment_latex: string | null, created_at: string | null, difficulty: number | null, edited_at: string | null, front_id: string | null, full_name: string | null, id: number | null, nickname: string | null, problem_latex: string | null, problem_tests: string | null, solution_latex: string | null, sub_topics: string | null, topics: string | null, topics_short: string | null, unresolved_count: number | null}",
 		"Database queries should fill in the [TODO] in the following supabase-js function template with a filter function: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
+		//"This user's ID is " + user.id,
 		//"Use .ilike instead of .contains for all such queries",
 		"If your message includes a database query, do not include any additional text.",
 	];
