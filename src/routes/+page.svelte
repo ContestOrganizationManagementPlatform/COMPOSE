@@ -11,6 +11,16 @@
 	import { handleError } from "$lib/handleError.ts";
 	import Header from "$lib/components/styles/Header.svelte";
 	import { getThisUser, getUser, upsertUserData } from "$lib/supabase";
+	import {
+		MultiSelect,
+		TextInput,
+		Form,
+		FormGroup,
+		TextArea,
+		Button,
+		FileUploader,
+		FileUploaderItem,
+	} from "carbon-components-svelte";
 
 	export let data;
 	let user;
