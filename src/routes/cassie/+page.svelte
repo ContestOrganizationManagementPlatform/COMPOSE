@@ -15,7 +15,7 @@
 		"Database queries should fill in the [TODO] in the following supabase-js function template: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
 	];
 
-	const { input, handleSubmit, messages, isLoading } = useChat({
+	const { input, handleSubmit, messages } = useChat({
 		initialMessages: [
 			{
 				role: "system",
@@ -28,12 +28,14 @@
 	let problems = [];
 
 	function submitWrapper() {
+		console.log(messages);
 		const allMessages = get(messages);
+		console.log(messages);
 		const curMessage = allMessages[allMessages.length - 1];
 		console.log(curMessage);
 		if (
-			(curMessage.role =
-				"assistant" && curMessage.content.includes("await supabase"))
+			curMessage.role == "assistant" &&
+			curMessage.content.includes("await supabase")
 		) {
 			console.log(curMessage.content);
 			const regex = /```javascript(.*?)```/s;
@@ -61,17 +63,14 @@
 					`
                     return (async () => {
                         const { data } = ${codeBlock}
-                        console.log(data);
-                        console.log("finish")
                         return data;
                     })();
                     `
 				);
-				console.log("AAHAHHAHHAH");
 				try {
 					const result = asyncFunction(supabase)
 						.then((result) => {
-							console.log("R", result);
+							console.log(result);
 							problems = result;
 							console.log("Async code execution completed.");
 						})
