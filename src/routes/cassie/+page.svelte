@@ -6,14 +6,35 @@
 	import { getThisUser } from "$lib/supabase";
 	//import { supabase } from "$lib/src/supabaseClient";
 	//https://sdk.vercel.ai/docs/guides/frameworks/sveltekit
-	/*
-	let user;
-	let promptParts;
-	(async () => {
-		user = await getThisUser();
-		console.log(user);
-	})();
-    */
+
+	// let user;
+	// let promptParts;
+	// (async () => {
+	// 	user = await getThisUser();
+	// 	console.log(user);
+	// })();
+
+	const datasetPrompt = `
+		The database you have access to is a view called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
+			answer_latex (string | null): The answer to the problem written in LaTeX;  
+			archived (boolean | null): Whether the problem has been archived;
+			author_id (string | null): Supabase ID of the user who wrote the problem; 
+			comment_latex (string | null): Comments given by the author of the problem written in LaTeX; 
+			created_at (string | null): Timestamp problem was created at; 
+			difficulty (number | null): Difficulty rating of the problem; 
+			edited_at (string | null): Timestamp the problem was last edited at; 
+			front_id (string | null): An identifier for each problem given by the first 3 letters of the author's full name with the id number;
+			full_name (string | null): Name of the author of the problem; 
+			id (number | null): Unique ID number of the problem; 
+			nickname (string | null): Nickname for each problem; 
+			problem_latex (string | null): The problem written in LaTeX;
+			problem_tests (string | null): Comma-separated list of all tests that the problem appears on written as a single string;
+			solution_latex (string | null): The solution to the problem written in LaTeX;
+			sub_topics (string | null): Comma-separated list of topics which appear in the problem – sub-topics are more granular than topics and tend to cover tactics or themes present in the problem and solution; 
+			topics (string | null): Comma-separated list of the overall topics that appear in the problem – all topics are chosen from Algebra, Combinatorics, Number Theory, Geometry; 
+			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Combo, NT, Geo for Algebra, Combinatorics, Number Theory, Geometry respectively; 
+			unresolved_count (number | null): The number of unresolved pieces of feedback the problem has;
+	`;
 
 	const promptParts = [
 		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
@@ -21,10 +42,9 @@
 		"You are CASSIE - the COMPOSE AI Support System and Information Expert.",
 		"Your job is to answer user's questions regarding the COMPOSE database to the best of your knowledge.",
 		"Each entry in the database corresponds to one math problem.",
-		"The database you have access to is a view called full_problems. Each row has the following attributes: {answer_latex: string | null, archived: boolean | null, author_id: string | null, comment_latex: string | null, created_at: string | null, difficulty: number | null, edited_at: string | null, front_id: string | null, full_name: string | null, id: number | null, nickname: string | null, problem_latex: string | null, problem_tests: string | null, solution_latex: string | null, sub_topics: string | null, topics: string | null, topics_short: string | null, unresolved_count: number | null}",
-		"Database queries should fill in the [TODO] in the following supabase-js function template with a filter function: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
+		datasetPrompt,
+		"Database queries should fill in the [TODO] in the following supabase-js function template: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
 		//"This user's ID is " + user.id,
-		//"Use .ilike instead of .contains for all such queries",
 		"If your message includes a database query, do not include any additional text.",
 	];
 
