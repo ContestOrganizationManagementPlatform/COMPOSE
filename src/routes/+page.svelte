@@ -11,7 +11,6 @@
 	import { handleError } from "$lib/handleError.ts";
 	import Header from "$lib/components/styles/Header.svelte";
 	import { getThisUser, getUser, upsertUserData } from "$lib/supabase";
-	//comment
 	export let data;
 	let user;
 	let loading = false;
