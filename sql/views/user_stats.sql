@@ -7,7 +7,7 @@ select
   count(*) as problem_count,
   sum(full_problems.unresolved_count) as unresolved_count
 from
-  full_problems
-  left join users on users.id = full_problems.author_id
+  users
+  left join full_problems on users.id = full_problems.author_id
 group by
   users.id;
