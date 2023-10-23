@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient";
+import { getProblem } from "$lib/supabase/problems";
 
 export interface TestsolverRequest {
 	test_id: number;
@@ -341,6 +342,17 @@ export async function addProblemTestsolveAnswer(testsolve_answers: any[]) {
 		.from("testsolve_answers")
 		.insert(testsolve_answers);
 	if (error) throw error;
+
+	testsolve_answers.forEach(async (testsolve) => {
+		const problem = await getProblem(testsolve.problem_id);
+		await fetch("/api/discord-dm", {
+			method: "POST",
+			body: JSON.stringify({
+				userId: problem.author_id,
+				message: "Feedback added to your problem " + problem.id,
+			}),
+		});
+	});
 }
 
 /**

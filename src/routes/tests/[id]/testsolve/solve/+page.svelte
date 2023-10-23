@@ -213,11 +213,11 @@
 			});
 
 			//Redirect to another URL
-			// if (!completedSolve) {
-			// 	window.location.href = "/testsolve";
-			// } else {
-			// 	window.location.href = "/testsolve/" + testsolveId;
-			// }
+			if (!completedSolve) {
+				window.location.href = "/testsolve";
+			} else {
+				window.location.href = "/testsolve/" + testsolveId;
+			}
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

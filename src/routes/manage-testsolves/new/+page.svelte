@@ -4,14 +4,13 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAllTests, getAllUsers, addTestsolver } from "$lib/supabase";
+	import { getAllTests, getAllUsers, addTestsolver, getTestInfo } from "$lib/supabase";
 
 	let finalUser = "";
 	let finalTest = "";
 	let users = [];
 	let tests = [];
 	let loading = true;
-	let message = "";
 
 	async function getUsers() {
 		try {
@@ -64,9 +63,18 @@
 					if (finalTest === "" || finalUser === "") {
 						toast.error("Please select a test and a user");
 					} else {
-						message = "";
 						await addTestsolver({ test_id: finalTest, solver_id: finalUser });
-						message = "Success! Added testsolve.";
+						const testInfo = await getTestInfo(finalTest);
+
+						await fetch("/api/discord-dm", {
+							method: "POST",
+							body: JSON.stringify({
+								userId: finalUser,
+								message: "You have been assigned a test for the following test: " + testInfo.test_name,
+							}),
+						});
+
+						toast.success("Success! Added testsolve.");
 					}
 				} catch (error) {
 					handleError(error);
@@ -74,6 +82,5 @@
 				}
 			}}
 		/>
-		<p>{message}</p>
 	{/if}
 </div>

@@ -1,38 +1,42 @@
-import { Routes } from "discord-api-types/v9";
 import { getUser } from "$lib/supabase";
-import { rest } from "$lib/discord/discordBot";
 
-const clientId = import.meta.env.VITE_CLIENT_ID;
-const guildId = import.meta.env.VITE_DISCORD_ID;
+const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
 export async function POST({ request }) {
 	const body = await request.json();
 
-    //get user's discord username
-    const user = await getUser(body.userId);
-    const discordUsername = user.discord;
+	//get user's discord ID
+	const user = await getUser(body.userId);
+	const discordId = user.discord_id;
 
-    //get user's discord ID
-    const response = await fetch('https://discord.com/api/v10/guilds/' + guildId + '/members/search/?query=' + discordUsername);
-    const json = await response.json();
-    const discordId = json.id;
+    //Get the user DM
+	const response = await fetch(
+		`https://discord.com/api/v10/users/@me/channels`,
+		{
+			method: "POST",
+			headers: {
+				Authorization: `Bot ${discordToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				recipient_id: discordId,
+			}),
+		}
+	);
+	const data = await response.json();
+    
+    //Send the user a DM
+	const channelId = data.id;
+	fetch(`https://discord.com/api/v10/channels/${channelId}/messages`, {
+		method: "POST",
+		headers: {
+			Authorization: `Bot ${discordToken}`,
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			content: body.message,
+		}),
+	});
 
-    console.log(discordId);
-
-    //send the user the direct message
-    const recipient = await rest.put(
-        Routes.user(Discord.ClientUser.me(clientId)),
-        {
-            data: {
-                id: discordId,
-                type: 1,
-            },
-        }
-    );
-
-    await rest.post(Routes.channelMessages(recipient.id), {
-        data: {
-            content: body.message,
-        },
-    });
+    return new Response(undefined, { status: 300 });
 }
