@@ -5,7 +5,18 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAuthorName, editProblem, getProblemTopics, deleteProblemTopics, insertProblemTopics, deleteImages, getImages, uploadImage, getThisUser, getProblem } from "$lib/supabase";
+	import {
+		getAuthorName,
+		editProblem,
+		getProblemTopics,
+		deleteProblemTopics,
+		insertProblemTopics,
+		deleteImages,
+		getImages,
+		uploadImage,
+		getThisUser,
+		getProblem,
+	} from "$lib/supabase";
 
 	let problem;
 	let images = [];
@@ -13,7 +24,10 @@
 
 	async function fetchTopic(problem_id) {
 		try {
-			const problem_topics = await getProblemTopics(problem_id, "topic_id,global_topics(topic)");
+			const problem_topics = await getProblemTopics(
+				problem_id,
+				"topic_id,global_topics(topic)"
+			);
 			problem.topic = problem_topics.map((x) => x.topic_id);
 			problem.topicArray = problem_topics.map(
 				(x) => x.global_topics?.topic ?? "Unknown Topic"
@@ -41,22 +55,24 @@
 	async function submitProblem(payload) {
 		try {
 			const { topics, problem_files, ...payloadNoTopics } = payload;
-			const data = await editProblem(payloadNoTopics, $page.params.id);
-
+			const data = await editProblem(payloadNoTopics, Number($page.params.id));
+			console.log("DATA", data);
 			await deleteProblemTopics(data.id);
 			await insertProblemTopics(data.id, payload.topics);
 
 			// delete all files already in the problem
 			const fileList = await getImages(`pb${problem.id}/problem`);
 			if (fileList.length > 0) {
-				await deleteImages(fileList.map((f) => `pb${problem.id}/problem/${f.name}`));
+				await deleteImages(
+					fileList.map((f) => `pb${problem.id}/problem/${f.name}`)
+				);
 			}
 
 			for (const file of problem_files) {
 				await uploadImage(`pb${problem.id}/problem/${file.name}`, file);
 			}
 
-			const authorName = await getAuthorName(await (getThisUser()).id);
+			const authorName = await getAuthorName(await getThisUser().id);
 			await fetch("/api/discord-update", {
 				method: "POST",
 				body: JSON.stringify({
@@ -67,7 +83,7 @@
 			});
 
 			fetchProblem();
-			
+
 			toast.success("Successfully updated problem.");
 		} catch (error) {
 			handleError(error);
