@@ -32,7 +32,7 @@
 				test_description: description,
 				tournament_id: selectItem.value,
 			});
-			window.location.replace("/admin/tests/" + data[0].id);
+			window.location.replace("/admin/tests/" + data.id);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

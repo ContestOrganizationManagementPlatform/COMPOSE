@@ -91,14 +91,13 @@
 	async function permissionCheck() {
 		try {
 			// check permission
-			const data = await getOneTestsolve(Number($page.params.id));
+			const testsolve = await getOneTestsolve(Number($page.params.id));
 
-			if (data.length === 0) {
+			if (testsolve.length === 0) {
 				throw new Error(
 					"Testsolve with id " + $page.params.id + " doesn't exist!"
 				);
 			} else {
-				testsolve = data[0];
 				if (
 					(await getThisUserRole()) === 40 ||
 					testsolve.solver_id === user.id

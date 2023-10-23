@@ -251,6 +251,8 @@
 					condensed
 					selectable
 					editable={false}
+					showUnresolved={false}
+					showSubtopic={false}
 					bind:selectedItems={selectedAll}
 					disableAll={refreshingProblems}
 				/>
@@ -264,11 +266,13 @@
 					draggable
 					editable={false}
 					pageEnabled={false}
+					showUnresolved={false}
+					showSubtopic={false}
 					bind:selectedItems={selectedTest}
 					disableAll={refreshingProblems}
 					customHeaders={[
 						{ key: "drag", value: "", sort: false },
-						{ key: "problem_number", value: "#" },
+						{ key: "problem_number", value: "#" }
 					]}
 					on:reorder={handleReorder}
 				/>

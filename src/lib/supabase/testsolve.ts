@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient";
+import { getProblem } from "$lib/supabase/problems";
 
 export interface TestsolverRequest {
 	test_id: number;
@@ -205,7 +206,7 @@ export async function checkPriorTestsolve(
 		.eq("solver_id", solver_id)
 		.eq("completed", completed);
 	if (error) throw error;
-	return data.length > 0;
+	return data;
 }
 
 /**
@@ -236,10 +237,10 @@ export async function updateTestsolve(
 export async function insertTestsolve(testsolve_data: TestsolveRequest) {
 	let { data, error } = await supabase
 		.from("testsolves")
-		.insert([testsolve_data]);
-
+		.insert([testsolve_data])
+		.select();
 	if (error) throw error;
-	return data;
+	return data[0];
 }
 
 /**
@@ -270,6 +271,25 @@ export async function getProblemTestsolveAnswers(
 		.from("testsolve_answers")
 		.select(customSelect)
 		.eq("problem_id", problemId);
+	if (error) throw error;
+	return data;
+}
+
+/**
+ * Get a problem's testsolve answers in a specific order
+ *
+ * @param customOrder string
+ * @param customSelect optional, string
+ * @returns list of testsolve answers
+ */
+export async function getProblemTestsolveAnswersOrder(
+	customOrder: string,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolve_answers")
+		.select(customSelect)
+		.order(customOrder);
 	if (error) throw error;
 	return data;
 }
@@ -322,6 +342,17 @@ export async function addProblemTestsolveAnswer(testsolve_answers: any[]) {
 		.from("testsolve_answers")
 		.insert(testsolve_answers);
 	if (error) throw error;
+
+	testsolve_answers.forEach(async (testsolve) => {
+		const problem = await getProblem(testsolve.problem_id);
+		await fetch("/api/discord-dm", {
+			method: "POST",
+			body: JSON.stringify({
+				userId: problem.author_id,
+				message: "Feedback added to your problem " + problem.id,
+			}),
+		});
+	});
 }
 
 /**

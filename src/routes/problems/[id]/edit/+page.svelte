@@ -43,8 +43,8 @@
 			const { topics, problem_files, ...payloadNoTopics } = payload;
 			const data = await editProblem(payloadNoTopics, $page.params.id);
 
-			await deleteProblemTopics(data[0].id);
-			await insertProblemTopics(data[0].id, payload.topics);
+			await deleteProblemTopics(data.id);
+			await insertProblemTopics(data.id, payload.topics);
 
 			// delete all files already in the problem
 			const fileList = await getImages(`pb${problem.id}/problem`);

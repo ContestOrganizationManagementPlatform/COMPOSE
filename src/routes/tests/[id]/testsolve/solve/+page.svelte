@@ -1,21 +1,23 @@
-<script>
+<script lang="ts">
 	import { page } from "$app/stores";
 	import { formatTime } from "$lib/formatDate";
 	import TestView from "$lib/components/TestView.svelte";
 	import { onDestroy } from "svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 	import {
 		addProblemTestsolveAnswer,
 		checkPriorTestsolve,
 		getFeedbackQuestions,
 		getSelectTestsolveAnswers,
 		getSelectTestsolvers,
+		getTestCoordinators,
 		getTestInfo,
 		getTestsolveTestsolveAnswers,
 		getThisUser,
 		getThisUserRole,
+		getUser,
 		insertTestsolve,
 		insertTestsolveFeedbackAnswers,
 		updateTestsolve,
@@ -45,7 +47,7 @@
 	async function getAllFeedbackQuestions() {
 		try {
 			const test_feedback_questions = await getFeedbackQuestions(
-				$page.params.id
+				Number($page.params.id)
 			);
 			for (const x of test_feedback_questions) {
 				feedbackQuestions[x.id] = x;
@@ -68,7 +70,10 @@
 			if ((await getThisUserRole()) >= 40) {
 				disallowed = false;
 			} else {
-				const count = await getSelectTestsolvers($page.params.id, user.id);
+				const count = await getSelectTestsolvers(
+					Number($page.params.id),
+					user.id
+				);
 				if (count > 0) {
 					disallowed = false;
 				}
@@ -88,19 +93,15 @@
 			await getAllFeedbackQuestions();
 
 			// check if there is a prior testsolve
-			const existing = await checkPriorTestsolve(
-				$page.params.id,
+			const loadedTestsolve = await checkPriorTestsolve(
+				Number($page.params.id),
 				user.id,
 				false
 			);
 
-			if (existing) {
-				loadedTestsolve = data[0];
-
+			if (loadedTestsolve.length > 0) {
 				answers = await getTestsolveTestsolveAnswers(loadedTestsolve.id);
 				feedbackAnswers = await getSelectTestsolveAnswers(loadedTestsolve.id);
-
-				// load in start time
 				timeOffset = loadedTestsolve.time_elapsed;
 			}
 			startTime = new Date();
@@ -122,7 +123,7 @@
 			let data;
 
 			// fetch the current test version
-			const testData = await getTestInfo($page.params.id);
+			const testData = await getTestInfo(Number($page.params.id));
 
 			// check if this is a resubmission
 			if (loadedTestsolve) {
@@ -147,8 +148,8 @@
 				});
 				loading = false;
 			}
-
-			let testsolveId = data[0].id;
+			
+			let testsolveId = data.id;
 
 			// update all answers if previous testsolve, else insert
 			if (loadedTestsolve) {
@@ -192,6 +193,26 @@
 				);
 			}
 
+			//Send DM to test coordinator
+			const userInfo = await getUser(user.id);
+			const testInfo = await getTestInfo(Number($page.params.id));
+			const testCoordinator = await getTestCoordinators(
+				Number($page.params.id)
+			);
+
+			await fetch("/api/discord-dm", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: testCoordinator.coordinator_id,
+					message:
+						"Testsolve has been completed by " +
+						userInfo.full_name +
+						" on test " +
+						testInfo.test_name,
+				}),
+			});
+
+			//Redirect to another URL
 			if (!completedSolve) {
 				window.location.href = "/testsolve";
 			} else {
