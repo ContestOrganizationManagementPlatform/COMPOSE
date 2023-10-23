@@ -9,6 +9,23 @@ CREATE TABLE IF NOT EXISTS users (
     amc_score int2
 );
 
+create table IF NOT EXISTS users
+  public.users (
+    id uuid not null,
+    full_name text null,
+    initials text null,
+    math_comp_background text not null default ''::text,
+    amc_score real null,
+    email text null,
+    discord_id text null,
+    discord_tokens jsonb null,
+    discord text null,
+    constraint users_pkey primary key (id),
+    constraint users_discord_id_key unique (discord_id),
+    constraint users_discord_key unique (discord),
+    constraint users_id_fkey foreign key (id) references auth.users (id) on delete cascade
+  ) tablespace pg_default;
+
 CREATE TABLE IF NOT EXISTS user_roles (
     user_id uuid PRIMARY KEY REFERENCES public.users(id) ON DELETE CASCADE,
     role int4
