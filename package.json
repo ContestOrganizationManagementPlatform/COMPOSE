@@ -21,23 +21,26 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@discordjs/rest": "^2.0.1",
+		"@supabase/auth-helpers-sveltekit": "^0.10.3",
 		"@supabase/supabase-js": "^2.38.0",
 		"@unified-latex/unified-latex": "^1.2.2",
 		"@unified-latex/unified-latex-to-hast": "^1.2.2",
-		"axios": "^1.5.1",
+		"ai": "^2.2.16",
 		"carbon-components-svelte": "^0.70.12",
 		"chart.js": "^3.9.1",
 		"cookie-parser": "^1.4.6",
+		"discord.js": "^14.7.1",
 		"express": "^4.18.2",
 		"jszip": "^3.10.1",
 		"node-fetch": "^3.3.2",
+		"openai": "^4.12.4",
 		"rehype-stringify": "^9.0.3",
 		"svelte-chartjs": "^3.0.1",
 		"svelte-drawer-component": "^1.2.2",
 		"svelte-french-toast": "^1.1.0",
 		"svelte-katex": "^0.1.2",
 		"svelte-preprocess": "^5.0.0",
-		"unified": "^10.1.2"
+		"unified": "^10.1.2",
+		"uuid": "^9.0.1"
 	}
 }
