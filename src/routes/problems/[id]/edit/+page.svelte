@@ -56,7 +56,7 @@
 		try {
 			const { topics, problem_files, ...payloadNoTopics } = payload;
 			const data = await editProblem(payloadNoTopics, Number($page.params.id));
-
+			console.log("DATA", data);
 			await deleteProblemTopics(data.id);
 			await insertProblemTopics(data.id, payload.topics);
 
