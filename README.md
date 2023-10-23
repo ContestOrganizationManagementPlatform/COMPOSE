@@ -27,7 +27,45 @@ You will be redirected to a new screen. Here, change the owner and name of the r
 
 Once you are satisfied with the repository settings, click "Create fork" to proceed to the next step.
 
-### Step 2: Updating `scheme.json`
+### Step 2: Setting up your Environment Variables
+
+Environment variables are secret variables that people viewing your repository will not have access to. This ensures security for the Supabase database with your test problems. **Never publish any of your environment variables - always share them with other developers through private channels**.
+
+When working locally, you will want to store all of these in a '.env' file in the root directory.
+The format of environment variables looks like the below:
+ENV_VARIABLE_NAME=ENV_VARIABLE_VALUE
+
+You will also have to update your environment variables within your hosting service - the location of which may vary depending on your hosting service. In Vercel, you can add your environment variables by going into the "Settings" and "Environment Variables" tab. If you've already built your .env file, you can copy paste the entire thing at once to save it (though some need to be modified for hosting vs local development)
+
+Whenever this README tells you to set an environment variable, set it both locally and within your hosting service.
+
+The current environment variables, grouped by section they will be set in:
+
+Supabase:
+
+- VITE_SUPABASE_URL
+- VITE_SUPABASE_ANON_KEY
+- SUPABASE_ACCESS_TOKEN (Local/Dev Only)
+
+Discord Integration:
+
+- VITE_CLIENT_ID
+- VITE_CLIENT_SECRET
+- VITE_BOT_TOKEN
+- VITE_REDIRECT_URI
+- VITE_COOKIE_SECRET
+
+CASSIE:
+
+- VITE_OPENAI_API_KEY
+
+PDF Generation:
+
+- VITE_PDF_GENERATOR_URL
+
+Contact tech@mustangmath.com if you want the value to VITE_PDF_GENERATOR_URL.
+
+### Step 3: Updating `scheme.json`
 
 To customize COMPOSE to your organization, you will need to edit a scheme.json file. Navigate to this file by going `src` > `lib` > `scheme.json`.
 
@@ -41,7 +79,7 @@ Once you are satisfied with your changes, click "Commit changes...". This will l
 
 Now, the COMPOSE platform should be customized to your organization.
 
-### Step 3: Setting Up Supabase & Populating the Tables
+### Step 4: Setting Up Supabase & Populating the Tables
 
 Create a Supabase account for your organization. Most likely, this will be through a Github account associated with the tournament, but this is not required.
 
@@ -61,13 +99,21 @@ Go back to your Github repository and go into the sql folder. Do the following s
 
 After following those steps for all the files, confirm that tables were created in Supabase by going into the "Table Editor" tab in your project. You should see a bunch of newly populated tables on the left hand side.
 
-### Step 4: Setting your Domain URL
+#### Setting Supabase Environment Variables
+
+The value to VITE_SUPABASE_URL can be found on Supabase in "Project Settings" > "API" > "Project URL" > "URL".
+
+The value to VITE_SUPABASE_ANON_KEY can be found on Supabase in "Project Settings" > "API" > "Project API Keys" > "anon public".
+
+The value of SUPABASE_ACCESS_TOKEN can be created on the [Supabase Dashboard](https://supabase.com/dashboard/account/tokens). This is only necessary for updating the DatabaseDefinitions.ts file, which should only be necessary if your database begins to differ from the source repository. See the [Supabase Docs](https://supabase.com/docs/guides/api/rest/generating-types) for information on how to generate this file - make sure that it is stored inside lib and titled DatabaseDefinitions.ts, though.
+
+### Step 5: Setting your Domain URL
 
 One last step that needs to be completed in Supabase is setting your domain URL. Users are required to verify the email that they submit when creating their account to ensure no fraud occurs. Supabase needs to know what your website domain is to ensure that the email verification works successfully.
 
 To set this, go into the "Authentication" and "URL Configuration" tab. Under the "Site URL" section of the page, change the url from "http://localhost:3000" to whatever your domain is going to be. MAKE SURE TO INCLUDE "http://" OR "https://" AT THE BEGINNING OF YOUR URL OR IT WILL NOT WORK.
 
-### Step 5: Supabase Tips and Tricks (Optional)
+### Step 6: Supabase Tips and Tricks (Optional)
 
 Here are some helpful tips for navigating Supabase. If you would like to see other tips and tricks added to this section, send an email to tech@mustangmath.com.
 
@@ -83,7 +129,25 @@ If you want multiple users to have access to the COMPOSE database, then you can 
 
 If you want to see which users signed up for your organization, go into your Supabse project > "Authentication" > "Users." Here, you can find a list of all the users that have signed up for your COMPOSE. Clicking three dots on the right side of every row will allow you to delete users, send a password recovery email, or other settings that you may need.
 
-### Step 6: Setting Up Discord Webhooks
+### Step 7: Setting Up Discord Integration
+
+Discord integration is a great way to help your Problem Writing team stay updated with what's happening on COMPOSE on our favorite communication platform - Discord. Enabling discord integration, while optional, will enable notifications in channels when new problems are created, edited, or deleted, will enable DM notifications for problem feedback, automatically create threads for testsolvers, and more!
+
+#### Creating your Discord Application
+
+Navigate to the [Discord Developer Portal](https://discord.com/developers) and create a new application. I highly recommend creating a 'Team' for your tournament and adding it to that to easily enable more developers on this and your other Discord projects. Name your application and bot however you like (we recommend [Tournament Name] COMPOSE).
+Navigate to OAuth2->General and add the following redirects:
+
+- http://localhost:3000/api/discord-oauth-callback (for local development)
+- https://[YOUR_DOMAIN]/api/discord-oauth-callback (for production, use your hosting URL)
+
+#### Inviting the Bot
+
+On your developer portal, navigate to 'Bot' and turn on all the Privileged Gateway Intents (Presence, Server Members, Message Content)
+
+Now, navigate to OAuth2->URL Generator. Check 'Bot' and 'Administrator'. Then, copy the generated URL and paste it into your browser to invite your bot into your tournament organizer's server. Then navigate to your server's role settings and drag the COMPOSE role higher than any roles you would like it to be able to assign/control with Linked Roles.
+
+#### Making your Discord Webhook
 
 Discord Webhooks are necessary on COMPOSE because it will send a notification to a channel in a server whenever problems are created, edited, or deleted. This can help you keep a log of these problems. To set up this webhook, follow the preceeding instructions.
 
@@ -93,7 +157,22 @@ On the left side, click on the "Integrations" tab. On this tab, click on the "We
 
 Select the webhook. Feel free to change the name and which channel your webhook sends its updates. The only important thing here is the webhook URL, which you will need for step 8. Either copy that and save it somewhere, or just come back to this spot when you arrive at step 8 and need to use the URL.
 
-### Step 7: Connecting to Vercel (Optional if you have an Alternative Hosting Method)
+#### Setting Discord Env Variables
+
+The value to VITE_CLIENT_ID can be found in your Discord Developer Portal in OAuth2->General
+The value to VITE_CLIENT_SECRET can be found in your Discord Developer Portal in OAuth2->General. You can only view this once after clicking 'Reset', so make sure to copy and save it. If someone resets it after you, the old secret will no longer work.
+The value to VITE_BOT_TOKEN can be found in your Discord Developer Portal in the Bot tab. You can only view this once after clicking 'Reset', so make sure to copy and save it. If someone resets it after you, the old token will no longer work.
+The value to VITE_REDIRECT_URI should be set to 'http://localhost:3000/api/discord-oauth-callback' in your local/dev environment and 'https://[YOUR_DOMAIN]/api/discord-oauth-callback' for deployment.
+The value to VITE_COOKIE_SECRET should be set to a random value using the [Version 4 UUID Generator](https://www.uuidgenerator.net/version4)
+
+### Step 8: Setting up CASSIE (COMPOSE AI Support System & Information Expert)
+
+Luckily, CASSIE is super easy to setup. Create an account on OpenAI and [create an API Key](https://platform.openai.com/account/api-keys)
+Set the value to VITE_OPENAI_API_KEY to this value.
+
+Note that OpenAI does cost money, but since we are using GPT 3.5, it should be fairly trivial. Later versions of CASSIE will likely no longer rely on OpenAI.
+
+### Step 9: Connecting to Vercel (Optional if you have an Alternative Hosting Method)
 
 THIS STEP IS OPTIONAL IF YOU HAVE AN ALTERNATIVE METHOD OF HOSTING.
 
@@ -106,32 +185,6 @@ Once you have created the account and gotten into the Vercel dashboard, click on
 Import the correct GitHub repository and then when you are navigated onto the new screen, click "Deploy." It should deploy without errors and output a Vercel link to view your application.
 
 Once you have the application running, go into the "Settings" and then "Domains" tab. Copy the URL of your website onto the input box and click "Add." Then, follow the Vercel instructions to connect Vercel to your custom domain.
-
-### Step 8: Adding Environment Variables
-
-Environment variables are secret variables that people viewing your repository will not have access to. This ensures security for the Supabase database with your test problems. You will need to add 5 to your project.
-
-The location of where you have to add your environment variables will vary based on your hosting service. In Vercel, you can add your environment variables by going into the "Settings" and "Environment Variables" tab.
-
-The 5 environment variable keys:
-
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_ANON_KEY
-- VITE_DISCORD_ID
-- VITE_DISCORD_TOKEN
-- VITE_PDF_GENERATOR_URL
-
-The value to VITE_SUPABASE_URL can be found on Supabase in "Project Settings" > "API" > "Project URL" > "URL".
-
-The value to VITE_SUPABASE_ANON_KEY can be found on Supabase in "Project Settings" > "API" > "Project API Keys" > "anon public".
-
-To get the value of VITE_DISCORD_ID and VITE_DISCORD_TOKEN, copy the webhook URL from Discord (There should be a "Copy Webhook URL" button where you created the webhook in step 6). It should look as follows:
-
-> https://discord.com/api/webhooks/11111111/2222222222222222222222222222222222
-
-The number between "/webhooks" and "/" will be the VITE_DISCORD_ID (in this example: 11111111). The number after the last "/" will be the VITE_DISCORD_TOKEN (in this example: 2222222222222222222222222222222222).
-
-Contact tech@mustangmath.com if you want the value to VITE_PDF_GENERATOR_URL.
 
 ### Congrats!
 
