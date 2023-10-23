@@ -215,13 +215,14 @@ export async function editProblem(
 		.eq("id", problem_id)
 		.select();
 	if (error) throw error;
-
+	const authorName = await getAuthorName(data[0].author_id);
+	console.log(problem);
 	await fetch("/api/discord-update", {
 		method: "POST",
 		body: JSON.stringify({
 			id: problem_id,
 			update: "edited",
-			updater: getAuthorName(problem.author_id),
+			updater: authorName,
 		}),
 	});
 
