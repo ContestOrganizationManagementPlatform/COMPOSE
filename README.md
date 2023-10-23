@@ -105,7 +105,7 @@ The value to VITE_SUPABASE_URL can be found on Supabase in "Project Settings" > 
 
 The value to VITE_SUPABASE_ANON_KEY can be found on Supabase in "Project Settings" > "API" > "Project API Keys" > "anon public".
 
-The value of SUPABASE_ACCESS_TOKEN can be created on the [Supabase Dashboard](https://supabase.com/dashboard/account/tokens). This is only necessary for updating the DatabaseDefinitions.ts file, which should only be necessary if your database begins to differ from the source repository. See the [Supabase Docs](https://supabase.com/docs/guides/api/rest/generating-types) for information on how to generate this file - make sure that it is stored inside lib and titled DatabaseDefinitions.ts, though.
+The value of SUPABASE_ACCESS_TOKEN can be created on the [Supabase Dashboard](https://supabase.com/dashboard/account/tokens). This is only necessary for updating the DatabaseDefinitions.ts file, which should only be necessary if your database begins to differ from the source repository. See the [Supabase Docs](https://supabase.com/docs/guides/api/rest/generating-types) for information on how to generate this file - make sure that it is stored inside src and titled DatabaseDefinitions.ts, though.
 
 ### Step 5: Setting your Domain URL
 
