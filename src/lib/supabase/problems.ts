@@ -215,6 +215,7 @@ export async function editProblem(
 		.eq("id", problem_id)
 		.select();
 	if (error) throw error;
+	console.log(data);
 	const authorName = await getAuthorName(data[0].author_id);
 	console.log(problem);
 	await fetch("/api/discord-update", {
@@ -226,7 +227,7 @@ export async function editProblem(
 		}),
 	});
 
-	return data;
+	return data[0];
 }
 
 /**
