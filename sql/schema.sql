@@ -1,14 +1,3 @@
-
-CREATE TABLE IF NOT EXISTS users (
-    id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    full_name text,
-    discord text,
-    email text,
-    initials text,
-    math_comp_background text,
-    amc_score int2
-);
-
 create table IF NOT EXISTS users
   public.users (
     id uuid not null,
@@ -104,15 +93,21 @@ CREATE TABLE IF NOT EXISTS testsolves (
     test_version text -- version of the test when the testsolve was completed
 );
 
-CREATE TABLE IF NOT EXISTS testsolve_answers (
-    id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    testsolve_id int8 REFERENCES public.testsolves(id) ON DELETE CASCADE NOT NULL,
-    problem_id int8 REFERENCES public.problems(id) ON DELETE SET NULL,
-    answer text,
-    feedback text,
-    correct bool,
-    resolved bool NOT NULL DEFAULT false
-);
+create table if not exists
+  public.problem_feedback (
+    id bigint generated always as identity,
+    testsolve_id bigint null,
+    problem_id bigint null,
+    answer text null,
+    feedback text null,
+    correct boolean null,
+    resolved boolean not null default false,
+    solver_id uuid null,
+    constraint testsolve_answers_pkey primary key (id),
+    constraint problem_feedback_problem_id_fkey foreign key (problem_id) references problems (id) on delete set null,
+    constraint problem_feedback_solver_id_fkey foreign key (solver_id) references users (id) on update cascade on delete cascade,
+    constraint problem_feedback_testsolve_id_fkey foreign key (testsolve_id) references testsolves (id) on delete cascade
+  ) tablespace pg_default;
 
 CREATE TABLE IF NOT EXISTS test_feedback_questions (
     id int8 PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
@@ -128,7 +123,7 @@ CREATE TABLE IF NOT EXISTS testsolve_feedback_answers (
 );
 
 -- add resolved, difficulty
-ALTER TABLE testsolve_answers
+ALTER TABLE problem_feedback
     ADD COLUMN IF NOT EXISTS difficulty int4,
     ADD COLUMN IF NOT EXISTS resolved bool
     

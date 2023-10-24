@@ -341,7 +341,7 @@ export interface Database {
 					}
 				];
 			};
-			testsolve_answers: {
+			problem_feedback: {
 				Row: {
 					answer: string | null;
 					correct: boolean | null;
@@ -371,31 +371,31 @@ export interface Database {
 				};
 				Relationships: [
 					{
-						foreignKeyName: "testsolve_answers_problem_id_fkey";
+						foreignKeyName: "problem_feedback_problem_id_fkey";
 						columns: ["problem_id"];
 						referencedRelation: "problems";
 						referencedColumns: ["id"];
 					},
 					{
-						foreignKeyName: "testsolve_answers_problem_id_fkey";
+						foreignKeyName: "problem_feedback_problem_id_fkey";
 						columns: ["problem_id"];
 						referencedRelation: "front_ids";
 						referencedColumns: ["problem_id"];
 					},
 					{
-						foreignKeyName: "testsolve_answers_problem_id_fkey";
+						foreignKeyName: "problem_feedback_problem_id_fkey";
 						columns: ["problem_id"];
 						referencedRelation: "full_problems";
 						referencedColumns: ["id"];
 					},
 					{
-						foreignKeyName: "testsolve_answers_problem_id_fkey";
+						foreignKeyName: "problem_feedback_problem_id_fkey";
 						columns: ["problem_id"];
 						referencedRelation: "unused_problems";
 						referencedColumns: ["id"];
 					},
 					{
-						foreignKeyName: "testsolve_answers_testsolve_id_fkey";
+						foreignKeyName: "problem_feedback_testsolve_id_fkey";
 						columns: ["testsolve_id"];
 						referencedRelation: "testsolves";
 						referencedColumns: ["id"];
