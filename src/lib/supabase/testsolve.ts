@@ -268,7 +268,7 @@ export async function getProblemTestsolveAnswers(
 	customSelect: string = "*"
 ) {
 	let { data, error } = await supabase
-		.from("testsolve_answers")
+		.from("problem_feedback")
 		.select(customSelect)
 		.eq("problem_id", problemId);
 	if (error) throw error;
@@ -287,7 +287,7 @@ export async function getProblemTestsolveAnswersOrder(
 	customSelect: string = "*"
 ) {
 	let { data, error } = await supabase
-		.from("testsolve_answers")
+		.from("problem_feedback")
 		.select(customSelect)
 		.order(customOrder);
 	if (error) throw error;
@@ -306,7 +306,7 @@ export async function getTestsolveTestsolveAnswers(
 	customSelect: string = "*"
 ) {
 	let { data, error } = await supabase
-		.from("testsolve_answers")
+		.from("problem_feedback")
 		.select(customSelect)
 		.eq("testsolve_id", testsolve_id);
 	if (error) throw error;
@@ -325,7 +325,7 @@ export async function getAllTestsolveAnswersOrder(
 	customSelect: string = "*"
 ) {
 	let { data, error } = await supabase
-		.from("testsolve_answers")
+		.from("problem_feedback")
 		.select(customSelect)
 		.order(customOrder);
 	if (error) throw error;
@@ -335,15 +335,16 @@ export async function getAllTestsolveAnswersOrder(
 /**
  * Insert testsolve answers to a problem
  *
- * @param testsolve_answers any[]
+ * @param problem_feedback any[]
  */
-export async function addProblemTestsolveAnswer(testsolve_answers: any[]) {
+export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 	const { error: error } = await supabase
-		.from("testsolve_answers")
-		.insert(testsolve_answers);
+		.from("problem_feedback")
+		.insert(problem_feedback);
 	if (error) throw error;
 
-	testsolve_answers.forEach(async (testsolve) => {
+	problem_feedback.forEach(async (testsolve) => {
+		console.log("TESTSOLVE", testsolve);
 		const problem = await getProblem(testsolve.problem_id);
 		await fetch("/api/discord-dm", {
 			method: "POST",
@@ -366,7 +367,7 @@ export async function updateTestsolveAnswer(
 	newFeedback: any
 ) {
 	let { error } = await supabase
-		.from("testsolve_answers")
+		.from("problem_feedback")
 		.update(newFeedback)
 		.eq("id", feedbackId);
 	if (error) throw error;
@@ -379,7 +380,7 @@ export async function updateTestsolveAnswer(
  */
 export async function deleteTestsolveAnswer(feedbackId: number) {
 	let { error } = await supabase
-		.from("testsolve_answers")
+		.from("problem_feedback")
 		.delete()
 		.eq("testsolve_id", feedbackId);
 	if (error) throw error;

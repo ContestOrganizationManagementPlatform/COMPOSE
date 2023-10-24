@@ -10,9 +10,14 @@
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { addProblemTestsolveAnswer, getProblemTestsolveAnswers, updateTestsolveAnswer } from "$lib/supabase";
+	import {
+		addProblemTestsolveAnswer,
+		getProblemTestsolveAnswers,
+		updateTestsolveAnswer,
+	} from "$lib/supabase";
 
 	export let problemID;
+	export let userID;
 	let feedbackList = [];
 	let answerList;
 	let allAnswers = [];
@@ -25,7 +30,7 @@
 
 	async function loadFeedback() {
 		try {
-			const data = await getProblemTestsolveAnswers(problemID, "*,testsolves(users(*))");
+			const data = await getProblemTestsolveAnswers(problemID, "*,users(*)");
 
 			// filter empty feedback
 			const totalFeedbackList = data.filter((fd) => !!fd.feedback);
@@ -35,12 +40,10 @@
 				answer: e.answer,
 				feedback: e.feedback,
 				resolved: e.resolved,
-				user: e.testsolves ? e.testsolves.users.full_name : "N/A",
-				user_id: e.testsolves ? e.testsolves.users.id : "N/A",
-				user_amc_score: e.testsolves ? e.testsolves.users.amc_score : "N/A",
-				user_math_background: e.testsolves
-					? e.testsolves.users.math_comp_background
-					: "N/A",
+				user: e.users ? e.users.full_name : "N/A",
+				user_discord: e.users ? e.users.discord : "N/A",
+				user_id: e.users ? e.users.id : "N/A",
+				user_math_background: e.users ? e.users.math_comp_background : "N/A",
 			}));
 
 			answerList = data
@@ -113,6 +116,7 @@
 		try {
 			await addProblemTestsolveAnswer([
 				{
+					solver_id: userID,
 					problem_id: problemID,
 					feedback: feedbackInput,
 				},
@@ -178,9 +182,9 @@
 					sortable
 					size="compact"
 					headers={[
-						{ key: "id", value: "ID", width: "70px" },
-						{ key: "answer", value: "Answer" },
+						{ key: "user", value: "User", width: "150px" },
 						{ key: "feedback", value: "Feedback" },
+						{ key: "answer", value: "Answer", width: "100px" },
 						{ key: "resolved", value: "Resolved", width: "100px" },
 					]}
 					rows={feedbackList}
@@ -212,10 +216,9 @@
 					</svelte:fragment>
 					<svelte:fragment slot="expanded-row" let:row>
 						<div style="padding: 10px;">
-							<pre><strong>User</strong>: {row.user}</pre>
-							<pre><strong>Math Competition Background</strong
+							<pre><strong>User Discord</strong>: {row.user_discord}</pre>
+							<pre><strong>User Math Competition Background</strong
 								>: {row.user_math_background}</pre>
-							<pre><strong>AMC Score</strong>: {row.user_amc_score}</pre>
 						</div>
 					</svelte:fragment>
 				</DataTable>

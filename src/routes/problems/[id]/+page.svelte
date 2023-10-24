@@ -116,7 +116,7 @@
 		<Problem {problem} showMetadata={true} />
 		<br />
 		<br />
-		<ProblemFeedback problemID={$page.params.id} />
+		<ProblemFeedback problemID={$page.params.id} userID={user.id} />
 	{:else}
 		<h1>Problem not found!</h1>
 	{/if}
