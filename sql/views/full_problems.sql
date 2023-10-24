@@ -38,13 +38,13 @@ CREATE OR REPLACE VIEW full_problems WITH (security_invoker) AS
         -- count unresolved problems
         LEFT JOIN (
         SELECT 
-            testsolve_answers.problem_id,
+            problem_feedback.problem_id,
             COUNT(*) AS count
-        FROM testsolve_answers
+        FROM problem_feedback
         WHERE
-            testsolve_answers.resolved IS FALSE AND
-            (testsolve_answers.feedback = '') IS FALSE
-        GROUP BY testsolve_answers.problem_id
+            problem_feedback.resolved IS FALSE AND
+            (problem_feedback.feedback = '') IS FALSE
+        GROUP BY problem_feedback.problem_id
         ) AS unresolved_count ON problems.id = unresolved_count.problem_id
 
         -- get tests

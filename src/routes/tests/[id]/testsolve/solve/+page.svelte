@@ -148,7 +148,7 @@
 				});
 				loading = false;
 			}
-			
+
 			let testsolveId = data.id;
 
 			// update all answers if previous testsolve, else insert
@@ -165,6 +165,7 @@
 			} else {
 				await addProblemTestsolveAnswer(
 					answers.map((ans) => ({
+						solver_id: user.id,
 						testsolve_id: testsolveId,
 						problem_id: ans.problem_id,
 						answer: ans.answer,
