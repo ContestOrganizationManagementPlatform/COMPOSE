@@ -11,8 +11,6 @@
 	let type = "";
 	let accessToken = "";
 
-	let showPasswordReset = false;
-
 	if (hash !== "") {
 		hash = hash.substring(1);
 		let result = hash.split("&").reduce(function (res, item) {
