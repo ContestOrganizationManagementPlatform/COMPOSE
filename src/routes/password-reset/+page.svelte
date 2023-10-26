@@ -60,12 +60,8 @@
 			clearInterval();
 			if (validatePassword(password)) {
 				if (password == newPassword) {
-					showPasswordReset = true;
-					setInterval(() => {
-						showPasswordReset = false;
-					}, 5000);
-
 					await updateUserAuth(accessToken, password);
+					toast.success("Successfully changed password.");
 					window.location.href = "/";
 				} else {
 					throw new Error("Your passwords should match.");
