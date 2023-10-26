@@ -15,7 +15,7 @@
 	} from "$lib/supabase";
 
 	const datasetPrompt = `
-		The database you have access to is a view called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
+		The database you have access is called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
 			answer_latex (string | null): The answer to the problem written in LaTeX;  
 			archived (boolean | null): Whether the problem has been archived;
 			author_id (string | null): Supabase ID of the user who wrote the problem; 
@@ -35,6 +35,18 @@
 			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Combo, NT, Geo for Algebra, Combinatorics, Number Theory, Geometry respectively; 
 			unresolved_count (number | null): The number of unresolved pieces of feedback the problem has;
 	`;
+	const dbqueryParts = [
+		"A DBQUERY message has the following format: 'DATABASE_QUERY: [DESCRIPTION OF QUERY]' where '[DESCRIPTION OF QUERY]' will be replaced with a natural language description of a query that the user wants to run on the full_problems database.",
+		"The CASSIE response a DBQUERY message should be a database query that performs the same query as '[DESCRIPTION OF QUERY]' in the DBQUERY message.",
+		"The CASSIE response must also fill in the [TODO] in the following supabase-js function template: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
+		"2 example DBQUERY messages are given below. The correct CASSIE response is also given after the tag 'CASSIE correct response:'",
+		"Example 1: ",
+		"DATABASE_QUERY: Find all problems.",
+		"CASSIE correct response: ```javascript await supabase.from('full_problems').select('*')```",
+		"Example 2: ",
+		"DATABASE_QUERY: Show me all problems by John Doe",
+		"CASSIE correct response: ```javascript await supabase.from('full_problems').select('*').filter('full_name', 'John Doe')```",
+	]
 
 	const promptParts = [
 		"COMPOSE - the Collaborative Online Math Problem Organization and Sharing Environment - is a storage platform for contest math problems.",
@@ -43,9 +55,10 @@
 		"Your job is to answer user's questions regarding the COMPOSE database to the best of your knowledge.",
 		"Each entry in the database corresponds to one math problem.",
 		datasetPrompt,
-		"Database queries should fill in the [TODO] in the following supabase-js function template: ```javascript await supabase.from('full_problems').select('*').[TODO]```",
-		//"This user's ID is " + user.id,
-		"If your message includes a database query, do not include any additional text.",
+		"User messages will follow one of the following templates which are named DBQUERY and AUTOTAG",
+		...dbqueryParts,
+		"An AUTOTAG message has the following format: 'AUTOTAG: p -- [PROBLEM]; s -- [SOLUTION]' where '[PROBLEM]' will be replaced with a math problem written in LaTeX and '[SOLUTION]' will be replaced by the solution to the problem also written in LaTeX.",
+		// "CASSIE's response an AUTOTAG message should be a list of mathematics ideas and themes present ",
 	];
 
 	const { input, handleSubmit, messages, isLoading } = useChat({

@@ -21,6 +21,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@esbuild/darwin-x64": "^0.19.5",
 		"@supabase/auth-helpers-sveltekit": "^0.10.3",
 		"@supabase/supabase-js": "^2.38.0",
 		"@unified-latex/unified-latex": "^1.2.2",
