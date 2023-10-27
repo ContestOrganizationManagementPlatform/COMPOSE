@@ -16,8 +16,8 @@
 		updateTestsolveAnswer,
 	} from "$lib/supabase";
 
-	export let problemID;
-	export let userID;
+	export let problem_id;
+	export let solver_id;
 	let feedbackList = [];
 	let answerList;
 	let allAnswers = [];
@@ -30,7 +30,7 @@
 
 	async function loadFeedback() {
 		try {
-			const data = await getProblemTestsolveAnswers(problemID, "*,users(*)");
+			const data = await getProblemTestsolveAnswers(problem_id, "*,users(*)");
 
 			// filter empty feedback
 			const totalFeedbackList = data.filter((fd) => !!fd.feedback);
@@ -116,8 +116,8 @@
 		try {
 			await addProblemTestsolveAnswer([
 				{
-					solver_id: userID,
-					problem_id: problemID,
+					solver_id: solver_id,
+					problem_id: problem_id,
 					feedback: feedbackInput,
 				},
 			]);
