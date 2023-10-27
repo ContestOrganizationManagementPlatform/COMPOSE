@@ -371,7 +371,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		*/
 		const embed = {
 			title: "Feedback received on problem " + problem.id,
-			description: "This is the description of the embed.",
+			//description: "This is the description of the embed.",
 			type: "rich",
 			color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
 			author: {
