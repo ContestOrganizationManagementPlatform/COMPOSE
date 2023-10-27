@@ -1,6 +1,10 @@
 import { getUser } from "$lib/supabase";
 
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
+
+export async function GET({ request }) {
+	return "Hello";
+}
 export async function POST({ request }) {
 	// Verify the authenticity of the request using Discord's public key and signature
 	const isValidRequest = await verifyRequest(await request.text());
