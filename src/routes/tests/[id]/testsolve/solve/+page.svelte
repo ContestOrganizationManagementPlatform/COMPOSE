@@ -201,7 +201,7 @@
 				Number($page.params.id)
 			);
 
-			await fetch("/api/discord-dm", {
+			await fetch("/api/discord/dm", {
 				method: "POST",
 				body: JSON.stringify({
 					userId: testCoordinator.coordinator_id,
