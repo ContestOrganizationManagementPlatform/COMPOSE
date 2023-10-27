@@ -40,8 +40,8 @@ export async function POST({ request }) {
 				},
 				body: JSON.stringify({
 					content: body.message,
-					//embeds: body.embeds,
-					//components: body.components,
+					embeds: body.embeds,
+					components: body.components,
 				}),
 			}
 		);
