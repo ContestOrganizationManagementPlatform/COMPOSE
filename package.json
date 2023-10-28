@@ -41,6 +41,7 @@
 		"svelte-french-toast": "^1.1.0",
 		"svelte-katex": "^0.1.2",
 		"svelte-preprocess": "^5.0.0",
+		"tweetnacl": "^1.0.3",
 		"unified": "^10.1.2",
 		"uuid": "^9.0.1"
 	}
