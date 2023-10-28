@@ -93,7 +93,7 @@ CREATE TABLE IF NOT EXISTS testsolves (
     test_version text -- version of the test when the testsolve was completed
 );
 
-create table if not exists
+create or update table if not exists
   public.problem_feedback (
     id bigint generated always as identity,
     testsolve_id bigint null,
@@ -105,7 +105,7 @@ create table if not exists
     solver_id uuid null,
     constraint testsolve_answers_pkey primary key (id),
     constraint problem_feedback_problem_id_fkey foreign key (problem_id) references problems (id) on delete set null,
-    constraint problem_feedback_solver_id_fkey foreign key (solver_id) references users (id) on update cascade on delete cascade,
+    constraint problem_feedback_solver_id_fkey foreign key (solver_id) references users (id) on delete set null,
     constraint problem_feedback_testsolve_id_fkey foreign key (testsolve_id) references testsolves (id) on delete cascade
   ) tablespace pg_default;
 

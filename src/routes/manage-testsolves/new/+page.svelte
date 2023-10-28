@@ -4,7 +4,13 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getAllTests, getAllUsers, addTestsolver, getTestInfo } from "$lib/supabase";
+	import {
+		getAllTests,
+		getAllUsers,
+		addTestsolver,
+		getTestInfo,
+	} from "$lib/supabase";
+	import scheme from "$lib/scheme.json";
 
 	let finalUser = "";
 	let finalTest = "";
@@ -66,11 +72,42 @@
 						await addTestsolver({ test_id: finalTest, solver_id: finalUser });
 						const testInfo = await getTestInfo(finalTest);
 
-						await fetch("/api/discord-dm", {
+						const embed = {
+							title:
+								"You have been assigned a test for the following test: " +
+								testInfo.test_name,
+							//description: "This is the description of the embed.",
+							type: "rich",
+							color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+							author: {
+								name: finalUser,
+								//icon_url: "https://example.com/author.png", // URL to the author's icon
+							},
+							footer: {
+								text: "COMPOSE",
+								icon_url: scheme.logo, // URL to the footer icon
+							},
+						};
+
+						const linkButton = {
+							type: 2, // LINK button component
+							style: 5, // LINK style (5) for external links
+							label: "View Testsolve",
+							url: scheme.url + "/tests/" + finalTest + "/testsolve/solve", // The external URL you want to link to
+						};
+
+						await fetch("/api/discord/dm", {
 							method: "POST",
 							body: JSON.stringify({
 								userId: finalUser,
-								message: "You have been assigned a test for the following test: " + testInfo.test_name,
+								message: "",
+								embeds: [embed],
+								components: [
+									{
+										type: 1,
+										components: [linkButton],
+									},
+								],
 							}),
 						});
 

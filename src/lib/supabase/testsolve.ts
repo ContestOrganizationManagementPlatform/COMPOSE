@@ -1,5 +1,7 @@
 import { supabase } from "../supabaseClient";
 import { getProblem } from "$lib/supabase/problems";
+import { getUser } from "$lib/supabase";
+import scheme from "$lib/scheme.json";
 
 export interface TestsolverRequest {
 	test_id: number;
@@ -305,6 +307,8 @@ export async function getTestsolveTestsolveAnswers(
 	testsolve_id: number,
 	customSelect: string = "*"
 ) {
+	console.log(testsolve_id);
+	console.log(customSelect);
 	let { data, error } = await supabase
 		.from("problem_feedback")
 		.select(customSelect)
@@ -338,19 +342,85 @@ export async function getAllTestsolveAnswersOrder(
  * @param problem_feedback any[]
  */
 export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
+	console.log("adding", problem_feedback);
 	const { error: error } = await supabase
 		.from("problem_feedback")
 		.insert(problem_feedback);
 	if (error) throw error;
-
-	problem_feedback.forEach(async (testsolve) => {
-		console.log("TESTSOLVE", testsolve);
-		const problem = await getProblem(testsolve.problem_id);
-		await fetch("/api/discord-dm", {
+	problem_feedback.forEach(async (feedback) => {
+		console.log("feedback", feedback);
+		const problem = await getProblem(feedback.problem_id);
+		const solver = await getUser(feedback.solver_id);
+		console.log("problem", problem);
+		console.log("SOLVER", solver);
+		const discord_id = solver.discord_id;
+		const solver_name = solver.full_name;
+		const discordToken = import.meta.env.VITE_BOT_TOKEN;
+		console.log(discordToken);
+		// The following is an attempt to fetch the user to display their icon in the embed. I kept getting a 401 Unauthorized Error and gave up
+		/** 
+		const response = await fetch(`https://discord.com/api/v10/users/@me`, {
+			mode: "no-cors",
+			method: "GET",
+			headers: {
+				Authorization: `Bot ${discordToken}`,
+				"Content-Type": "application/json",
+			},
+		});
+		console.log(response);
+		const data = await response.json();
+		console.log(data);
+		*/
+		const embed = {
+			title: "Feedback received on problem " + solver.initials + problem.id,
+			//description: "This is the description of the embed.",
+			type: "rich",
+			color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+			author: {
+				name: solver_name,
+				//icon_url: "https://example.com/author.png", // URL to the author's icon
+			},
+			fields: [
+				{
+					name: "Problem",
+					value: problem.problem_latex,
+					inline: false, // You can set whether the field is inline
+				},
+				{
+					name: "Feedback",
+					value: feedback.feedback,
+					inline: false,
+				},
+			],
+			footer: {
+				text: solver.discord_id,
+				icon_url: scheme.logo, // URL to the footer icon
+			},
+		};
+		const linkButton = {
+			type: 2, // LINK button component
+			style: 5, // LINK style (5) for external links
+			label: "View Feedback",
+			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+		};
+		const threadButton = {
+			type: 2,
+			style: 1,
+			custom_id: "create-thread",
+			label: "Make Thread",
+		};
+		await fetch("/api/discord/dm", {
 			method: "POST",
 			body: JSON.stringify({
 				userId: problem.author_id,
-				message: "Feedback added to your problem " + problem.id,
+				message: "",
+				embeds: [embed],
+				components: [
+					{
+						type: 1,
+						components: [linkButton, threadButton],
+					},
+				],
 			}),
 		});
 	});

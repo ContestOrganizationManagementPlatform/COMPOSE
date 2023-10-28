@@ -41,7 +41,7 @@
 				throw new Error("Must update discord username from discriminator");
 			}*/
 		} catch (error) {
-			if (error.code === "PGRST116") {
+			if (error.code === "PGRST116" || error.message.includes("Cannot read properties of null")) {
 				// no user
 				full_name = "";
 				discord = "";
