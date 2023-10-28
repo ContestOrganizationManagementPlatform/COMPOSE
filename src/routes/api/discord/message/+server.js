@@ -1,0 +1,27 @@
+import { getUser } from "$lib/supabase";
+
+const discordToken = import.meta.env.VITE_BOT_TOKEN;
+
+export async function POST({ request }) {
+	const body = await request.json();
+	console.log("BODY", body);
+	//get user's discord ID
+	const channel_id = body.channel_id;
+	const user = await getUser(body.userId);
+	const discordId = user.discord_id;
+
+	//Get the user DM
+	const response = await fetch(
+		`https://discord.com/api/v10/channels/${channel_id}/messages`,
+		{
+			method: "POST",
+			headers: {
+				Authorization: `Bot ${discordToken}`,
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(body.message),
+		}
+	);
+	const data = await response.json();
+	return new Response(data, { status: 300 });
+}

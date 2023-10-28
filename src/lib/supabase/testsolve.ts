@@ -370,7 +370,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		console.log(data);
 		*/
 		const embed = {
-			title: "Feedback received on problem " + problem.id,
+			title: "Feedback received on problem " + solver.initials + problem.id,
 			//description: "This is the description of the embed.",
 			type: "rich",
 			color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
@@ -391,7 +391,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 				},
 			],
 			footer: {
-				text: "COMPOSE",
+				text: solver.discord_id,
 				icon_url: scheme.logo, // URL to the footer icon
 			},
 		};
