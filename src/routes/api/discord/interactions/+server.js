@@ -1,4 +1,4 @@
-import sign from "tweetnacl";
+import nacl from "tweetnacl";
 import scheme from "$lib/scheme.json";
 import {
 	InteractionResponseType,
@@ -13,7 +13,7 @@ const PUBLIC_KEY =
 async function verifyRequest(req, body) {
 	const signature = req.headers.get("X-Signature-Ed25519");
 	const timestamp = req.headers.get("X-Signature-Timestamp");
-	const isVerified = sign.detached.verify(
+	const isVerified = nacl.sign.detached.verify(
 		Buffer.from(timestamp + body),
 		Buffer.from(signature, "hex"),
 		Buffer.from(PUBLIC_KEY, "hex")
