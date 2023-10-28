@@ -1,4 +1,4 @@
-import sign from "tweetnacl";
+import nacl from "tweetnacl";
 import scheme from "$lib/scheme.json";
 import {
 	InteractionResponseType,
@@ -13,7 +13,7 @@ const PUBLIC_KEY =
 async function verifyRequest(req, body) {
 	const signature = req.headers.get("X-Signature-Ed25519");
 	const timestamp = req.headers.get("X-Signature-Timestamp");
-	const isVerified = sign.detached.verify(
+	const isVerified = nacl.sign.detached.verify(
 		Buffer.from(timestamp + body),
 		Buffer.from(signature, "hex"),
 		Buffer.from(PUBLIC_KEY, "hex")
@@ -47,15 +47,12 @@ export async function POST({ request }) {
 		return new Response({}, { status: 401, statusText: "Unauthorized" });
 	}
 	// Check the type of interaction (1 for button click)
-	if (text.type === 1) {
-		//PING PONG
-		const resp = new Response(
-			JSON.stringify({
-				type: 1, // Type 1 for acknowledging the interaction
-			}),
-			{ status: 200, statusText: "Interaction Received" }
-		);
-		return resp;
+	if (text.type === InteractionType.PING) {
+		// The `PING` message is used during the initial webhook handshake, and is
+		// required to configure the webhook in the developer portal.
+		return new JsonResponse({
+			type: InteractionResponseType.PONG,
+		});
 	} else if (text.type === 3) {
 		if (text.data.custom_id === "create-thread") {
 			console.log("Thread Button");
