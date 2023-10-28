@@ -47,15 +47,12 @@ export async function POST({ request }) {
 		return new Response({}, { status: 401, statusText: "Unauthorized" });
 	}
 	// Check the type of interaction (1 for button click)
-	if (text.type === 1) {
-		//PING PONG
-		const resp = new Response(
-			JSON.stringify({
-				type: 1, // Type 1 for acknowledging the interaction
-			}),
-			{ status: 200, statusText: "Interaction Received" }
-		);
-		return resp;
+	if (text.type === InteractionType.PING) {
+		// The `PING` message is used during the initial webhook handshake, and is
+		// required to configure the webhook in the developer portal.
+		return new JsonResponse({
+			type: InteractionResponseType.PONG,
+		});
 	} else if (text.type === 3) {
 		if (text.data.custom_id === "create-thread") {
 			console.log("Thread Button");
