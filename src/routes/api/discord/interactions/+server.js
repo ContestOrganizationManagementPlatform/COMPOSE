@@ -123,7 +123,7 @@ export async function POST({ request }) {
 					}),
 				}
 			);
-			/**
+
 			const response4 = await fetch(
 				`https://discord.com/api/v10/channels/${text.channel_id}/messages/${text.message.id}`,
 				{
@@ -144,7 +144,7 @@ export async function POST({ request }) {
 					}),
 				}
 			);
-			*/
+
 			return new JsonResponse({
 				type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
 				data: {
