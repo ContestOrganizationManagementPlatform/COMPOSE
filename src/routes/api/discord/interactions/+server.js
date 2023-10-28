@@ -7,8 +7,7 @@ import {
 } from "discord-interactions";
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
-const PUBLIC_KEY =
-	"f01b581c59fc6a02c3a4eea8dc277dd3276abc8ca639cf694c3d23eb6ce79000";
+const PUBLIC_KEY = import.meta.env.VITE_BOT_PUBLIC_KEY;
 
 async function verifyRequest(req, body) {
 	const signature = req.headers.get("X-Signature-Ed25519");
