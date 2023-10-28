@@ -31,8 +31,8 @@
 			problem_tests (string | null): Comma-separated list of all tests that the problem appears on written as a single string;
 			solution_latex (string | null): The solution to the problem written in LaTeX;
 			sub_topics (string | null): Comma-separated list of topics which appear in the problem – sub-topics are more granular than topics and tend to cover tactics or themes present in the problem and solution; 
-			topics (string | null): Comma-separated list of the overall topics that appear in the problem – all topics are chosen from Algebra, Combinatorics, Number Theory, Geometry; 
-			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Combo, NT, Geo for Algebra, Combinatorics, Number Theory, Geometry respectively; 
+			topics (string | null): Comma-separated list of the overall topics that appear in the problem – all topics are chosen from Algebra, Calculus, Combinatorics, Number Theory, Geometry; 
+			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Calc, Combo, NT, Geo for Algebra, Calculus, Combinatorics, Number Theory, Geometry respectively; 
 			unresolved_count (number | null): The number of unresolved pieces of feedback the problem has;
 	`;
 
