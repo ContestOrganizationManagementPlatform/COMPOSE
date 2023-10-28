@@ -1,4 +1,4 @@
-import { sign } from "tweetnacl";
+import sign from "tweetnacl";
 import scheme from "$lib/scheme.json";
 import {
 	InteractionResponseType,
