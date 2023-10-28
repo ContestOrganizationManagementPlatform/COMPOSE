@@ -35,6 +35,7 @@
 	let startTime = null;
 	let timeOffset = 0; // seconds to add to timer
 	let endTime = null;
+	import scheme from "$lib/scheme.json";
 
 	// if a user has a previously uncompleted testsolve, load it
 	let loadedTestsolve = null;
@@ -100,10 +101,11 @@
 			);
 
 			if (loadedTestsolve.length > 0) {
-				answers = await getTestsolveTestsolveAnswers(loadedTestsolve.id);
-				feedbackAnswers = await getSelectTestsolveAnswers(loadedTestsolve.id);
-				timeOffset = loadedTestsolve.time_elapsed;
+				answers = await getTestsolveTestsolveAnswers(loadedTestsolve[0].id);
+				feedbackAnswers = await getSelectTestsolveAnswers(loadedTestsolve[0].id);
+				timeOffset = loadedTestsolve[0].time_elapsed;
 			}
+
 			startTime = new Date();
 		} catch (error) {
 			handleError(error);
@@ -124,6 +126,8 @@
 
 			// fetch the current test version
 			const testData = await getTestInfo(Number($page.params.id));
+
+			console.log(startTime);
 
 			// check if this is a resubmission
 			if (loadedTestsolve) {
@@ -201,15 +205,40 @@
 				Number($page.params.id)
 			);
 
+			const embed = {
+				title: "Testsolve has been completed on test " + testInfo.test_name,
+				//description: "This is the description of the embed.",
+				type: "rich",
+				color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+				author: {
+					name: userInfo.full_name,
+					//icon_url: "https://example.com/author.png", // URL to the author's icon
+				},
+				footer: {
+					text: "COMPOSE",
+					icon_url: scheme.logo, // URL to the footer icon
+				},
+			};
+
+			const linkButton = {
+				type: 2, // LINK button component
+				style: 5, // LINK style (5) for external links
+				label: "View Testsolve",
+				url: scheme.url + "/testsolve/" + testsolveId, // The external URL you want to link to
+			};
+
 			await fetch("/api/discord/dm", {
 				method: "POST",
 				body: JSON.stringify({
 					userId: testCoordinator.coordinator_id,
-					message:
-						"Testsolve has been completed by " +
-						userInfo.full_name +
-						" on test " +
-						testInfo.test_name,
+					message: "",
+					embeds: [embed],
+					components: [
+						{
+							type: 1,
+							components: [linkButton],
+						},
+					],
 				}),
 			});
 

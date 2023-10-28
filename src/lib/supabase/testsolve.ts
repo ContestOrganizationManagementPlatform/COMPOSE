@@ -307,6 +307,8 @@ export async function getTestsolveTestsolveAnswers(
 	testsolve_id: number,
 	customSelect: string = "*"
 ) {
+	console.log(testsolve_id);
+	console.log(customSelect);
 	let { data, error } = await supabase
 		.from("problem_feedback")
 		.select(customSelect)
