@@ -8,7 +8,7 @@ import {
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
 const PUBLIC_KEY = import.meta.env.VITE_BOT_PUBLIC_KEY;
-
+//Change
 async function verifyRequest(req, body) {
 	const signature = req.headers.get("X-Signature-Ed25519");
 	const timestamp = req.headers.get("X-Signature-Timestamp");
