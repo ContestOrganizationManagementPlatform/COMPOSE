@@ -6,8 +6,8 @@ Use Discord as a way to facilitate more interaction between problem writers and 
 ## Specs
 - Overarching vision
 - Keep a [Discord Forum](https://discord.com/blog/forum-channels-space-for-organized-conversation) that mimics the database.
- - Use tags to keep track of subjects
- - Automatically "close" posts after periods of inactivity?
- - Use interactable buttons/components to include links to problem-specific links on COMPOSE (e.g. view problem, edit problem, provide feedback)
- - Have problem edits and new feedback updated in the relevant forum discussion
+  - Use tags to keep track of subjects
+  - Automatically "close" posts after periods of inactivity?
+  - Use interactable buttons/components to include links to problem-specific links on COMPOSE (e.g. view problem, edit problem, provide feedback)
+  - Have problem edits and new feedback updated in the relevant forum discussion
  - 
