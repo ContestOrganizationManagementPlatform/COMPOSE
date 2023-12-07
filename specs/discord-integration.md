@@ -29,4 +29,4 @@ Use Discord as a way to facilitate more interaction between problem writers and 
  - src/lib/routes/api/discord
    - Some Discord Integration already exists in the library, so use it as reference!
    - Make new requests from the COMPOSE API by making a new route and putting the relevant requests to that route in a +server.js file
-   - You can see an example of calling the COMPOSE API for Discord things in lines 413-428 of src/lib/supabase/testsolve.ts
+   - You can see an example of calling the COMPOSE API for Discord things in [lines 413-428 of src/lib/supabase/testsolve.ts](https://github.com/ContestOrganizationManagementPlatform/COMPOSE/blob/8b1c31beb917362553c81d8ee2366c5981beaa31/src/lib/supabase/testsolve.ts#L413C35-L413C35)
