@@ -10,4 +10,7 @@ Use Discord as a way to facilitate more interaction between problem writers and 
   - Automatically "close" posts after periods of inactivity?
   - Use interactable buttons/components to include links to problem-specific links on COMPOSE (e.g. view problem, edit problem, provide feedback)
   - Have problem edits and new feedback updated in the relevant forum discussion
- - 
+- Problem Creation
+  -   Make new post in forum using [Embeds](https://discord.com/developers/docs/resources/channel#embed-object)
+  -   Use [Discord Interactions](https://discord.com/developers/docs/interactions/message-components) under the post to have relevant buttons (view problem, edit problem, add feedback) that link to the relevant COMPOSE pages
+  -   
