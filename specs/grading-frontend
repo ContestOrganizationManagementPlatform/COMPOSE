@@ -14,6 +14,7 @@ Provide a clean way for a grader to be fed answers to a particular problem and i
   - Did the grader mark it right, wrong, or unsure.
 
 ## Design Specs
+- [Figma](https://www.figma.com/file/7KZ8a0b9cTw40sBhwllivu/Untitled?type=design&node-id=2%3A24&mode=design&t=s9iZFEWGQA7FK55a-1)
 - Layout
   - Problem information, such as the Test, Problem #, and the correct answer should be large and at the top of the page.
   - Student's answer should be below it
