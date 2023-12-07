@@ -26,7 +26,7 @@ Use Discord as a way to facilitate more interaction between problem writers and 
    - It's sometimes hard to understand and navigate. I've had the most luck using ctrl+F
  - [ChatGPT](https://chat.openai.com)
    - Unironically very helpful for figuring out how to make the right requests. It will often give you Discord.js code, but if you prompt it enough times you can usually get it to spit out functional HTTP Requests
- - src/lib/routes/api/discord
+ - [src/lib/routes/api/discord](https://github.com/ContestOrganizationManagementPlatform/COMPOSE/blob/8b1c31beb917362553c81d8ee2366c5981beaa31/src/routes/api/discord/)
    - Some Discord Integration already exists in the library, so use it as reference!
-   - Make new requests from the COMPOSE API by making a new route and putting the relevant requests to that route in a +server.js file
+   - Make new requests from the COMPOSE API by making a new route and putting the relevant requests to that route in a +server.js file ([example](https://github.com/ContestOrganizationManagementPlatform/COMPOSE/blob/8b1c31beb917362553c81d8ee2366c5981beaa31/src/routes/api/discord/interactions/%2Bserver.js#L67))
    - You can see an example of calling the COMPOSE API for Discord things in [lines 413-428 of src/lib/supabase/testsolve.ts](https://github.com/ContestOrganizationManagementPlatform/COMPOSE/blob/8b1c31beb917362553c81d8ee2366c5981beaa31/src/lib/supabase/testsolve.ts#L413C35-L413C35)
