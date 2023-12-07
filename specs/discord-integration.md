@@ -18,7 +18,7 @@ Use Discord as a way to facilitate more interaction between problem writers and 
 - Adding Feedback
   - When official feedback is added to COMPOSE, send a feedback added embed to the relevant forum thread
   - Add relevant buttons (view feedback, edit problem) to feedback message.
-  - ~~DM Author that feedback has been added~~
+  - ~~DM Author that new feedback has been added~~
 
 ## Tech References/Tips
  - [Discord Developer Docs](https://discord.com/developers/docs/intro)
