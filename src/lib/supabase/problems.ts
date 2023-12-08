@@ -1,6 +1,7 @@
 import { supabase } from "../supabaseClient";
 import { getAuthorName } from "./users";
 import { getUser } from "$lib/supabase";
+import scheme from "$lib/scheme.json";
 
 export interface ProblemRequest {
 	problem_latex: string;
@@ -159,28 +160,80 @@ export async function createProblem(problem: ProblemRequest) {
 		.from("problems")
 		.insert([problem])
 		.select();
-	console.log("ERROR", error);
-	if (error) throw error;
-	console.log(data);
-	await fetch("/api/discord-create", {
+	if (error) {
+		console.log("ERROR", error);
+		throw error;
+	}
+	problem = data[0];
+	console.log("PROBLEM", problem);
+	console.log("DATA", data);
+	const user = await getUser(problem.author_id);
+	const embed = {
+		title: "Problem " + user.initials + problem.id,
+		//description: "This is the description of the embed.",
+		type: "rich",
+		color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
+		author: {
+			name: user.full_name,
+			//icon_url: "https://example.com/author.png", // URL to the author's icon
+		},
+		fields: [
+			{
+				name: "Problem",
+				value: problem.problem_latex,
+				inline: false, // You can set whether the field is inline
+			},
+			{
+				name: "Answer",
+				value: problem.answer_latex,
+				inline: false, // You can set whether the field is inline
+			},
+			{
+				name: "Solution",
+				value: problem.solution_latex,
+				inline: false, // You can set whether the field is inline
+			},
+			{
+				name: "Comments",
+				value: problem.comment_latex,
+				inline: false, // You can set whether the field is inline
+			},
+		],
+		footer: {
+			text: "COMPOSE",
+			icon_url: scheme.logo, // URL to the footer icon
+		},
+	};
+	const linkButton = {
+		type: 2, // LINK button component
+		style: 5, // LINK style (5) for external links
+		label: "View Problem",
+		url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+	};
+	console.log("MAKING FETCH");
+	await fetch("/api/discord/message", {
 		method: "POST",
 		body: JSON.stringify({
-			problem: problem,
-			authorName: getAuthorName(data[0].author_id),
-			id: data[0]?.id,
-			created_at: data[0].created_at,
-			front_id: await getFrontID(data[0]?.id),
-			image: problem.image_name,
+			channel_id: scheme.discord.notifs_channel,
+			message: {
+				content: "",
+				embeds: [embed],
+				components: [
+					{
+						type: 1,
+						components: [linkButton],
+					},
+				],
+			},
 		}),
 	});
 	console.log("AUTHORID", problem.author_id);
-	const user = await getUser(data[0].author_id);
 	const response = await fetch("/api/update-metadata", {
 		method: "POST",
 		body: JSON.stringify({ userId: user.discord_id }),
 	});
 
-	return data[0];
+	return problem;
 }
 
 /**

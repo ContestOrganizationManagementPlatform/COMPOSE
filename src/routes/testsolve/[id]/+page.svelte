@@ -91,7 +91,7 @@
 	async function permissionCheck() {
 		try {
 			// check permission
-			const testsolve = await getOneTestsolve(Number($page.params.id));
+			testsolve = await getOneTestsolve(Number($page.params.id));
 
 			if (testsolve.length === 0) {
 				throw new Error(
