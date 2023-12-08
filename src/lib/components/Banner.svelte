@@ -5,7 +5,7 @@
 
 <div class="header">
 	<img
-		src={"logo.png"}
+		src={scheme.logo}
 		alt={scheme.abbreviation + "_logo"}
 		width="50"
 		height="50"
