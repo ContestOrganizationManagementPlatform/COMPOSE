@@ -185,12 +185,12 @@ export async function createProblem(problem: ProblemRequest) {
 			},
 			{
 				name: "Answer",
-				value: "||" + problem.answer_latex + "||",
+				value: problem.answer_latex,
 				inline: false, // You can set whether the field is inline
 			},
 			{
 				name: "Solution",
-				value: "||" + problem.solution_latex + "||",
+				value: problem.solution_latex,
 				inline: false, // You can set whether the field is inline
 			},
 			{
