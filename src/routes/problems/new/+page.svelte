@@ -60,7 +60,7 @@
 
 				openModal = true;
 				problem_id = problemId;
-				window.location.replace(`/problems/${problemId}`);
+				//window.location.replace(`/problems/${problemId}`);
 			}
 		} catch (error) {
 			handleError(error);
