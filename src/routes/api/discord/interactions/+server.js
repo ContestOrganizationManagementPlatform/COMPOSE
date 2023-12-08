@@ -65,7 +65,7 @@ export async function POST({ request }) {
 			);
 
 			const response = await fetch(
-				`https://discord.com/api/v10/channels/${scheme.thread_channel}/messages`,
+				`https://discord.com/api/v10/channels/${scheme.discord.thread_channel}/messages`,
 				{
 					method: "POST",
 					headers: {
@@ -86,7 +86,7 @@ export async function POST({ request }) {
 			);
 			const message_id = (await response.json()).id;
 			const response2 = await fetch(
-				`https://discord.com/api/v10/channels/${scheme.thread_channel}/messages/${message_id}/threads`,
+				`https://discord.com/api/v10/channels/${scheme.discord.thread_channel}/messages/${message_id}/threads`,
 				{
 					method: "POST",
 					headers: {

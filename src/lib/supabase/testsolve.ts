@@ -376,7 +376,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 			title: "Feedback received on problem " + user.initials + problem.id,
 			//description: "This is the description of the embed.",
 			type: "rich",
-			color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+			color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
 			author: {
 				name: solver_name,
 				//icon_url: "https://example.com/author.png", // URL to the author's icon
@@ -414,14 +414,16 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 			method: "POST",
 			body: JSON.stringify({
 				userId: problem.author_id,
-				message: "",
-				embeds: [embed],
-				components: [
-					{
-						type: 1,
-						components: [linkButton, threadButton],
-					},
-				],
+				message: {
+					content: "",
+					embeds: [embed],
+					components: [
+						{
+							type: 1,
+							components: [linkButton, threadButton],
+						},
+					],
+				},
 			}),
 		});
 	});

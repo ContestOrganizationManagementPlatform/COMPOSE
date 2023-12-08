@@ -102,7 +102,9 @@
 
 			if (loadedTestsolve.length > 0) {
 				answers = await getTestsolveTestsolveAnswers(loadedTestsolve[0].id);
-				feedbackAnswers = await getSelectTestsolveAnswers(loadedTestsolve[0].id);
+				feedbackAnswers = await getSelectTestsolveAnswers(
+					loadedTestsolve[0].id
+				);
 				timeOffset = loadedTestsolve[0].time_elapsed;
 			}
 
@@ -209,7 +211,7 @@
 				title: "Testsolve has been completed on test " + testInfo.test_name,
 				//description: "This is the description of the embed.",
 				type: "rich",
-				color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+				color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
 				author: {
 					name: userInfo.full_name,
 					//icon_url: "https://example.com/author.png", // URL to the author's icon

@@ -7,10 +7,8 @@ export async function POST({ request }) {
 	console.log("BODY", body);
 	//get user's discord ID
 	const channel_id = body.channel_id;
-	const user = await getUser(body.userId);
-	const discordId = user.discord_id;
 
-	//Get the user DM
+	//Send the message
 	const response = await fetch(
 		`https://discord.com/api/v10/channels/${channel_id}/messages`,
 		{
