@@ -29,6 +29,7 @@
 		Combo: 2,
 		Geo: 3,
 		NT: 4,
+		Calc: 5,
 	};
 
 	let files;
@@ -74,7 +75,7 @@
 
 	function manualAdd() {
 		try {
-			if (!(importProblem(problemText, ""))) {
+			if (!importProblem(problemText, "")) {
 				throw new Error("Manual import failed due to improper format");
 			} else {
 				problemText = "";
@@ -131,9 +132,7 @@
 			for (const payload of payloads) {
 				const { topics, ...payloadNoTopics } = payload;
 				payloadNoTopics.author_id =
-					userSelectRef && userSelectRef != ""
-						? userSelectRef
-						: user.id;
+					userSelectRef && userSelectRef != "" ? userSelectRef : user.id;
 				payloadList.push(payloadNoTopics);
 			}
 

@@ -2,6 +2,7 @@
 	import { useChat } from "ai/svelte";
 	import { supabase } from "$lib/supabaseClient";
 	import { get } from "svelte/store";
+	import { problemList } from "$lib/sessionStore.js";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { Checkbox, TextArea } from "carbon-components-svelte";
@@ -13,6 +14,7 @@
 		getThisUser,
 		getAllProblems,
 	} from "$lib/supabase";
+	import { List } from "carbon-icons-svelte";
 
 	const datasetPrompt = `
 		The database you have access is called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
@@ -31,8 +33,8 @@
 			problem_tests (string | null): Comma-separated list of all tests that the problem appears on written as a single string;
 			solution_latex (string | null): The solution to the problem written in LaTeX;
 			sub_topics (string | null): Comma-separated list of topics which appear in the problem – sub-topics are more granular than topics and tend to cover tactics or themes present in the problem and solution; 
-			topics (string | null): Comma-separated list of the overall topics that appear in the problem – all topics are chosen from Algebra, Combinatorics, Number Theory, Geometry; 
-			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Combo, NT, Geo for Algebra, Combinatorics, Number Theory, Geometry respectively; 
+			topics (string | null): Comma-separated list of the overall topics that appear in the problem – all topics are chosen from Algebra, Calculus, Combinatorics, Number Theory, Geometry; 
+			topics_short (string | null): The same as the topics field but the names are shortened to Alg, Calc, Combo, NT, Geo for Algebra, Calculus, Combinatorics, Number Theory, Geometry respectively; 
 			unresolved_count (number | null): The number of unresolved pieces of feedback the problem has;
 	`;
 	const dbqueryParts = [
@@ -71,7 +73,10 @@
 		onFinish: processLastMessage,
 	});
 
-	let problems = [];
+	let problems;
+	problemList.subscribe((value) => {
+		problems = value;
+	});
 	let all_problems = [];
 	let problemCounts = [];
 	let width = 0;
@@ -84,8 +89,13 @@
 
 	(async () => {
 		try {
-			problems = await getAllProblems("*", "front_id");
-			all_problems = [...problems];
+			all_problems = await getAllProblems("*", "front_id");
+			console.log("PROBLEMS", problems);
+			if (!problems.length) {
+				problemList.set([...all_problems]);
+				console.log("PROBLEMLIST", get(problemList));
+			}
+
 			const problemCountsData = await getProblemCounts();
 			problemCounts = problemCountsData.sort(
 				(a, b) => b.problem_count - a.problem_count
@@ -100,7 +110,7 @@
 	})();
 
 	function resetProblems() {
-		problems = all_problems;
+		problemList.set([...all_problems]);
 	}
 
 	function submitWrapper(e) {
@@ -139,7 +149,7 @@
 				const result = asyncFunction(supabase)
 					.then((result) => {
 						console.log(result);
-						problems = result;
+						problemList.set(result);
 						console.log("Async code execution completed.");
 					})
 					.catch((error) => {
@@ -291,9 +301,11 @@
 <br /><br />
 <Button
 	action={() => {
-		problems = problems.filter((problem) => {
-			return problem.author_id == userId;
-		});
+		problemList.set(
+			problems.filter((problem) => {
+				return problem.author_id == userId;
+			})
+		);
 	}}
 	title="My Problems"
 />

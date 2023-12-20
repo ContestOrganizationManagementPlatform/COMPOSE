@@ -91,7 +91,7 @@
 	async function permissionCheck() {
 		try {
 			// check permission
-			const testsolve = await getOneTestsolve(Number($page.params.id));
+			testsolve = await getOneTestsolve(Number($page.params.id));
 
 			if (testsolve.length === 0) {
 				throw new Error(
@@ -105,7 +105,10 @@
 					disallowed = false;
 				} else {
 					// check if test coordinator
-					const exists = await checkIfTestCoordinator(testsolve.test_id, user.id);
+					const exists = await checkIfTestCoordinator(
+						testsolve.test_id,
+						user.id
+					);
 					if (exists) {
 						disallowed = false;
 					}
@@ -147,6 +150,7 @@
 			await deleteTestsolveAnswer(Number($page.params.id));
 			await addProblemTestsolveAnswer(
 				answers.map((ans) => ({
+					solver_id: user.id,
 					testsolve_id: $page.params.id,
 					problem_id: ans.problem_id,
 					answer: ans.answer,

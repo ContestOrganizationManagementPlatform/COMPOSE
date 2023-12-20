@@ -11,8 +11,6 @@
 	let type = "";
 	let accessToken = "";
 
-	let showPasswordReset = false;
-
 	if (hash !== "") {
 		hash = hash.substring(1);
 		let result = hash.split("&").reduce(function (res, item) {
@@ -35,7 +33,6 @@
 	}
 	async function resetPassword() {
 		try {
-			clearInterval();
 			if (validateEmail(email)) {
 				if (type == "recovery") {
 					toast.success(`Your password has been updated.`);
@@ -43,7 +40,7 @@
 					toast.success(`A reset password email has been sent to ${email}.`);
 				}
 
-				await resetUserPassword();
+				await resetUserPassword(email);
 			} else {
 				toast.error("Your email is not valid!");
 			}
@@ -63,28 +60,16 @@
 			clearInterval();
 			if (validatePassword(password)) {
 				if (password == newPassword) {
-					showPasswordReset = true;
-					setInterval(() => {
-						showPasswordReset = false;
-					}, 5000);
-
 					await updateUserAuth(accessToken, password);
+					toast.success("Successfully changed password.");
 					window.location.href = "/";
 				} else {
 					throw new Error("Your passwords should match.");
-
-					setInterval(() => {
-						error = false;
-					}, 5000);
 				}
 			} else {
 				throw new Error(
 					"Your password should contain 8 characters, an uppercase and lowercase letter, and a number."
 				);
-
-				setInterval(() => {
-					error = false;
-				}, 5000);
 			}
 		} catch (error) {
 			handleError(error);
