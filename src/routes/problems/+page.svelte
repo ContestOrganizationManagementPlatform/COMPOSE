@@ -61,9 +61,11 @@
 	});
 
 	let problems;
+
 	problemList.subscribe((value) => {
 		problems = value;
 	});
+
 	let all_problems = [];
 	let problemCounts = [];
 	let width = 0;
@@ -78,6 +80,7 @@
 		try {
 			all_problems = await getAllProblems("*", "front_id");
 			console.log("PROBLEMS", problems);
+
 			if (!problems.length) {
 				problemList.set([...all_problems]);
 				console.log("PROBLEMLIST", get(problemList));
@@ -89,6 +92,7 @@
 			);
 			userId = (await getThisUser()).id;
 			//getProblemLink();
+			resetProblems();
 			loaded = true;
 		} catch (error) {
 			handleError(error);
