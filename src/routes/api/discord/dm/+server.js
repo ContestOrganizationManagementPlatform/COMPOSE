@@ -38,11 +38,7 @@ export async function POST({ request }) {
 				Authorization: `Bot ${discordToken}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({
-				content: body.message,
-				embeds: body.embeds,
-				components: body.components,
-			}),
+			body: JSON.stringify(body.message),
 		}
 	);
 	console.log("RESPONSE", resp);

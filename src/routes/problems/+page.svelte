@@ -2,6 +2,7 @@
 	import { useChat } from "ai/svelte";
 	import { supabase } from "$lib/supabaseClient";
 	import { get } from "svelte/store";
+	import { problemList } from "$lib/sessionStore.js";
 	import ProblemList from "$lib/components/ProblemList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { Checkbox, TextArea } from "carbon-components-svelte";
@@ -13,6 +14,7 @@
 		getThisUser,
 		getAllProblems,
 	} from "$lib/supabase";
+	import { List } from "carbon-icons-svelte";
 
 	const datasetPrompt = `
 		The database you have access to is a view called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
@@ -58,7 +60,10 @@
 		onFinish: processLastMessage,
 	});
 
-	let problems = [];
+	let problems;
+	problemList.subscribe((value) => {
+		problems = value;
+	});
 	let all_problems = [];
 	let problemCounts = [];
 	let width = 0;
@@ -71,8 +76,13 @@
 
 	(async () => {
 		try {
-			problems = await getAllProblems("*", "front_id");
-			all_problems = [...problems];
+			all_problems = await getAllProblems("*", "front_id");
+			console.log("PROBLEMS", problems);
+			if (!problems.length) {
+				problemList.set([...all_problems]);
+				console.log("PROBLEMLIST", get(problemList));
+			}
+
 			const problemCountsData = await getProblemCounts();
 			problemCounts = problemCountsData.sort(
 				(a, b) => b.problem_count - a.problem_count
@@ -87,7 +97,7 @@
 	})();
 
 	function resetProblems() {
-		problems = all_problems;
+		problemList.set([...all_problems]);
 	}
 
 	function submitWrapper(e) {
@@ -126,7 +136,7 @@
 				const result = asyncFunction(supabase)
 					.then((result) => {
 						console.log(result);
-						problems = result;
+						problemList.set(result);
 						console.log("Async code execution completed.");
 					})
 					.catch((error) => {
@@ -278,9 +288,11 @@
 <br /><br />
 <Button
 	action={() => {
-		problems = problems.filter((problem) => {
-			return problem.author_id == userId;
-		});
+		problemList.set(
+			problems.filter((problem) => {
+				return problem.author_id == userId;
+			})
+		);
 	}}
 	title="My Problems"
 />
