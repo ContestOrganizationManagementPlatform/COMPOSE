@@ -2,7 +2,6 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import { swipeable } from "@react2svelte/swipeable";
-	import { tweened } from "svelte/motion";
 	import Button from "$lib/components/Button.svelte";
 
 	let test = "MMT 2024";
@@ -38,15 +37,9 @@
 		currentCardIndex++;
 	}
 
-	// Use tweened to animate the transition
-	let x = tweened(0);
-	let y = tweened(0);
-
 	onMount(() => {
 		// Load initial card data
 	});
-
-	$: transform = `translate(${x}px, ${y}px)`;
 </script>
 
 <div>
@@ -63,20 +56,19 @@
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
 	<!-- Swipeable card container with transition -->
-	{#if cards[currentCardIndex]}
-		<div
-			class="picture"
-			use:swipeable
-			on:swiped={(e) => {
-				handleSwipe(e.detail.dir.toLowerCase());
-			}}
-			style={transform}
-		>
+	<div
+		class="picture"
+		use:swipeable
+		on:swiped={(e) => {
+			handleSwipe(e.detail.dir.toLowerCase());
+		}}
+	>
+		{#if cards[currentCardIndex]}
 			<img src={cards[currentCardIndex].image} alt="Grading" />
-		</div>
-	{:else}
-		<p>No more problems</p>
-	{/if}
+		{:else}
+			<p>No more problems</p>
+		{/if}
+	</div>
 	<br />
 	<div class="flex">
 		<button
@@ -117,12 +109,10 @@
 		padding: 10px;
 		border: 5px solid var(--primary-dark);
 		border-radius: 15px;
-		transition: transform 0.3s ease-out;
 	}
 
 	img {
 		width: 100%;
-		transform-origin: center;
 	}
 
 	button {
