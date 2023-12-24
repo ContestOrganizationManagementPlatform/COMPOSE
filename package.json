@@ -21,6 +21,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@react2svelte/swipeable": "^0.1.4",
 		"@supabase/auth-helpers-sveltekit": "^0.10.3",
 		"@supabase/supabase-js": "^2.38.0",
 		"@unified-latex/unified-latex": "^1.2.2",
@@ -40,7 +41,6 @@
 		"svelte-chartjs": "^3.0.1",
 		"svelte-drawer-component": "^1.2.2",
 		"svelte-french-toast": "^1.1.0",
-		"svelte-gestures": "^1.5.2",
 		"svelte-katex": "^0.1.2",
 		"svelte-preprocess": "^5.0.0",
 		"tweetnacl": "^1.0.3",

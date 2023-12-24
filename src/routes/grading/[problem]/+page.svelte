@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from "$app/stores";
-	import { swipe } from 'svelte-gestures';
 	import Button from '$lib/components/Button.svelte';
+    import { swipeable } from '@react2svelte/swipeable';
 
 	let test = 'MMT 2024';
 	let round = 'Team Round';
@@ -24,22 +24,22 @@
 		alert('Go back');
 	}
 
-	function handleSwipe(event) {
-		if (event.detail.direction === 'right') {
-			alert('Incorrect!');
-		}
-	}
-
 	function handleKeyPress(event) {
 		if (event.key === 'x') onIncorrect();
 		else if (event.key === 'c') onUnsure();
 		else if (event.key === 'v') onCorrect();
 	}
+
+    function handler(e) {
+        if (e.detail.dir == "Left") onCorrect();
+        else if (e.detail.dir == "Right") onIncorrect();
+        else if (e.detail.dir == "Down") onUnsure();
+    }
 </script>
 
 <svelte:window on:keydown|preventDefault={handleKeyPress} />
 
-<div use:swipe={{ timeframe: 300, minSwipeDistance: 100, touchAction: 'pan-y' }} on:swipe={handleSwipe}>
+<div use:swipeable on:swiped={handler}>
 	<h1>Grade {test}</h1>
 	<div class="flex">
 		<div class="sideBySide">
@@ -84,7 +84,8 @@
 
 	.picture {
 		background-color: var(--primary-tint);
-		width: 500px;
+		max-width: 500px;
+        width: 100%;
 		margin: auto;
 		padding: 10px;
 		border: 5px solid var(--primary-dark);
