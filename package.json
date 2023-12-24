@@ -42,7 +42,9 @@
 		"svelte-drawer-component": "^1.2.2",
 		"svelte-french-toast": "^1.1.0",
 		"svelte-katex": "^0.1.2",
+		"svelte-motion": "^0.12.0",
 		"svelte-preprocess": "^5.0.0",
+		"svelte-swipeable": "^1.0.9",
 		"tweetnacl": "^1.0.3",
 		"unified": "^10.1.2",
 		"uuid": "^9.0.1"

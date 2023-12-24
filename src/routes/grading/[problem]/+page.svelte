@@ -1,13 +1,41 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
-	import { swipeable } from "@react2svelte/swipeable";
-	import { tweened } from "svelte/motion";
 	import Button from "$lib/components/Button.svelte";
+	import { afterUpdate } from "svelte";
 
 	let test = "MMT 2024";
 	let round = "Team Round";
 	let answer = 1024;
+
+	let pictureStyle = {
+		left: 0,
+		top: 0,
+	};
+
+	let isDragging = false;
+	let initialX = 0;
+	let initialY = 0;
+
+	function handleMouseDown(event) {
+		isDragging = true;
+		initialX = event.clientX - pictureStyle.left;
+		initialY = event.clientY - pictureStyle.top;
+	}
+
+	function handleMouseMove(event) {
+		if (isDragging) {
+			pictureStyle.left = event.clientX - initialX;
+			pictureStyle.top = event.clientY - initialY;
+		}
+	}
+
+	function handleMouseUp() {
+		isDragging = false;
+	}
+
+	// Track whether the function has been called
+	let functionCalled = false;
 
 	// Track the current card index
 	let currentCardIndex = 0;
@@ -38,15 +66,27 @@
 		currentCardIndex++;
 	}
 
-	// Use tweened to animate the transition
-	let x = tweened(0);
-	let y = tweened(0);
-
 	onMount(() => {
 		// Load initial card data
 	});
 
-	$: transform = `translate(${x}px, ${y}px)`;
+	afterUpdate(() => {
+		if (pictureStyle.left >= 100 && !functionCalled) {
+			// Run your function here
+			handleSwipe("left");
+			functionCalled = true;
+		}
+		if (pictureStyle.left <= -300 && !functionCalled) {
+			// Run your function here
+			handleSwipe("right");
+			functionCalled = true;
+		}
+		if (pictureStyle.top >= 300 && !functionCalled) {
+			// Run your function here
+			handleSwipe("down");
+			functionCalled = true;
+		}
+	});
 </script>
 
 <div>
@@ -63,20 +103,21 @@
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
 	<!-- Swipeable card container with transition -->
-	{#if cards[currentCardIndex]}
-		<div
-			class="picture"
-			use:swipeable
-			on:swiped={(e) => {
-				handleSwipe(e.detail.dir.toLowerCase());
-			}}
-			style={transform}
-		>
-			<img src={cards[currentCardIndex].image} alt="Grading" />
-		</div>
-	{:else}
-		<p>No more problems</p>
-	{/if}
+	<div class="picture">
+		{#if cards[currentCardIndex]}
+			<img
+				src={cards[currentCardIndex].image}
+				alt="Grading"
+				style="left: {pictureStyle.left}px; top: {pictureStyle.top}px;"
+				on:mousedown={handleMouseDown}
+				on:mousemove={handleMouseMove}
+				on:mouseup={handleMouseUp}
+				on:mouseleave={handleMouseUp}
+			/>
+		{:else}
+			<p>No more problems</p>
+		{/if}
+	</div>
 	<br />
 	<div class="flex">
 		<button
@@ -114,15 +155,14 @@
 		max-width: 600px;
 		width: 80%;
 		margin: auto;
-		padding: 10px;
+		padding: 20px;
 		border: 5px solid var(--primary-dark);
 		border-radius: 15px;
-		transition: transform 0.3s ease-out;
 	}
 
 	img {
 		width: 100%;
-		transform-origin: center;
+		z-index: 100;
 	}
 
 	button {
