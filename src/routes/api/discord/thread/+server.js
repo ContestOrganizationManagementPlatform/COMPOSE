@@ -17,7 +17,7 @@ export async function POST({ request }) {
 				Authorization: `Bot ${discordToken}`,
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify(body.message),
+			body: JSON.stringify(body),
 		}
 	);
 	const data = await response.json();
