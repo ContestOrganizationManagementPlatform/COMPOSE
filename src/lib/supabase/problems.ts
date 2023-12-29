@@ -211,10 +211,10 @@ export async function createProblem(problem: ProblemRequest) {
 		url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
 	};
 	console.log("MAKING FETCH");
-	await fetch("/api/discord/message", {
+	const threadResponse = await fetch("/api/discord/thread", {
 		method: "POST",
 		body: JSON.stringify({
-			channel_id: scheme.discord.notifs_channel,
+			// channel_id: scheme.discord.notifs_channel,
 			message: {
 				content: "",
 				embeds: [embed],
@@ -225,8 +225,10 @@ export async function createProblem(problem: ProblemRequest) {
 					},
 				],
 			},
+			name: embed.title
 		}),
 	});
+	console.log("THREAD RESPONSE", threadResponse);
 	console.log("AUTHORID", problem.author_id);
 	const response = await fetch("/api/update-metadata", {
 		method: "POST",
