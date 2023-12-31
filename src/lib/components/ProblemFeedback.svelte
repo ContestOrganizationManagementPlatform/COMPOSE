@@ -6,6 +6,12 @@
 		Toolbar,
 		ToolbarContent,
 		ToolbarSearch,
+		TextInput,
+		Form,
+		FormGroup,
+		TextArea,
+		Dropdown,
+		MultiSelect,
 	} from "carbon-components-svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
@@ -27,6 +33,23 @@
 	let pageSize = 25;
 	let page = 1;
 	let feedbackInput;
+	let feedback = "";
+	let answer = "";
+	let difficulty = 1;
+	let quality = 1;
+
+	const difficultyOptions = Array.from({ length: 11 }, (value, index) => {
+		return {
+			id: index.toString(),
+			text: index === 0 ? "Difficulty" : index.toString(),
+		};
+	});
+	const qualityOptions = Array.from({ length: 11 }, (value, index) => {
+		return {
+			id: index.toString(),
+			text: index === 0 ? "Quality" : index.toString(),
+		};
+	});
 
 	async function loadFeedback() {
 		try {
@@ -160,6 +183,53 @@
 		/>
 		<br />
 		{#if showFeedbackPanel}
+			<Form class="editorForm">
+				<FormGroup style="display: flex; align-items: end; gap: 20px">
+					<TextInput style="" placeholder="Answer" class="textInput" />
+					<Dropdown selectedId="0" items={difficultyOptions} />
+					<Dropdown selectedId="0" items={qualityOptions} />
+				</FormGroup>
+				<div style="position: relative;">
+					<TextArea
+						class="textArea"
+						placeholder="Add Feedback"
+						required={true}
+					/>
+				</div>
+			</Form>
+			<div class="form-container">
+				<form on:submit|preventDefault={addFeedback}>
+					<div class="feedback-container">
+						<textarea
+							placeholder="Add Feedback"
+							bind:value={feedback}
+							style="width: 100%; resize: vertical; min-height: 100px;"
+						/>
+					</div>
+
+					<div class="input-row">
+						<input type="text" placeholder="Answer" bind:value={answer} />
+						<select bind:value={difficulty} class="dropdown">
+							<option value="" selected>Difficulty</option>
+							{#each difficultyOptions as option (option)}
+								<option value={option}>{option}</option>
+							{/each}
+						</select>
+						<select bind:value={quality} class="dropdown">
+							<option value="" selected>Quality</option>
+							{#each qualityOptions as option (option)}
+								<option value={option}>{option}</option>
+							{/each}
+						</select>
+					</div>
+
+					<div class="input-container" />
+
+					<div class="input-container" />
+
+					<Button type="submit" title="Submit" />
+				</form>
+			</div>
 			<br />
 			<textarea
 				bind:value={feedbackInput}
@@ -243,5 +313,24 @@
 	textarea {
 		min-width: 500px;
 		min-height: 100px;
+	}
+
+	.form-container {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		width: 100%;
+	}
+
+	.input-row {
+		display: flex;
+		gap: 10px;
+		margin-bottom: 10px;
+	}
+
+	.feedback-container {
+		margin-bottom: 20px;
 	}
 </style>
