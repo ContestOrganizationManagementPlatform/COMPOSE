@@ -1,5 +1,6 @@
 <script>
 	import PieChart from "./PieChart.svelte";
+	import Rating from "$lib/components/Rating.svelte";
 	import { Checkbox } from "carbon-components-svelte";
 	import {
 		DataTable,
@@ -21,6 +22,7 @@
 		getProblemTestsolveAnswers,
 		updateTestsolveAnswer,
 	} from "$lib/supabase";
+	import Error from "../../routes/+error.svelte";
 
 	export let problem_id;
 	export let solver_id;
@@ -32,11 +34,11 @@
 	let loaded = false;
 	let pageSize = 25;
 	let page = 1;
-	let feedbackInput;
+
 	let feedback = "";
 	let answer = "";
-	let difficulty = 1;
-	let quality = 1;
+	let difficulty = 0;
+	let quality = 0;
 
 	const difficultyOptions = Array.from({ length: 11 }, (value, index) => {
 		return {
@@ -63,6 +65,8 @@
 				answer: e.answer,
 				feedback: e.feedback,
 				resolved: e.resolved,
+				difficulty: e.difficulty,
+				quality: e.quality,
 				user: e.users ? e.users.full_name : "N/A",
 				user_discord: e.users ? e.users.discord : "N/A",
 				user_id: e.users ? e.users.id : "N/A",
@@ -137,18 +141,36 @@
 
 	async function addFeedback() {
 		try {
+			if (feedback == "" && answer == "" && quality == 0 && difficulty == 0) {
+				throw new Error("You must provide some feedback!");
+			}
+			console.log("QUAL", quality);
+			console.log("DIFF", difficulty);
+			feedback == "" ? (feedback = null) : (feedback = feedback);
+			quality == 0 ? (quality = null) : (quality = quality);
+			difficulty == 0 ? (difficulty = null) : (difficulty = difficulty);
+			answer == "" ? (answer = null) : (answer = answer);
+			console.log("QUAL", quality);
+			console.log("DIFF", difficulty);
 			await addProblemTestsolveAnswer([
 				{
 					solver_id: solver_id,
 					problem_id: problem_id,
-					feedback: feedbackInput,
+					feedback: feedback,
+					answer: answer,
+					quality: quality,
+					difficulty: difficulty,
 				},
 			]);
-			feedbackInput = "";
+			feedback = "";
+			quality = "";
+			difficulty = 0;
+			quality = 0;
+
 			loadFeedback();
 		} catch (error) {
-			handleError(error);
 			toast.error(error.message);
+			handleError(error.message);
 		}
 	}
 
@@ -168,6 +190,7 @@
 					</div>
 				</div>
 			{/if}
+			<Rating rating={0.5} />
 		{/if}
 	</div>
 </div>
@@ -183,62 +206,28 @@
 		/>
 		<br />
 		{#if showFeedbackPanel}
-			<Form class="editorForm">
+			<br />
+			<Form class="form-container">
 				<FormGroup style="display: flex; align-items: end; gap: 20px">
-					<TextInput style="" placeholder="Answer" class="textInput" />
-					<Dropdown selectedId="0" items={difficultyOptions} />
-					<Dropdown selectedId="0" items={qualityOptions} />
+					<TextInput
+						placeholder="Answer"
+						class="textInput"
+						bind:value={answer}
+					/>
+					<Dropdown items={difficultyOptions} bind:selectedId={difficulty} />
+					<Dropdown items={qualityOptions} bind:selectedId={quality} />
 				</FormGroup>
 				<div style="position: relative;">
 					<TextArea
 						class="textArea"
 						placeholder="Add Feedback"
-						required={true}
+						bind:value={feedback}
 					/>
 				</div>
 			</Form>
-			<div class="form-container">
-				<form on:submit|preventDefault={addFeedback}>
-					<div class="feedback-container">
-						<textarea
-							placeholder="Add Feedback"
-							bind:value={feedback}
-							style="width: 100%; resize: vertical; min-height: 100px;"
-						/>
-					</div>
 
-					<div class="input-row">
-						<input type="text" placeholder="Answer" bind:value={answer} />
-						<select bind:value={difficulty} class="dropdown">
-							<option value="" selected>Difficulty</option>
-							{#each difficultyOptions as option (option)}
-								<option value={option}>{option}</option>
-							{/each}
-						</select>
-						<select bind:value={quality} class="dropdown">
-							<option value="" selected>Quality</option>
-							{#each qualityOptions as option (option)}
-								<option value={option}>{option}</option>
-							{/each}
-						</select>
-					</div>
-
-					<div class="input-container" />
-
-					<div class="input-container" />
-
-					<Button type="submit" title="Submit" />
-				</form>
-			</div>
 			<br />
-			<textarea
-				bind:value={feedbackInput}
-				placeholder="Add feedback"
-				style="width: 100%; resize: vertical; min-height: 100px;"
-			/>
-			<br />
-			<br />
-			<Button action={addFeedback} title="Submit" />
+			<Button action={addFeedback} title="Submit Feedback" />
 			<br />
 		{/if}
 		<br />
@@ -252,10 +241,12 @@
 					sortable
 					size="compact"
 					headers={[
-						{ key: "user", value: "User", width: "150px" },
-						{ key: "feedback", value: "Feedback" },
-						{ key: "answer", value: "Answer", width: "100px" },
-						{ key: "resolved", value: "Resolved", width: "100px" },
+						{ key: "user", value: "User", width: "20%" },
+						{ key: "feedback", value: "Feedback", width: "50%" },
+						{ key: "answer", value: "Answer" },
+						{ key: "difficulty", value: "Difficulty", width: "10%" },
+						{ key: "quality", value: "Quality", width: "10%" },
+						{ key: "resolved", value: "Resolved" },
 					]}
 					rows={feedbackList}
 					{pageSize}
@@ -276,6 +267,10 @@
 										style="flex-basis: 0"
 										on:check={(e) => changeResolve(e, row.id)}
 									/>
+								</p>
+							{:else if cell.key == "difficulty" || cell.key == "quality"}
+								<p>
+									<Rating rating={cell.value / 2} size={18} count={false} />
 								</p>
 							{:else}
 								<div style="overflow: hidden;">
@@ -310,8 +305,7 @@
 		height: 20px;
 	}
 
-	textarea {
-		min-width: 500px;
+	.textArea {
 		min-height: 100px;
 	}
 
