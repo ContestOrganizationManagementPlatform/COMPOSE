@@ -2,40 +2,11 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/Button.svelte";
-	import { afterUpdate } from "svelte";
+	import SwipeCard from "$lib/components/SwipeCard.svelte";
 
 	let test = "MMT 2024";
 	let round = "Team Round";
 	let answer = 1024;
-
-	let pictureStyle = {
-		left: 0,
-		top: 0,
-	};
-
-	let isDragging = false;
-	let initialX = 0;
-	let initialY = 0;
-
-	function handleMouseDown(event) {
-		isDragging = true;
-		initialX = event.clientX - pictureStyle.left;
-		initialY = event.clientY - pictureStyle.top;
-	}
-
-	function handleMouseMove(event) {
-		if (isDragging) {
-			pictureStyle.left = event.clientX - initialX;
-			pictureStyle.top = event.clientY - initialY;
-		}
-	}
-
-	function handleMouseUp() {
-		isDragging = false;
-	}
-
-	// Track whether the function has been called
-	let functionCalled = false;
 
 	// Track the current card index
 	let currentCardIndex = 0;
@@ -43,23 +14,27 @@
 		{ image: "/gradingImage.png" },
 		{ image: "/logo.png" },
 		{ image: "/gradingImage.png" },
+		{ image: "/gradingImage.png" },
+		{ image: "/logo.png" },
+		{ image: "/gradingImage.png" },
+		{ image: "/gradingImage.png" },
+		{ image: "/logo.png" },
+		{ image: "/gradingImage.png" },
+		{ image: "/gradingImage.png" },
+		{ image: "/logo.png" },
+		{ image: "/gradingImage.png" },
 	];
 
-	function handleGoBack() {
-		alert("Return prev ans");
-	}
-
 	// Handle swipe actions
-	function handleSwipe(direction) {
-		if (direction === "left") {
-			// Correct
+	function handleAction(action: string) {
+		if (action === "correct") {
 			alert("Correct!");
-		} else if (direction === "right") {
-			// Incorrect
+		} else if (action === "incorrect") {
 			alert("Incorrect!");
-		} else if (direction === "down") {
-			// Unsure
+		} else if (action === "unsure") {
 			alert("Unsure!");
+		} else if (action == "return") {
+			alert("Return prev ans");
 		}
 
 		// Move to the next card
@@ -68,24 +43,6 @@
 
 	onMount(() => {
 		// Load initial card data
-	});
-
-	afterUpdate(() => {
-		if (pictureStyle.left >= 100 && !functionCalled) {
-			// Run your function here
-			handleSwipe("left");
-			functionCalled = true;
-		}
-		if (pictureStyle.left <= -300 && !functionCalled) {
-			// Run your function here
-			handleSwipe("right");
-			functionCalled = true;
-		}
-		if (pictureStyle.top >= 300 && !functionCalled) {
-			// Run your function here
-			handleSwipe("down");
-			functionCalled = true;
-		}
 	});
 </script>
 
@@ -102,39 +59,32 @@
 	<br />
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
-	<!-- Swipeable card container with transition -->
-	<div class="picture">
-		{#if cards[currentCardIndex]}
-			<img
-				src={cards[currentCardIndex].image}
-				alt="Grading"
-				style="left: {pictureStyle.left}px; top: {pictureStyle.top}px;"
-				on:mousedown={handleMouseDown}
-				on:mousemove={handleMouseMove}
-				on:mouseup={handleMouseUp}
-				on:mouseleave={handleMouseUp}
-			/>
-		{:else}
-			<p>No more problems</p>
-		{/if}
-	</div>
+	<SwipeCard action={handleAction}>
+		<div class="picture">
+			{#if cards[currentCardIndex]}
+				<img src={cards[currentCardIndex].image} alt="Grading" />
+			{:else}
+				<p>No more problems</p>
+			{/if}
+		</div>
+	</SwipeCard>
 	<br />
 	<div class="flex">
 		<button
 			style="background-color: var(--return); color: var(--return-text);"
-			on:click={() => handleGoBack()}>↩</button
+			on:click={() => handleAction("return")}>↩</button
 		>
 		<button
 			style="background-color: var(--incorrect); color: var(--incorrect-text);"
-			on:click={() => handleSwipe("right")}>X</button
+			on:click={() => handleAction("incorrect")}>X</button
 		>
 		<button
 			style="background-color: var(--unsure); color: var(--unsure-text);"
-			on:click={() => handleSwipe("down")}>?</button
+			on:click={() => handleAction("unsure")}>?</button
 		>
 		<button
 			style="background-color: var(--correct); color: var(--correct-text);"
-			on:click={() => handleSwipe("left")}>✔</button
+			on:click={() => handleAction("incorrect")}>✔</button
 		>
 	</div>
 	<br />
@@ -155,14 +105,13 @@
 		max-width: 600px;
 		width: 80%;
 		margin: auto;
-		padding: 20px;
+		padding: 10px;
 		border: 5px solid var(--primary-dark);
 		border-radius: 15px;
 	}
 
 	img {
 		width: 100%;
-		z-index: 100;
 	}
 
 	button {
