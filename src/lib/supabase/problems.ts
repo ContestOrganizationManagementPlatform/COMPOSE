@@ -225,7 +225,7 @@ export async function createProblem(problem: ProblemRequest) {
 					},
 				],
 			},
-			name: embed.title
+			name: embed.title,
 		}),
 	});
 	console.log("THREAD RESPONSE", threadResponse);
