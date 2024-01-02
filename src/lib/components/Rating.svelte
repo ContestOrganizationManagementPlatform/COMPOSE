@@ -8,6 +8,7 @@
 	export let size: number = 24;
 	export let total: number = 5;
 	export let rating: number = 4;
+	export let round: number = 1;
 	export let partialId: string = "partialStar" + generateId();
 	export let icon: ComponentType = Star;
 	export let count: boolean = false;
@@ -30,7 +31,7 @@
 		{#if count}
 			<svelte:component this={icon} fillPercent={100} {size} />
 			<p class="ms-2 text-sm font-bold text-gray-900 dark:text-white">
-				{rating}
+				{rating.toFixed(round)}
 			</p>
 			<slot />
 		{:else}

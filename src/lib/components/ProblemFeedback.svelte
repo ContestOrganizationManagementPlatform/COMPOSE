@@ -212,13 +212,13 @@
 				<Rating rating={difficultyAverage / 2} size={50} count={false}
 					><p slot="pretext">Average Difficulty:&nbsp</p>
 					<p slot="posttext">
-						&nbsp&nbsp{difficultyAverage}/10
+						&nbsp&nbsp{difficultyAverage}
 					</p></Rating
 				>
 				<Rating rating={qualityAverage / 2} size={50} count={false}
 					><p slot="pretext">Average Quality:&nbsp</p>
 					<p slot="posttext">
-						&nbsp&nbsp{qualityAverage}/10
+						&nbsp&nbsp{qualityAverage}
 					</p></Rating
 				>
 			{/if}
@@ -318,20 +318,14 @@
 								<Rating
 									rating={cell.value.difficulty / 2}
 									size={15}
-									count={false}
+									count={true}
 									><p slot="pretext">D:&nbsp</p>
-									<p slot="posttext">
-										&nbsp&nbsp{cell.value.difficulty}/10
-									</p></Rating
-								>
-								<Rating rating={cell.value.quality / 2} size={15} count={false}
+								</Rating>
+								<Rating rating={cell.value.quality / 2} size={15} count={true}
 									><p slot="pretext">Q:&nbsp</p>
-									<p slot="posttext">
-										&nbsp&nbsp{cell.value.quality}/10
-									</p></Rating
-								>
+								</Rating>
 							{:else if cell.key == "difficulty" || cell.key == "quality"}
-								<Rating rating={cell.value / 2} size={15} count={false} />
+								<Rating rating={cell.value / 2} size={15} count={true} />
 							{:else if cell.value == null}
 								<div style="overflow: hidden;">-</div>
 							{:else}
