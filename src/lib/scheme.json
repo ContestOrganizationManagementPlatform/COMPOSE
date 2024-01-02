@@ -7,9 +7,8 @@
 	"discord": {
 		"embed_color": "0x65c083",
 		"thread_channel": "1167667268994478101",
-		"notifs_channel": "1011843767508156496"
-    "notifs_forum": "1191689032749555762"
-
+		"notifs_channel": "1011843767508156496",
+    		"notifs_forum": "1191689032749555762"
 	},
 	"styles": {
 		"text-color-light": "#fff",
