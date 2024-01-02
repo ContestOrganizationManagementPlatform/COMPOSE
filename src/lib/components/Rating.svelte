@@ -23,28 +23,42 @@
 </script>
 
 <div class={twMerge(divClass, $$props.class)}>
-	{#if count}
-		<svelte:component this={icon} fillPercent={100} {size} />
-		<p class="ms-2 text-sm font-bold text-gray-900 dark:text-white">{rating}</p>
-		<slot />
-	{:else}
-		{#each Array(fullStars) as star}
-			<svelte:component this={icon} {size} fillPercent={100} id={fullStarId} />
-		{/each}
-		{#if percentRating}
-			<svelte:component
-				this={icon}
-				{size}
-				fillPercent={percentRating}
-				id={partialId}
-			/>
-		{/if}
-		{#each Array(grayStars) as star}
-			<svelte:component this={icon} {size} fillPercent={0} id={grayStarId} />
-		{/each}
+	{#if $$slots.pretext}
+		<slot name="pretext" />
 	{/if}
-	{#if $$slots.text}
-		<slot name="text" font-size={10} />
+	{#if rating}
+		{#if count}
+			<svelte:component this={icon} fillPercent={100} {size} />
+			<p class="ms-2 text-sm font-bold text-gray-900 dark:text-white">
+				{rating}
+			</p>
+			<slot />
+		{:else}
+			{#each Array(fullStars) as star}
+				<svelte:component
+					this={icon}
+					{size}
+					fillPercent={100}
+					id={fullStarId}
+				/>
+			{/each}
+			{#if percentRating}
+				<svelte:component
+					this={icon}
+					{size}
+					fillPercent={percentRating}
+					id={partialId}
+				/>
+			{/if}
+			{#each Array(grayStars) as star}
+				<svelte:component this={icon} {size} fillPercent={0} id={grayStarId} />
+			{/each}
+		{/if}
+		{#if $$slots.posttext}
+			<slot name="posttext" />
+		{/if}
+	{:else}
+		-
 	{/if}
 </div>
 

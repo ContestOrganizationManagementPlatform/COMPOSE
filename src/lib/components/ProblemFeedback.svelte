@@ -32,6 +32,8 @@
 	let noRepeatAnswers = [];
 	let showFeedbackPanel = false;
 	let loaded = false;
+	let difficultyAverage = null;
+	let qualityAverage = null;
 	let pageSize = 25;
 	let page = 1;
 
@@ -80,6 +82,31 @@
 					answer: fd.answer,
 					correct: fd.correct,
 				}));
+
+			const difficultyValues = data
+				.filter((fd) => fd.difficulty !== null)
+				.map((fd) => fd.difficulty);
+
+			difficultyAverage =
+				difficultyValues.length > 0
+					? (
+							difficultyValues.reduce((acc, val) => acc + val, 0) /
+							difficultyValues.length
+					  ).toFixed(1)
+					: null;
+
+			const qualityValues = data
+				.filter((fd) => fd.quality !== null)
+				.map((fd) => fd.quality);
+
+			qualityAverage =
+				qualityValues.length > 0
+					? (
+							qualityValues.reduce((acc, val) => acc + val, 0) /
+							qualityValues.length
+					  ).toFixed(1)
+					: null;
+
 			groupAnswerList();
 
 			loaded = true;
@@ -165,9 +192,9 @@
 			]);
 			feedback = "";
 			quality = "";
-			difficulty = 0;
-			quality = 0;
-
+			difficulty = "0";
+			quality = "0";
+			showFeedbackPanel = false;
 			loadFeedback();
 		} catch (error) {
 			toast.error(error.message);
@@ -179,20 +206,39 @@
 </script>
 
 <div class="flex">
-	<div class="answer-container">
-		<h2>Answers</h2>
-		{#if loaded}
-			{#if answerList.length === 0}
-				<p>No answers to this problem</p>
-			{:else}
-				<div class="flex">
-					<div style="height: 300px;">
-						<PieChart labels={noRepeatAnswers} dataSet={allAnswers} />
-					</div>
-				</div>
+	<div class="data-container">
+		<div class="ratings">
+			{#if loaded}
+				<Rating rating={difficultyAverage / 2} size={50} count={false}
+					><p slot="pretext">Average Difficulty:&nbsp</p>
+					<p slot="posttext">
+						&nbsp&nbsp{difficultyAverage}/10
+					</p></Rating
+				>
+				<Rating rating={qualityAverage / 2} size={50} count={false}
+					><p slot="pretext">Average Quality:&nbsp</p>
+					<p slot="posttext">
+						&nbsp&nbsp{qualityAverage}/10
+					</p></Rating
+				>
 			{/if}
-			<Rating rating={0.5} />
-		{/if}
+		</div>
+		<br /><br />
+		<div class="answerChart">
+			<h2>Submitted Answers</h2>
+
+			{#if loaded}
+				{#if answerList.length === 0}
+					<p>No submitted answers to this problem</p>
+				{:else}
+					<div class="flex">
+						<div style="height: 300px;">
+							<PieChart labels={noRepeatAnswers} dataSet={allAnswers} />
+						</div>
+					</div>
+				{/if}
+			{/if}
+		</div>
 	</div>
 </div>
 <div class="flex">
@@ -243,10 +289,10 @@
 					size="compact"
 					headers={[
 						{ key: "user", value: "User", width: "15%" },
-						{ key: "feedback", value: "Feedback", width: "45%" },
+						{ key: "feedback", value: "Feedback", width: "50%" },
 						{ key: "answer", value: "Answer", width: "10%" },
 						{ key: "ratings", value: "Ratings", width: "15%" },
-						{ key: "resolved", value: "Resolved", width: "15 %" },
+						{ key: "resolved", value: "Resolved", width: "10%" },
 					]}
 					rows={feedbackList}
 					{pageSize}
@@ -273,21 +319,21 @@
 									rating={cell.value.difficulty / 2}
 									size={15}
 									count={false}
-									><p
-										slot="text"
-										class="ms-2 text-sm font-medium text-gray-500 dark:text-gray-400"
-										font-size="15px"
-									>
-										{cell.value.difficulty}/10
+									><p slot="pretext">D:&nbsp</p>
+									<p slot="posttext">
+										&nbsp&nbsp{cell.value.difficulty}/10
 									</p></Rating
 								>
-								<Rating
-									rating={cell.value.quality / 2}
-									size={15}
-									count={false}
-								/>
+								<Rating rating={cell.value.quality / 2} size={15} count={false}
+									><p slot="pretext">Q:&nbsp</p>
+									<p slot="posttext">
+										&nbsp&nbsp{cell.value.quality}/10
+									</p></Rating
+								>
 							{:else if cell.key == "difficulty" || cell.key == "quality"}
 								<Rating rating={cell.value / 2} size={15} count={false} />
+							{:else if cell.value == null}
+								<div style="overflow: hidden;">-</div>
 							{:else}
 								<div style="overflow: hidden;">
 									{cell.value}
@@ -311,7 +357,7 @@
 
 <style>
 	.feedback-container,
-	.answer-container {
+	.data-container {
 		width: 70%;
 		margin-bottom: 10px;
 	}
