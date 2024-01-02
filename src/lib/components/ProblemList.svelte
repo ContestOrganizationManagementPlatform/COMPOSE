@@ -354,7 +354,7 @@
 					</div>
 				{:else}
 					<div style="overflow: hidden;">
-						{cell.value == null || cell.value == "" ? "None" : cell.value}
+						{cell.value == null || cell.value == "" ? "-" : cell.value}
 					</div>
 				{/if}
 			</div>
