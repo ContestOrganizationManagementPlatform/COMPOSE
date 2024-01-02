@@ -22,7 +22,7 @@
 	// console.log(fullStars, grayStars, rateDiffence, percentRating)
 </script>
 
-<div>
+<div class={twMerge(divClass, $$props.class)}>
 	{#if count}
 		<svelte:component this={icon} fillPercent={100} {size} />
 		<p class="ms-2 text-sm font-bold text-gray-900 dark:text-white">{rating}</p>
@@ -42,9 +42,9 @@
 		{#each Array(grayStars) as star}
 			<svelte:component this={icon} {size} fillPercent={0} id={grayStarId} />
 		{/each}
-		{#if $$slots.text}
-			<slot name="text" />
-		{/if}
+	{/if}
+	{#if $$slots.text}
+		<slot name="text" font-size={10} />
 	{/if}
 </div>
 

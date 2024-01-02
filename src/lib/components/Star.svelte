@@ -3,7 +3,8 @@
 
 	export let fillPercent: number = 100;
 	export let fillColor: string = "#F5CA14";
-	export let strokeColor: string = "#F5CA14";
+	export let strokeColor: string = "#cba609";
+	export let backgroundColor: string = "#fdf4d0";
 	export let size: number = 24;
 	export let ariaLabel: string = "star";
 	export let id: string = generateId();
@@ -25,8 +26,8 @@
 			{#if fillPercent !== 100}
 				<stop offset="0%" stop-color={fillColor} />
 				<stop offset="{fillPercent}%" stop-color={fillColor} />
-				<stop offset="{fillPercent}%" stop-color="transparent" />
-				<stop offset="100%" stop-color="transparent" />
+				<stop offset="{fillPercent}%" stop-color={backgroundColor} />
+				<stop offset="100%" stop-color={backgroundColor} />
 			{:else}
 				<stop offset="0%" stop-color={fillColor} />
 				<stop offset="100%" stop-color={fillColor} />

@@ -37,8 +37,8 @@
 
 	let feedback = "";
 	let answer = "";
-	let difficulty = 0;
-	let quality = 0;
+	let difficulty = "0";
+	let quality = "0";
 
 	const difficultyOptions = Array.from({ length: 11 }, (value, index) => {
 		return {
@@ -65,6 +65,7 @@
 				answer: e.answer,
 				feedback: e.feedback,
 				resolved: e.resolved,
+				ratings: { difficulty: e.difficulty, quality: e.quality },
 				difficulty: e.difficulty,
 				quality: e.quality,
 				user: e.users ? e.users.full_name : "N/A",
@@ -241,12 +242,11 @@
 					sortable
 					size="compact"
 					headers={[
-						{ key: "user", value: "User", width: "20%" },
-						{ key: "feedback", value: "Feedback", width: "50%" },
-						{ key: "answer", value: "Answer" },
-						{ key: "difficulty", value: "Difficulty", width: "10%" },
-						{ key: "quality", value: "Quality", width: "10%" },
-						{ key: "resolved", value: "Resolved" },
+						{ key: "user", value: "User", width: "15%" },
+						{ key: "feedback", value: "Feedback", width: "45%" },
+						{ key: "answer", value: "Answer", width: "10%" },
+						{ key: "ratings", value: "Ratings", width: "15%" },
+						{ key: "resolved", value: "Resolved", width: "15 %" },
 					]}
 					rows={feedbackList}
 					{pageSize}
@@ -268,10 +268,26 @@
 										on:check={(e) => changeResolve(e, row.id)}
 									/>
 								</p>
+							{:else if cell.key == "ratings"}
+								<Rating
+									rating={cell.value.difficulty / 2}
+									size={15}
+									count={false}
+									><p
+										slot="text"
+										class="ms-2 text-sm font-medium text-gray-500 dark:text-gray-400"
+										font-size="15px"
+									>
+										{cell.value.difficulty}/10
+									</p></Rating
+								>
+								<Rating
+									rating={cell.value.quality / 2}
+									size={15}
+									count={false}
+								/>
 							{:else if cell.key == "difficulty" || cell.key == "quality"}
-								<p>
-									<Rating rating={cell.value / 2} size={18} count={false} />
-								</p>
+								<Rating rating={cell.value / 2} size={15} count={false} />
 							{:else}
 								<div style="overflow: hidden;">
 									{cell.value}
