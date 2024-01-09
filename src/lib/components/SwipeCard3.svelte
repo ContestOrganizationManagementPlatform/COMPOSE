@@ -2,13 +2,16 @@
 
 <script>
 	let position = { x: 0, y: 0 };
-	let startX, startY;
-	let transformStyle = "";
+	let startX, startY, curX, curY, deltaX, deltaY;
 	let isDragging = false;
+
+	let card;
 
 	function handleTouchStart(event) {
 		startX = event.touches[0].clientX;
 		startY = event.touches[0].clientY;
+		curX = event.touches[0].clientX;
+		curY = event.touches[0].clientY;
 		isDragging = true;
 	}
 
@@ -17,28 +20,31 @@
 
 		if (!isDragging) return;
 
-		const deltaX = event.touches[0].clientX - startX;
-		const deltaY = event.touches[0].clientY - startY;
+		deltaX = event.touches[0].clientX - curX;
+		deltaY = event.touches[0].clientY - curY;
 
 		position = {
 			x: position.x + deltaX,
 			y: position.y + deltaY,
 		};
 
-		startX = event.touches[0].clientX;
-		startY = event.touches[0].clientY;
-
-		transformStyle = `translate(${position.x}px, ${position.y}px)`;
+		curX = event.touches[0].clientX;
+		curY = event.touches[0].clientY;
 	}
 
 	function handleTouchEnd() {
 		if (isDragging) {
 			isDragging = false;
+			const changeX = position.x - startX;
+			const changeY = position.y - startY;
 			// Implement logic for determining swipe direction and triggering actions
 			// Example: Check deltaX and deltaY to determine if it's a left, right, up, or down swipe
-			console.log("Swipe ended");
+			console.log("(" + changeX + "," + changeY + ")");
 		}
 	}
+
+	$: if (card)
+		card.style.transform = `translate(${position.x}px, ${position.y}px)`;
 </script>
 
 <div
@@ -46,7 +52,7 @@
 	on:touchstart={handleTouchStart}
 	on:touchmove={handleTouchMove}
 	on:touchend={handleTouchEnd}
-	bind:style={`transform: translate(${position.x}px, ${position.y}px)`}
+	bind:this={card}
 >
 	<!-- Your card content goes here -->
 	<div class="card-content">Card Content</div>

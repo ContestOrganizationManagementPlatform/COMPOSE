@@ -2,7 +2,7 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/Button.svelte";
-	import SwipeCard from "$lib/components/SwipeCard2.svelte";
+	import SwipeCard from "$lib/components/SwipeCard3.svelte";
 
 	let test = "MMT 2024";
 	let round = "Team Round";
