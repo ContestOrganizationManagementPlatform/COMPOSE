@@ -2,7 +2,7 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/Button.svelte";
-	import SwipeCard from "$lib/components/SwipeCard.svelte";
+	import SwipeCard from "$lib/components/SwipeCard2.svelte";
 
 	let test = "MMT 2024";
 	let round = "Team Round";
@@ -59,15 +59,7 @@
 	<br />
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
-	<SwipeCard action={handleAction}>
-		<div class="picture">
-			{#if cards[currentCardIndex]}
-				<img src={cards[currentCardIndex].image} alt="Grading" />
-			{:else}
-				<p>No more problems</p>
-			{/if}
-		</div>
-	</SwipeCard>
+	<SwipeCard />
 	<br />
 	<div class="flex">
 		<button
