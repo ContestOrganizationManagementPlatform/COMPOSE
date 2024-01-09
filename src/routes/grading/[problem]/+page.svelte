@@ -1,130 +1,71 @@
-<script lang="ts">
-	import { page } from "$app/stores";
-	import { onMount } from "svelte";
-	import Button from "$lib/components/Button.svelte";
-	import SwipeCard from "$lib/components/SwipeCard.svelte";
+<script>
+    import { flip } from "svelte/animate";
+    import { dndzone } from "svelte-dnd-action";
+    let items = [
+        { id: 1, name: "item1" },
+        { id: 2, name: "item2" },
+        { id: 3, name: "item3" },
+        { id: 4, name: "item4" }
+    ];
+    const flipDurationMs = 300;
 
-	let test = "MMT 2024";
-	let round = "Team Round";
-	let answer = 1024;
+    let startX, startY;
 
-	// Track the current card index
-	let currentCardIndex = 0;
-	let cards = [
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-	];
+    function handleDndConsider(e) {
+        items = e.detail.items;
+    }
 
-	// Handle swipe actions
-	function handleAction(action: string) {
-		if (action === "correct") {
-			alert("Correct!");
-		} else if (action === "incorrect") {
-			alert("Incorrect!");
-		} else if (action === "unsure") {
-			alert("Unsure!");
-		} else if (action == "return") {
-			alert("Return prev ans");
-		}
+    function handleDndFinalize(e) {
+        items = e.detail.items;
+    }
 
-		// Move to the next card
-		currentCardIndex++;
-	}
+    function handleMove(event) {
+        const deltaX = event.clientX - startX;
+        const deltaY = event.clientY - startY;
 
-	onMount(() => {
-		// Load initial card data
-	});
+        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            // Horizontal movement
+            if (deltaX > 0) {
+                alert("Right");
+            } else {
+                alert("Left");
+            }
+        } else {
+            // Vertical movement
+            if (deltaY > 0) {
+                alert("Down");
+            } else {
+                alert("Up");
+            }
+        }
+
+        startX = event.clientX;
+        startY = event.clientY;
+    }
 </script>
 
-<div>
-	<h1>Grade {test}</h1>
-	<div class="flex">
-		<div class="sideBySide">
-			<p>{round}</p>
-			<p style="margin-left: 20px">Problem #{$page.params.problem}</p>
-		</div>
-	</div>
-	<br />
-	<h2>{answer}</h2>
-	<br />
-	<Button title="Go Back" href="/grading" />
-	<br /><br />
-	<SwipeCard action={handleAction}>
-		<div class="picture">
-			{#if cards[currentCardIndex]}
-				<img src={cards[currentCardIndex].image} alt="Grading" />
-			{:else}
-				<p>No more problems</p>
-			{/if}
-		</div>
-	</SwipeCard>
-	<br />
-	<div class="flex">
-		<button
-			style="background-color: var(--return); color: var(--return-text);"
-			on:click={() => handleAction("return")}>↩</button
-		>
-		<button
-			style="background-color: var(--incorrect); color: var(--incorrect-text);"
-			on:click={() => handleAction("incorrect")}>X</button
-		>
-		<button
-			style="background-color: var(--unsure); color: var(--unsure-text);"
-			on:click={() => handleAction("unsure")}>?</button
-		>
-		<button
-			style="background-color: var(--correct); color: var(--correct-text);"
-			on:click={() => handleAction("incorrect")}>✔</button
-		>
-	</div>
-	<br />
-</div>
-
 <style>
-	h1 {
-		margin-bottom: 5px;
-	}
+    section {
+        width: 50%;
+        padding: 0.3em;
+        border: 1px solid black;
+        /* this will allow the dragged element to scroll the list */
+        overflow: scroll;
+        height: 200px;
+    }
 
-	.sideBySide {
-		display: flex;
-	}
-
-	.picture {
-		background-color: var(--primary-tint);
-		min-width: 300px;
-		max-width: 600px;
-		width: 80%;
-		margin: auto;
-		padding: 10px;
-		border: 5px solid var(--primary-dark);
-		border-radius: 15px;
-	}
-
-	img {
-		width: 100%;
-	}
-
-	button {
-		width: 90px;
-		height: 40px;
-		border: 2px solid black;
-		margin: 10px;
-		font-size: 22px;
-		border-radius: 10px;
-		font-weight: bold;
-	}
-
-	button:hover {
-		cursor: pointer;
-	}
+    div {
+        width: 50%;
+        padding: 0.2em;
+        border: 1px solid blue;
+        margin: 0.15em 0;
+    }
 </style>
+
+<section use:dndzone="{{ items, flipDurationMs }}" on:consider="{ handleDndConsider }" on:finalize="{ handleDndFinalize }">
+    {#each items as item(item.id)}
+        <div animate:flip="{{ duration: flipDurationMs }}">{ item.name }</div>
+    {/each}
+</section>
+
+<svelte:window on:mousemove="{ handleMove }" />
