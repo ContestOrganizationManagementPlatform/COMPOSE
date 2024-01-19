@@ -31,6 +31,10 @@
 	$: cssVarStyles = Object.entries(scheme.styles)
 		.map(([key, value]) => `--${key}:${value}`)
 		.join(";");
+	
+	$: cssVarStyles2 = Object.entries(scheme.constants)
+		.map(([key, value]) => `--${key}:${value}`)
+		.join(";");
 
 	// user.subscribe(val => browser ? localStorage.setItem("user", val) : null);
 </script>
@@ -46,7 +50,7 @@
 </svelte:head>
 
 <Toaster />
-<main style={cssVarStyles}>
+<main style={[cssVarStyles, cssVarStyles2]}>
 	{#if !loaded}
 		<Banner />
 		<div class="loadingPage flex">
