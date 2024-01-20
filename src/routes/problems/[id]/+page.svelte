@@ -5,6 +5,12 @@
 	import Modal from "$lib/components/Modal.svelte";
 	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
 	import toast from "svelte-french-toast";
+	import {
+		DataTable,
+		Toolbar,
+		ToolbarContent,
+		ToolbarSearch,
+	} from "carbon-components-svelte";
 	import { handleError } from "$lib/handleError";
 	import {
 		getAuthorName,
@@ -19,11 +25,50 @@
 	let problem;
 	let loaded = false;
 	let isAdmin = false;
-	let user;
 
-	(async () => {
-		user = await getThisUser();
-	})();
+	let feedbackList = [
+		{
+			id: 1,
+			user: "Amy Beach",
+			feedback: "Tha!",
+			answer: "c♯",
+			difficulty: 9,
+			quality: 1,
+		},
+
+		{
+			id: 2,
+			user: "Ludwig van Beethoven",
+			feedback: "You are so brave for this",
+			answer: "C",
+			difficulty: 1,
+			quality: 2,
+		},
+		{
+			id: 3,
+			user: "Peter Ilyich Tchaikovsky",
+			feedback: "I got lost in this problem...",
+			answer: "e",
+			difficulty: 9,
+			quality: 5,
+		},
+		{
+			id: 4,
+			user: "Gustav Mahler",
+			feedback: "This problem brough me back to life",
+			answer: "a",
+			difficulty: 2,
+			quality: 2,
+		},
+		{
+			id: 5,
+			user: "Anton Bruckner",
+			feedback: "<3 <3 <3",
+			answer: "C",
+			difficulty: 1,
+			quality: 5,
+		},
+	];
 
 	async function fetchTopic(problem_id) {
 		try {
@@ -65,7 +110,7 @@
 		try {
 			await archiveProblem(problem.id);
 
-			const authorName = await getAuthorName(user.id);
+			const authorName = await getAuthorName(getThisUser().id);
 			await fetch("/api/discord-update", {
 				method: "POST",
 				body: JSON.stringify({
@@ -96,7 +141,59 @@
 <br />
 
 {#if loaded}
-	{#if problem}
+	{#if problem.id === 168}
+		<h1>Li'l Symph</h1>
+		<br />
+		<em>How did these guys COMPOSE some of their largest works?</em>
+
+		<br /><br />
+		<h2>Problem Data</h2>
+		<div class="flex">
+			<div
+				style="border: 2px solid black;width: {70}%;margin: 10px;padding: 10px;"
+			>
+				<p class="header">Problem</p>
+				<p id="problem-render">
+					You're on the circle of fifths, and you take three steps clockwise.
+					Where do you end up?
+				</p>
+				<p class="header">Answer</p>
+				<p id="answer-render">?</p>
+				<p class="header">Solution</p>
+				<p id="solution-render">Depends on where you started.</p>
+				<br />
+			</div>
+		</div>
+		<br />
+		<br />
+		<div class="flex">
+			<div class="feedback-container">
+				<h2>Feedback</h2>
+				<DataTable
+					size="compact"
+					headers={[
+						{ key: "user", value: "User" },
+						{ key: "feedback", value: "Feedback" },
+						{ key: "answer", value: "Answer" },
+						{ key: "difficulty", value: "Difficulty" },
+						{ key: "quality", value: "Quality" },
+					]}
+					rows={feedbackList}
+				>
+					<svelte:fragment slot="cell" let:row let:cell let:rowIndex>
+						<div>
+							<div style="overflow: hidden;">
+								{cell.value}
+							</div>
+						</div>
+					</svelte:fragment>
+				</DataTable>
+			</div>
+		</div>
+		<br />
+		<br />
+		<Button href="/problems" title="Back to Problems" />
+	{:else if problem}
 		<h1>Problem {problem.id} ({problem.front_id})</h1>
 		<br />
 		<Button href="/problems" title="Back to Problems" />
@@ -108,7 +205,7 @@
 			<Modal runHeader="Restore Problem" onSubmit={restoreLocalProblem} />
 			<br />
 			<br />
-		{:else if problem.author_id === user.id || isAdmin}
+		{:else if problem.author_id === getThisUser().id || isAdmin}
 			<Modal runHeader="Archive Problem" onSubmit={deleteProblem} />
 			<br />
 			<br />
@@ -116,10 +213,22 @@
 		<Problem {problem} showMetadata={true} />
 		<br />
 		<br />
-		<ProblemFeedback problem_id={problem.id} solver_id={user.id} />
+		<ProblemFeedback problemID={$page.params.id} />
 	{:else}
 		<h1>Problem not found!</h1>
 	{/if}
 {:else}
 	<p>Loading problem...</p>
 {/if}
+
+<style>
+	.header {
+		font-weight: 700;
+	}
+
+	.feedback-container {
+		width: 70%;
+		align-items: center;
+		justify-content: center;
+	}
+</style>
