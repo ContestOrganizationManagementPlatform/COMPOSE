@@ -30,7 +30,7 @@
 		{
 			id: 1,
 			user: "Amy Beach",
-			feedback: "Tha!",
+			feedback: "Stupid problem.",
 			answer: "c♯",
 			difficulty: 9,
 			quality: 1,
@@ -39,7 +39,7 @@
 		{
 			id: 2,
 			user: "Ludwig van Beethoven",
-			feedback: "You are so brave for this",
+			feedback: "Nice start!",
 			answer: "C",
 			difficulty: 1,
 			quality: 2,
@@ -47,7 +47,7 @@
 		{
 			id: 3,
 			user: "Peter Ilyich Tchaikovsky",
-			feedback: "I got lost in this problem...",
+			feedback: "Pretty terrible, sorry.",
 			answer: "e",
 			difficulty: 9,
 			quality: 5,
@@ -55,7 +55,7 @@
 		{
 			id: 4,
 			user: "Gustav Mahler",
-			feedback: "This problem brough me back to life",
+			feedback: "nope.",
 			answer: "a",
 			difficulty: 2,
 			quality: 2,
@@ -63,7 +63,7 @@
 		{
 			id: 5,
 			user: "Anton Bruckner",
-			feedback: "<3 <3 <3",
+			feedback: "Good job!",
 			answer: "C",
 			difficulty: 1,
 			quality: 5,
