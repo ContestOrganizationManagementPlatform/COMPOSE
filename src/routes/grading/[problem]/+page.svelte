@@ -38,11 +38,11 @@
 
 		// Move to the next card
 		currentCardIndex++;
-		card.classList.add('notransition'); // Disable transitions
+		card.style.transition = `none`; // Disable transitions
 		card.style.transform = `translate(0px, 0px)`;
-		card.style.opacity = `1.0`
+		card.style.opacity = `1.0`;
 		card.offsetHeight; // Trigger a reflow, flushing the CSS changes
-		card.classList.remove('notransition'); // Re-enable transitions
+		card.style.transition = ``;
 	}
 
 	let position = { x: 0, y: 0 };
@@ -217,12 +217,5 @@
 
 	button:hover {
 		cursor: pointer;
-	}
-
-	.notransition {
-	  -webkit-transition: none !important;
-	  -moz-transition: none !important;
-	  -o-transition: none !important;
-	  transition: none !important;
 	}
 </style>
