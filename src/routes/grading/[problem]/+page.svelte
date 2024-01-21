@@ -38,44 +38,53 @@
 
 		// Move to the next card
 		currentCardIndex++;
+		card.classList.add('notransition'); // Disable transitions
+		card.style.transform = `translate(0px, 0px)`;
+		card.style.opacity = `1.0`
+		card.offsetHeight; // Trigger a reflow, flushing the CSS changes
+		card.classList.remove('notransition'); // Re-enable transitions
 	}
 
 	let position = { x: 0, y: 0 };
-	let startX, startY, curX, curY, deltaX, deltaY;
+	let startX, startY, curX, curY;
 	let isDragging = false;
 
 	let card;
 
 	function handleTouchStart(event) {
-		if (!startX) {
-			startX = event.touches[0].clientX;
-			startY = event.touches[0].clientY;
-		}
-		curX = event.touches[0].clientX;
-		curY = event.touches[0].clientY;
-		isDragging = true;
+		startX = event.touches[0].clientX;
+		startY = event.touches[0].clientY;
 	}
 
 	function handleTouchMove(event) {
 		event.preventDefault(); // Prevent default touch event behavior (e.g., scrolling)
 
-		if (!isDragging) return;
-
-		deltaX = event.touches[0].clientX - curX;
-		deltaY = event.touches[0].clientY - curY;
-
-		position = {
-			x: position.x + deltaX,
-			y: position.y + deltaY,
-		};
-
 		curX = event.touches[0].clientX;
 		curY = event.touches[0].clientY;
+		let deltaX = curX - startX;
+		let deltaY = curY - startY;
+		deltaX = Math.sign(deltaX) * Math.pow(Math.abs(deltaX), 1.2);
+		deltaY = Math.sign(deltaY) * Math.pow(Math.abs(deltaY), 1.2);
+
+		if (Math.abs(deltaX / deltaY) > 0.8) {
+			deltaY = 0;	
+		} else if (Math.abs(deltaY / deltaX) > 0.8) {
+			deltaX = 0;
+		}
+	
+		card.style.transform = `translate(${deltaX}px, ${deltaY}px)`
+
+		const changeX = curX - startX;
+		const changeY = curY - startY;
+
+		if (Math.abs(changeX) >= 100 || Math.abs(changeY) >= 100) {
+			card.style.opacity = `0.2`;
+		} else {
+			card.style.opacity = `1.0`
+		}
 	}
 
 	function handleKey(e) {
-		console.log(e.key);
-
 		// Check if the pressed key is 'X'
 		if (e.key === 'x' || e.key === 'X') {
 			handleAction("incorrect");
@@ -89,8 +98,6 @@
 	}
 
 	function handleTouchEnd() {
-		if (isDragging) {
-			isDragging = false;
 			const changeX = curX - startX;
 			const changeY = curY - startY;
 
@@ -102,12 +109,11 @@
 				handleAction("unsure");
 			} else if (changeY <= -100) {
 				handleAction("return");
+			} else {
+				card.style.transform = `translate(0px, 0px)`
+				card.style.opacity = `1.0`
 			}
-		}
 	}
-
-	$: if (card)
-		card.style.transform = `translate(${position.x}px, ${position.y}px)`;
 
 	onMount(() => {
 		// Load initial card data
@@ -179,7 +185,7 @@
 		width: fit-content;
 		position: relative;
 		border-radius: 8px;
-		transition: transform 0.2s ease-out;
+		transition: transform 0.2s ease-out, opacity 0.3s;
 		margin-left: auto;
 		margin-right: auto;
 	}
@@ -211,5 +217,12 @@
 
 	button:hover {
 		cursor: pointer;
+	}
+
+	.notransition {
+	  -webkit-transition: none !important;
+	  -moz-transition: none !important;
+	  -o-transition: none !important;
+	  transition: none !important;
 	}
 </style>
