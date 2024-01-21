@@ -98,7 +98,8 @@ export async function getTestCoordinators(
 		.select(customSelect)
 		.eq("test_id", test_id);
 	if (error) throw error;
-	return data[0];
+	console.log(data);
+	return data;
 }
 
 /**
@@ -114,10 +115,7 @@ export async function checkIfTestCoordinator(
 	coordinator_id: number,
 	customSelect: string = "coordinator_id"
 ) {
-	let {
-		error: error,
-		count,
-	} = await supabase
+	let { error: error, count } = await supabase
 		.from("test_coordinators")
 		.select(customSelect, { count: "exact", head: true })
 		.eq("coordinator_id", coordinator_id)
