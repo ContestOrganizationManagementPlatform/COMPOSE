@@ -16,7 +16,7 @@
 		reorderProblemsOnTest,
 		massProblemReordering,
 		getThisUserRole,
-		getAllProblems,
+		getProblems,
 	} from "$lib/supabase";
 
 	let testId = Number($page.params.id);
@@ -46,14 +46,14 @@
 					async (tc) => tc.id === (await getThisUser()).id
 				) || (await getThisUserRole()) >= 40;
 			loading = false;
-			getProblems();
+			await getProblemData();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
 
-	async function getProblems() {
+	async function getProblemData() {
 		try {
 			let problemList = await getTestProblems(testId);
 
@@ -70,7 +70,7 @@
 				...pb.full_problems,
 			}));
 			selectedTest = testProblems.map((pb) => pb.id);
-			let allProblemList = await getAllProblems("*", "front_id");
+			let allProblemList = await getProblems({ customSelect: "*" });
 
 			// prevent problems from appearing twice
 			allProblems = allProblemList.filter(
@@ -137,7 +137,7 @@
 	}
 
 	async function refreshProblems() {
-		await getProblems();
+		await getProblemData();
 	}
 
 	async function handleReorder(e) {
@@ -272,7 +272,7 @@
 					disableAll={refreshingProblems}
 					customHeaders={[
 						{ key: "drag", value: "", sort: false },
-						{ key: "problem_number", value: "#" }
+						{ key: "problem_number", value: "#" },
 					]}
 					on:reorder={handleReorder}
 				/>
