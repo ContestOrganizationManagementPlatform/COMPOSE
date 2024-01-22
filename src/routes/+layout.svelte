@@ -221,12 +221,12 @@
 	}
 
 	:global(.bx--progress-bar__label, .bx--progress-bar__helper-text) {
-		color: var(--primary);
-		font-weight: bold;
+		color: var(--primary) !important;
+		font-weight: bold !important;
 	}
 
 	:global(.bx--progress-bar__bar) {
-		background: var(--primary);
+		background: var(--primary) !important;
 		border-radius: 4px !important;
 	}
 
