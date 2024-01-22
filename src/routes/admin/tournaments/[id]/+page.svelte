@@ -10,7 +10,7 @@
 		getTournamentInfo,
 		getTournamentTests,
 		getTestProblems,
-		getAllProblems,
+		getProblems,
 		getImages,
 		downloadImagesFromPath,
 	} from "$lib/supabase";
@@ -80,7 +80,7 @@
 	async function downloadTournament() {
 		try {
 			let zip = new JSZip();
-			let full_problems = await getAllProblems();
+			let full_problems = await getProblems();
 			let problemFolder = zip.folder("Problems");
 			for (const x of full_problems) {
 				let s = "";

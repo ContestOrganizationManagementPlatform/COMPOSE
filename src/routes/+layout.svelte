@@ -220,6 +220,10 @@
 		outline-color: var(--primary) !important;
 	}
 
+	:global(.bx--progress-bar__bar) {
+		background: var(--primary) !important;
+	}
+
 	:global(.bx--number__control-btn:focus) {
 		border: none !important;
 		outline: none !important;

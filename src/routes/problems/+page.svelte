@@ -4,17 +4,20 @@
 	import { get } from "svelte/store";
 	import { problemList } from "$lib/sessionStore.js";
 	import ProblemList from "$lib/components/ProblemList.svelte";
+	import ProgressBar from "$lib/components/ProgressBar.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { Checkbox, TextArea } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import scheme from "$lib/scheme.json";
 	import {
 		getImages,
 		getProblemCounts,
 		getThisUser,
-		getAllProblems,
+		getProblems,
+		getProblemTestsolveAnswers,
 	} from "$lib/supabase";
-	import { List } from "carbon-icons-svelte";
+	import { List, Schematics } from "carbon-icons-svelte";
 
 	const datasetPrompt = `
 		The database you have access to is a view called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
@@ -67,6 +70,7 @@
 	});
 
 	let all_problems = [];
+	let time_filtered_problems = [];
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
@@ -78,8 +82,14 @@
 
 	(async () => {
 		try {
-			all_problems = await getAllProblems("*", "front_id");
+			all_problems = await getProblems({ customSelect: "*" });
 			console.log("PROBLEMS", problems);
+			console.log(scheme.progress.after);
+			time_filtered_problems = await getProblems({
+				after: new Date(scheme.progress.after),
+				before: new Date(scheme.progress.before),
+			});
+			console.log(time_filtered_problems.length);
 
 			if (!problems.length) {
 				problemList.set([...all_problems]);
@@ -87,6 +97,7 @@
 			}
 
 			const problemCountsData = await getProblemCounts();
+			console.log(problemCountsData);
 			problemCounts = problemCountsData.sort(
 				(a, b) => b.problem_count - a.problem_count
 			);
@@ -273,6 +284,17 @@
 <div class="flex">
 	<div class="stats">
 		<h4><u>Stats</u></h4>
+		{#if loaded}
+			<ProgressBar
+				value={time_filtered_problems.length}
+				max={scheme.progress.goal}
+				helperText={time_filtered_problems.length +
+					"/" +
+					scheme.progress.goal +
+					" problems written"}
+				labelText={"Progress"}
+			/>
+		{/if}
 		{#each problemCounts as cat}
 			<p>
 				<!-- prettier-ignore -->
