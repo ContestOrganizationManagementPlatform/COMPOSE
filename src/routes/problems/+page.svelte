@@ -95,12 +95,33 @@
 				problemList.set([...all_problems]);
 				console.log("PROBLEMLIST", get(problemList));
 			}
+			const topicsCount = all_problems.reduce((count, { topics }) => {
+				let individualTopics;
+				if (topics) {
+					individualTopics = topics.split(", ").map((topic) => topic.trim());
+				} else {
+					individualTopics = ["Uncategorized"];
+				}
 
+				individualTopics.forEach((topic) => {
+					count[topic] = (count[topic] || 0) + 1;
+				});
+
+				return count;
+			}, {});
+			console.log(topicsCount);
 			const problemCountsData = await getProblemCounts();
 			console.log(problemCountsData);
-			problemCounts = problemCountsData.sort(
-				(a, b) => b.problem_count - a.problem_count
-			);
+			const sortedKeys = Object.keys(topicsCount)
+				.filter((key) => key !== "Uncategorized")
+				.sort();
+			if ("Uncategorized" in topicsCount) {
+				sortedKeys.push("Uncategorized");
+			}
+			problemCounts = sortedKeys.reduce((sortedObj, key) => {
+				sortedObj[key] = topicsCount[key];
+				return sortedObj;
+			}, {});
 			userId = (await getThisUser()).id;
 			//getProblemLink();
 			resetProblems();
@@ -295,11 +316,14 @@
 				labelText={"Progress"}
 			/>
 		{/if}
-		{#each problemCounts as cat}
+		<p>
+			<strong>Number of Problems: {all_problems.length}</strong>
+		</p>
+		{#each Object.entries(problemCounts) as [cat, count]}
 			<p>
 				<!-- prettier-ignore -->
-				<strong>{cat.category === "*" ? "Number of" : cat.category} Problems:</strong>
-				{cat.problem_count}
+				<strong>{cat} Problems:</strong>
+				{count}
 			</p>
 		{/each}
 	</div>
