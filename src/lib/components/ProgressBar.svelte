@@ -3,7 +3,7 @@
 	import { Theme, ProgressBar } from "carbon-components-svelte";
 	export let value = 20;
 	export let max = 100;
-	export let labelText = "Progress";
+	export let labelText = "Progress Bar";
 	export let helperText = numerator + "/" + denominator;
 	console.log(value);
 	console.log("hi");
@@ -20,22 +20,12 @@
 
 <div class="outerDiv">
 	<br />
-	<ProgressBar
-		class="custom-progress-bar"
-		style="--progressbar-complete-background: blue;"
-		{value}
-		{max}
-		{labelText}
-		{helperText}
-	/>
+	<ProgressBar {value} {max} {labelText} {helperText} />
+	<br />
 </div>
 
 <style>
 	.outerDiv {
 		display: block;
-	}
-	.bx--progress-bar__bar {
-		/* Your custom styles here */
-		color: rgb(162, 255, 0); /* Change this to your desired color */
 	}
 </style>

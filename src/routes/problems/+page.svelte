@@ -313,7 +313,7 @@
 					"/" +
 					scheme.progress.goal +
 					" problems written"}
-				labelText={"Progress"}
+				labelText={"Tournament Progress"}
 			/>
 		{/if}
 		<p>

@@ -220,8 +220,20 @@
 		outline-color: var(--primary) !important;
 	}
 
+	:global(.bx--progress-bar__label, .bx--progress-bar__helper-text) {
+		color: var(--primary);
+		font-weight: bold;
+	}
+
 	:global(.bx--progress-bar__bar) {
-		background: var(--primary) !important;
+		background: var(--primary);
+		border-radius: 4px !important;
+	}
+
+	:global(.bx--progress-bar__track) {
+		background: var(--primary-tint);
+		height: 16px !important;
+		border-radius: 2px !important;
 	}
 
 	:global(.bx--number__control-btn:focus) {
