@@ -6,4 +6,3 @@ node_modules
 .env
 .env.*
 !.env.example
-/src/lib/scheme.json

@@ -10,6 +10,11 @@
 		"notifs_channel": "1182668043399221308",
 		"notifs_forum": "1182668248089624587"
 	},
+	"progress": {
+		"after": "2023-10-29T13:00:00Z",
+		"before": "2024-03-01T00:00:00Z",
+		"goal": 120
+	},
 	"styles": {
 		"text-color-light": "#fff",
 		"text-color-dark": "#000",
