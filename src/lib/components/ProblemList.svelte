@@ -18,6 +18,7 @@
 	import { Filter } from "carbon-icons-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { LogarithmicScale } from "chart.js";
 
 	export let problems = [];
 	export let condensed = false;
@@ -319,7 +320,8 @@
 					<div>
 						{cell.value + 1}
 					</div>
-				{:else if cell.key === "topic"}
+				{:else if cell.key === "topics"}
+					{console.log(cell.value)}
 					<div style="overflow: hidden;">
 						{cell.value == null || cell.value == ""
 							? "None"

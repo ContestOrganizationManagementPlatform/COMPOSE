@@ -16,12 +16,12 @@ export interface ProblemRequest {
 }
 
 export interface ProblemSelectRequest {
-	customSelect?: string;
-	customOrder?: string;
+	customSelect?: string | null;
+	customOrder?: string | null;
 	normal?: boolean;
 	archived?: boolean;
-	after?: Date;
-	before?: Date;
+	after?: Date | null;
+	before?: Date | null;
 }
 
 export interface ProblemEditRequest {
@@ -79,7 +79,7 @@ async function getFrontID(problem_id: number) {
  * @returns problem list
  */
 export async function getProblems(options: ProblemSelectRequest = {}) {
-	const {
+	let {
 		customSelect = "*",
 		customOrder = null,
 		normal = true,
@@ -88,12 +88,14 @@ export async function getProblems(options: ProblemSelectRequest = {}) {
 		before = null,
 	} = options;
 
+	console.log("OPTIONS", options);
+
 	console.log(customSelect, customOrder, normal, archived, after, before);
 	let selectQuery = supabase.from("full_problems").select(customSelect);
 	if (customOrder) {
 		selectQuery = selectQuery.order(customOrder);
 	}
-	if (!normal) {
+	if (normal) {
 		selectQuery = selectQuery.eq("archived", archived);
 	}
 	if (after) {
