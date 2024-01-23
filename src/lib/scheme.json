@@ -13,7 +13,7 @@
 	"progress": {
 		"after": "2023-11-20T13:00:00Z",
 		"before": "2024-03-01T00:00:00Z",
-		"goal": 120
+		"goal": 200
 	},
 	"styles": {
 		"text-color-light": "#fff",
