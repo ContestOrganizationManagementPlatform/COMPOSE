@@ -25,6 +25,7 @@ export interface ProblemEditRequest {
 	nickname?: string;
 	sub_topics?: string;
 	image_name?: string;
+	discord_id?: string;
 }
 
 /**
@@ -216,7 +217,7 @@ export async function createProblem(problem: ProblemRequest) {
 		body: JSON.stringify({
 			// channel_id: scheme.discord.notifs_channel,
 			message: {
-				content: "",
+				content: problem.problem_latex,
 				embeds: [embed],
 				components: [
 					{
@@ -225,10 +226,15 @@ export async function createProblem(problem: ProblemRequest) {
 					},
 				],
 			},
-			name: embed.title
+			name: embed.title,
 		}),
 	});
 	console.log("THREAD RESPONSE", threadResponse);
+	const threadData = await threadResponse.json();
+	console.log("THREAD DATA 2", threadData);
+	if (threadData.id) {
+		await editProblem({ discord_id: threadData.id }, problem.id);
+	}
 	console.log("AUTHORID", problem.author_id);
 	const response = await fetch("/api/update-metadata", {
 		method: "POST",

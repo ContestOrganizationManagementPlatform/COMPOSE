@@ -372,64 +372,67 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		const data = await response.json();
 		console.log(data);
 		*/
-		const user = await getUser(problem.author_id);
-		const embed = {
-			title: "Feedback received on problem " + user.initials + problem.id,
-			//description: "This is the description of the embed.",
-			type: "rich",
-			color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
-			author: {
-				name: solver_name,
-				//icon_url: "https://example.com/author.png", // URL to the author's icon
-			},
-			fields: [
-				{
-					name: "Problem",
-					value: problem.problem_latex,
-					inline: false, // You can set whether the field is inline
+		console.log("DISCORD_ID", problem);
+		if (problem.discord_id) {
+			const user = await getUser(problem.author_id);
+			const embed = {
+				title: "Feedback received on problem " + user.initials + problem.id,
+				//description: "This is the description of the embed.",
+				type: "rich",
+				color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
+				author: {
+					name: solver_name,
+					//icon_url: "https://example.com/author.png", // URL to the author's icon
 				},
-				{
-					name: "Feedback",
-					value: feedback.feedback,
-					inline: false,
+				fields: [
+					{
+						name: "Problem",
+						value: problem.problem_latex,
+						inline: false, // You can set whether the field is inline
+					},
+					{
+						name: "Feedback",
+						value: feedback.feedback,
+						inline: false,
+					},
+				],
+				footer: {
+					text: solver.discord_id,
+					icon_url: scheme.logo, // URL to the footer icon
 				},
-			],
-			footer: {
-				text: solver.discord_id,
-				icon_url: scheme.logo, // URL to the footer icon
-			},
-		};
-		const linkButton = {
-			type: 2, // LINK button component
-			style: 5, // LINK style (5) for external links
-			label: "View Feedback",
-			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-		};
-		const threadButton = {
-			type: 2,
-			style: 1,
-			custom_id: "create-thread",
-			label: "Make Thread",
-		};
-		const response = await fetch("/api/discord/feedback", {
-			method: "POST",
-			body: JSON.stringify({
-				userId: problem.author_id,
-				threadID: "1198433206131765279", // ATTRIBUTE TO BE ADDED, DOES NOT EXIST YET
-				message: {
-					content: "New feedback!",
-					embeds: [embed],
-					components: [
-						{
-							type: 1,
-							components: [linkButton, threadButton],
-						},
-					],
-				},
-			}),
-		});
-		const responseData = await response.json();
-		console.log(responseData)
+			};
+			const linkButton = {
+				type: 2, // LINK button component
+				style: 5, // LINK style (5) for external links
+				label: "View Feedback",
+				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+			};
+			const threadButton = {
+				type: 2,
+				style: 1,
+				custom_id: "create-thread",
+				label: "Make Thread",
+			};
+			const response = await fetch("/api/discord/feedback", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					threadID: problem.discord_id, // ATTRIBUTE TO BE ADDED, DOES NOT EXIST YET
+					message: {
+						content: "New feedback!",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton, threadButton],
+							},
+						],
+					},
+				}),
+			});
+			const responseData = await response.json();
+			console.log(responseData);
+		}
 	});
 }
 
