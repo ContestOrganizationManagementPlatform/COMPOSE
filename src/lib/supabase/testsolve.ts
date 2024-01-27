@@ -353,6 +353,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		const solver = await getUser(feedback.solver_id);
 		console.log("problem", problem);
 		console.log("SOLVER", solver);
+		// TODO: Set const `thread` that gets the discord threadID from problem_feedback
 		const discord_id = solver.discord_id;
 		const solver_name = solver.full_name;
 		const discordToken = import.meta.env.VITE_BOT_TOKEN;
@@ -410,12 +411,13 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 			custom_id: "create-thread",
 			label: "Make Thread",
 		};
-		await fetch("/api/discord/dm", {
+		const response = await fetch("/api/discord/feedback", {
 			method: "POST",
 			body: JSON.stringify({
 				userId: problem.author_id,
+				threadID: "1198433206131765279", // ATTRIBUTE TO BE ADDED, DOES NOT EXIST YET
 				message: {
-					content: "",
+					content: "New feedback!",
 					embeds: [embed],
 					components: [
 						{
@@ -426,6 +428,8 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 				},
 			}),
 		});
+		const responseData = await response.json();
+		console.log(responseData)
 	});
 }
 
