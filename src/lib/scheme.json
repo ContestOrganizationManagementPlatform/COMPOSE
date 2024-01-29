@@ -1,9 +1,9 @@
 {
-	"title": "Stanford Math Tournament",
-	"abbreviation": "SMT",
-	"logo": "https://www.stanfordmathtournament.com/SMT%20White.png",
-	"description": "The Stanford Math Tournament [SMT] is a high school math tournament run by students at Stanford University. We are passionate about providing a high quality and challenging event to students interested in mathematics globally.",
-	"url": "https://compose.stanfordmathtournament.com",
+	"title": "COMP",
+	"abbreviation": "COMP",
+	"logo": "https://i.ibb.co/NTT4qP5/COMP-logo.png",
+	"description": "COMP is the dev platform for COMP.",
+	"url": "http://localhost:3000",
 	"discord": {
 		"guild_id": "968089252107792444",
 		"embed_color": "0x65c083",
@@ -19,16 +19,16 @@
 	"styles": {
 		"text-color-light": "#fff",
 		"text-color-dark": "#000",
-		"background": "#FFFBF0",
-		"background-dark": "#FFF4D7",
-		"primary": "#981C1D",
-		"primary-light": "#dc7291",
-		"primary-dark": "#65100f",
-		"primary-tint": "#e9d8d8",
-		"secondary": "#71816D",
-		"secondary-light": "#b4cfae",
-		"secondary-dark": "#485445",
-		"secondary-tint": "#e3f2df",
-		"font-family": "Source Sans Pro"
+		"background": "#f5fffb",
+		"background-dark": "#dcfff1",
+		"primary": "#1c6825",
+		"primary-light": "#65c083",
+		"primary-dark": "#5b8064",
+		"primary-tint": "#d9f5e2",
+		"secondary": "#213d44",
+		"secondary-light": "#1b9aaa",
+		"secondary-dark": "#061333",
+		"secondary-tint": "#b9c6d2",
+		"font-family": "Ubuntu"
 	}
 }
