@@ -4,17 +4,20 @@
 	import { get } from "svelte/store";
 	import { problemList } from "$lib/sessionStore.js";
 	import ProblemList from "$lib/components/ProblemList.svelte";
+	import ProgressBar from "$lib/components/ProgressBar.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { Checkbox, TextArea } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import scheme from "$lib/scheme.json";
 	import {
 		getImages,
 		getProblemCounts,
 		getThisUser,
-		getAllProblems,
+		getProblems,
+		getProblemTestsolveAnswers,
 	} from "$lib/supabase";
-	import { List } from "carbon-icons-svelte";
+	import { List, Schematics } from "carbon-icons-svelte";
 
 	const datasetPrompt = `
 		The database you have access to is a view called full_problems. English descriptions of the database columns with each column type in parenthesis are given below:
@@ -61,10 +64,13 @@
 	});
 
 	let problems;
+
 	problemList.subscribe((value) => {
 		problems = value;
 	});
+
 	let all_problems = [];
+	let time_filtered_problems = [];
 	let problemCounts = [];
 	let width = 0;
 	let loaded = false;
@@ -76,19 +82,49 @@
 
 	(async () => {
 		try {
-			all_problems = await getAllProblems("*", "front_id");
+			all_problems = await getProblems({ customSelect: "*" });
 			console.log("PROBLEMS", problems);
+			console.log(scheme.progress.after);
+			time_filtered_problems = await getProblems({
+				after: new Date(scheme.progress.after),
+				before: new Date(scheme.progress.before),
+			});
+			console.log(time_filtered_problems.length);
+
 			if (!problems.length) {
 				problemList.set([...all_problems]);
 				console.log("PROBLEMLIST", get(problemList));
 			}
+			const topicsCount = all_problems.reduce((count, { topics }) => {
+				let individualTopics;
+				if (topics) {
+					individualTopics = topics.split(", ").map((topic) => topic.trim());
+				} else {
+					individualTopics = ["Uncategorized"];
+				}
 
+				individualTopics.forEach((topic) => {
+					count[topic] = (count[topic] || 0) + 1;
+				});
+
+				return count;
+			}, {});
+			console.log(topicsCount);
 			const problemCountsData = await getProblemCounts();
-			problemCounts = problemCountsData.sort(
-				(a, b) => b.problem_count - a.problem_count
-			);
+			console.log(problemCountsData);
+			const sortedKeys = Object.keys(topicsCount)
+				.filter((key) => key !== "Uncategorized")
+				.sort();
+			if ("Uncategorized" in topicsCount) {
+				sortedKeys.push("Uncategorized");
+			}
+			problemCounts = sortedKeys.reduce((sortedObj, key) => {
+				sortedObj[key] = topicsCount[key];
+				return sortedObj;
+			}, {});
 			userId = (await getThisUser()).id;
 			//getProblemLink();
+			resetProblems();
 			loaded = true;
 		} catch (error) {
 			handleError(error);
@@ -269,11 +305,25 @@
 <div class="flex">
 	<div class="stats">
 		<h4><u>Stats</u></h4>
-		{#each problemCounts as cat}
+		{#if loaded}
+			<ProgressBar
+				value={time_filtered_problems.length}
+				max={scheme.progress.goal}
+				helperText={time_filtered_problems.length +
+					"/" +
+					scheme.progress.goal +
+					" problems written"}
+				labelText={"Tournament Progress"}
+			/>
+		{/if}
+		<p>
+			<strong>Number of Problems: {all_problems.length}</strong>
+		</p>
+		{#each Object.entries(problemCounts) as [cat, count]}
 			<p>
 				<!-- prettier-ignore -->
-				<strong>{cat.category === "*" ? "Number of" : cat.category} Problems:</strong>
-				{cat.problem_count}
+				<strong>{cat} Problems:</strong>
+				{count}
 			</p>
 		{/each}
 	</div>

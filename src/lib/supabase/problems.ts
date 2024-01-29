@@ -15,6 +15,15 @@ export interface ProblemRequest {
 	image_name?: string;
 }
 
+export interface ProblemSelectRequest {
+	customSelect?: string | null;
+	customOrder?: string | null;
+	normal?: boolean;
+	archived?: boolean;
+	after?: Date | null;
+	before?: Date | null;
+}
+
 export interface ProblemEditRequest {
 	problem_latex?: string;
 	answer_latex?: string;
@@ -70,11 +79,36 @@ async function getFrontID(problem_id: number) {
  * @param archived optional, boolean
  * @returns problem list
  */
-export async function getAllProblems(
-	customSelect: string = "*",
-	normal: boolean = true,
-	archived: boolean = false
-) {
+export async function getProblems(options: ProblemSelectRequest = {}) {
+	let {
+		customSelect = "*",
+		customOrder = null,
+		normal = true,
+		archived = false,
+		after = null,
+		before = null,
+	} = options;
+
+	console.log("OPTIONS", options);
+
+	console.log(customSelect, customOrder, normal, archived, after, before);
+	let selectQuery = supabase.from("full_problems").select(customSelect);
+	if (customOrder) {
+		selectQuery = selectQuery.order(customOrder);
+	}
+	if (normal) {
+		selectQuery = selectQuery.eq("archived", archived);
+	}
+	if (after) {
+		selectQuery = selectQuery.gte("created_at", after.toISOString());
+	}
+	if (before) {
+		selectQuery = selectQuery.lte("created_at", before.toISOString());
+	}
+
+	let { data, error } = await selectQuery;
+	if (error) throw error;
+	return data;
 	if (normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
@@ -95,52 +129,6 @@ export async function getAllProblems(
 			.from("full_problems")
 			.select(customSelect)
 			.eq("archived", true);
-		if (error) throw error;
-		return data;
-	}
-	if (!normal && !archived) {
-		return [];
-	}
-}
-
-/**
- * Orders the problems as specified.
- *
- * @param customOrder
- * @param customSelect
- * @param normal
- * @param archived
- * @returns ordered list of problems
- */
-export async function getAllProblemsOrder(
-	customOrder: string,
-	customSelect: string = "*",
-	normal: boolean = true,
-	archived: boolean = false
-) {
-	if (normal && archived) {
-		let { data, error } = await supabase
-			.from("full_problems")
-			.select(customSelect)
-			.order(customOrder);
-		if (error) throw error;
-		return data;
-	}
-	if (normal && !archived) {
-		let { data, error } = await supabase
-			.from("full_problems")
-			.select(customSelect)
-			.eq("archived", false)
-			.order(customOrder);
-		if (error) throw error;
-		return data;
-	}
-	if (!normal && archived) {
-		let { data, error } = await supabase
-			.from("full_problems")
-			.select(customSelect)
-			.eq("archived", true)
-			.order(customOrder);
 		if (error) throw error;
 		return data;
 	}

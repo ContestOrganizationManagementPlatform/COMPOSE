@@ -9,6 +9,7 @@
 		Pagination,
 		MultiSelect,
 	} from "carbon-components-svelte";
+	import Rating from "$lib/components/Rating.svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Problem from "$lib/components/Problem.svelte";
 	import { sortIDs } from "$lib/sortIDs";
@@ -17,6 +18,7 @@
 	import { Filter } from "carbon-icons-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { LogarithmicScale } from "chart.js";
 
 	export let problems = [];
 	export let condensed = false;
@@ -28,6 +30,7 @@
 	export let customHeaders = [];
 	export let draggable = false;
 	export let pageEnabled = true;
+	export let showDifficulty = false;
 	export let showUnresolved = true;
 	export let showSubtopic = true;
 
@@ -35,8 +38,9 @@
 		"front_id",
 		"full_name",
 		"topics_short",
-		"difficulty",
 		"problem_tests",
+		"average_difficulty",
+		"average_quality",
 		"created_at",
 		"edited_at",
 	];
@@ -45,6 +49,9 @@
 	}
 	$: if (showSubtopic) {
 		showList.push("sub_topics");
+	}
+	$: if (showDifficulty) {
+		showList.push("difficulty");
 	}
 
 	const dispatch = createEventDispatcher();
@@ -80,8 +87,7 @@
 		},
 		{
 			key: "difficulty",
-			width: "70px",
-			value: width > 700 ? "Difficulty" : "Diff.",
+			value: "Difficulty",
 		},
 		{
 			key: "problem_tests",
@@ -89,7 +95,15 @@
 		},
 		{
 			key: "sub_topics",
-			value: "SubTop"
+			value: "Subtopics",
+		},
+		{
+			key: "average_difficulty",
+			value: "Avg. Difficulty",
+		},
+		{
+			key: "average_quality",
+			value: "Avg. Quality",
 		},
 		{
 			key: "unresolved_count",
@@ -236,6 +250,14 @@
 				text: "Test Name",
 			},
 			{
+				id: "average_difficulty",
+				text: "Avg. Difficulty",
+			},
+			{
+				id: "average_quality",
+				text: "Avg. Quality",
+			},
+			{
 				id: "unresolved_count",
 				text: "Unresolved Feedback",
 			},
@@ -298,7 +320,8 @@
 					<div>
 						{cell.value + 1}
 					</div>
-				{:else if cell.key === "topic"}
+				{:else if cell.key === "topics"}
+					{console.log(cell.value)}
 					<div style="overflow: hidden;">
 						{cell.value == null || cell.value == ""
 							? "None"
@@ -327,9 +350,13 @@
 					<div style="overflow: hidden;">
 						{cell.value ?? 0}
 					</div>
+				{:else if cell.key === "average_difficulty" || cell.key === "average_quality"}
+					<div style="overflow: hidden;">
+						<Rating rating={cell.value / 2} size={15} count={true} round={2} />
+					</div>
 				{:else}
 					<div style="overflow: hidden;">
-						{cell.value == null || cell.value == "" ? "None" : cell.value}
+						{cell.value == null || cell.value == "" ? "-" : cell.value}
 					</div>
 				{/if}
 			</div>
