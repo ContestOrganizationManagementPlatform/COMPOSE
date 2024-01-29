@@ -353,6 +353,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		const solver = await getUser(feedback.solver_id);
 		console.log("problem", problem);
 		console.log("SOLVER", solver);
+		// TODO: Set const `thread` that gets the discord threadID from problem_feedback
 		const discord_id = solver.discord_id;
 		const solver_name = solver.full_name;
 		const discordToken = import.meta.env.VITE_BOT_TOKEN;
@@ -371,61 +372,90 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		const data = await response.json();
 		console.log(data);
 		*/
-		const user = await getUser(problem.author_id);
-		const embed = {
-			title: "Feedback received on problem " + user.initials + problem.id,
-			//description: "This is the description of the embed.",
-			type: "rich",
-			color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
-			author: {
-				name: solver_name,
-				//icon_url: "https://example.com/author.png", // URL to the author's icon
-			},
-			fields: [
-				{
-					name: "Problem",
-					value: problem.problem_latex,
-					inline: false, // You can set whether the field is inline
+		console.log("DISCORD_ID", problem);
+		if (problem.discord_id) {
+			const user = await getUser(problem.author_id);
+			const embed = {
+				title: "Feedback received on problem " + user.initials + problem.id,
+				//description: "This is the description of the embed.",
+				type: "rich",
+				color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
+				author: {
+					name: solver_name,
+					//icon_url: "https://example.com/author.png", // URL to the author's icon
 				},
-				{
-					name: "Feedback",
-					value: feedback.feedback,
-					inline: false,
+				fields: [
+					{
+						name: "Problem",
+						value: problem.problem_latex,
+						inline: false, // You can set whether the field is inline
+					},
+					{
+						name: "Feedback",
+						value: feedback.feedback,
+						inline: false,
+					},
+				],
+				footer: {
+					text: solver.discord_id,
+					icon_url: scheme.logo, // URL to the footer icon
 				},
-			],
-			footer: {
-				text: solver.discord_id,
-				icon_url: scheme.logo, // URL to the footer icon
-			},
-		};
-		const linkButton = {
-			type: 2, // LINK button component
-			style: 5, // LINK style (5) for external links
-			label: "View Feedback",
-			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-		};
-		const threadButton = {
-			type: 2,
-			style: 1,
-			custom_id: "create-thread",
-			label: "Make Thread",
-		};
-		await fetch("/api/discord/dm", {
-			method: "POST",
-			body: JSON.stringify({
-				userId: problem.author_id,
-				message: {
-					content: "",
-					embeds: [embed],
-					components: [
-						{
-							type: 1,
-							components: [linkButton, threadButton],
-						},
-					],
-				},
-			}),
-		});
+			};
+			const linkButton = {
+				type: 2, // LINK button component
+				style: 5, // LINK style (5) for external links
+				label: "View Problem",
+				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+			};
+			const response = await fetch("/api/discord/feedback", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					threadID: problem.discord_id,
+					message: {
+						content: "New feedback!",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton],
+							},
+						],
+					},
+				}),
+			});
+			const responseData = await response.json();
+			console.log("RESPONSE DATA", responseData);
+			console.log(responseData.channel_id);
+			const messageUrl =
+				"https://discord.com/channels/" +
+				scheme.discord.guild_id +
+				"/" +
+				responseData.channel_id;
+			console.log("Message URL", messageUrl);
+			const threadButton = {
+				type: 2,
+				style: 5,
+				url: messageUrl,
+				label: "View Thread",
+			};
+			await fetch("/api/discord/dm", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					message: {
+						content: "",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton, threadButton],
+							},
+						],
+					},
+				}),
+			});
+		}
 	});
 }
 
