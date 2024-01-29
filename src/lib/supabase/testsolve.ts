@@ -387,13 +387,8 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 				fields: [
 					{
 						name: "Problem",
-						value: problem.problem_latex,
+						value: "" + problem.problem_latex,
 						inline: false, // You can set whether the field is inline
-					},
-					{
-						name: "Feedback",
-						value: feedback.feedback,
-						inline: false,
 					},
 				],
 				footer: {
@@ -401,6 +396,21 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 					icon_url: scheme.logo, // URL to the footer icon
 				},
 			};
+			// Function to add a field if the value is not null
+			function addFieldIfNotNull(name, value, inline = false) {
+				if (value !== null) {
+					embed.fields.push({
+						name: name,
+						value: "" + value,
+						inline: inline,
+					});
+				}
+			}
+			addFieldIfNotNull("Answer", feedback.answer, true);
+			addFieldIfNotNull("Quality", feedback.quality, true);
+			addFieldIfNotNull("Difficulty", feedback.difficulty, true);
+			addFieldIfNotNull("Feedback", feedback.feedback, false);
+			console.log("EMBED", embed);
 			const linkButton = {
 				type: 2, // LINK button component
 				style: 5, // LINK style (5) for external links
