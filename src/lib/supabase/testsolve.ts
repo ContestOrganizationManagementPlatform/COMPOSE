@@ -383,29 +383,39 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 				name: solver_name,
 				//icon_url: "https://example.com/author.png", // URL to the author's icon
 			},
-			fields: [
-				{
-					name: "Problem",
-					value: problem.problem_latex,
-					inline: false, // You can set whether the field is inline
+				fields: [
+					{
+						name: "Problem",
+						value: "" + problem.problem_latex,
+						inline: false, // You can set whether the field is inline
+					},
+				],
+				footer: {
+					text: solver.discord_id,
+					icon_url: scheme.logo, // URL to the footer icon
 				},
-				{
-					name: "Feedback",
-					value: feedback.feedback,
-					inline: false,
-				},
-			],
-			footer: {
-				text: solver.discord_id,
-				icon_url: scheme.logo, // URL to the footer icon
-			},
-		};
-		const linkButton = {
-			type: 2, // LINK button component
-			style: 5, // LINK style (5) for external links
-			label: "View Problem",
-			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-		};
+			};
+			// Function to add a field if the value is not null
+			function addFieldIfNotNull(name, value, inline = false) {
+				if (value !== null) {
+					embed.fields.push({
+						name: name,
+						value: "" + value,
+						inline: inline,
+					});
+				}
+			}
+			addFieldIfNotNull("Answer", feedback.answer, true);
+			addFieldIfNotNull("Quality", feedback.quality, true);
+			addFieldIfNotNull("Difficulty", feedback.difficulty, true);
+			addFieldIfNotNull("Feedback", feedback.feedback, false);
+			console.log("EMBED", embed);
+			const linkButton = {
+				type: 2, // LINK button component
+				style: 5, // LINK style (5) for external links
+				label: "View Problem",
+				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+			};
 		if (problem.discord_id) {
 			const response = await fetch("/api/discord/feedback", {
 				method: "POST",
