@@ -1,12 +1,11 @@
 import scheme from "$lib/scheme.json";
 
-
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
 export async function POST({ request }) {
-	console.log(request)
+	console.log(request);
 	const body = await request.json();
-	console.log("BODY CONTENT:", body.content)
+	console.log("BODY CONTENT:", body.content);
 	console.log("BODY", JSON.stringify(body));
 	console.log("THREAD ID:", body.threadID);
 
@@ -24,5 +23,5 @@ export async function POST({ request }) {
 	);
 	const data = await response.json();
 	console.log("DATA", data);
-	return new Response(data, { status: 300 });
+	return new Response(JSON.stringify(data), { status: 300 });
 }

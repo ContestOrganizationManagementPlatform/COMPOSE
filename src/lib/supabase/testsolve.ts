@@ -404,22 +404,47 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 			const linkButton = {
 				type: 2, // LINK button component
 				style: 5, // LINK style (5) for external links
-				label: "View Feedback",
+				label: "View Problem",
 				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-			};
-			const threadButton = {
-				type: 2,
-				style: 1,
-				custom_id: "create-thread",
-				label: "Make Thread",
 			};
 			const response = await fetch("/api/discord/feedback", {
 				method: "POST",
 				body: JSON.stringify({
 					userId: problem.author_id,
-					threadID: problem.discord_id, // ATTRIBUTE TO BE ADDED, DOES NOT EXIST YET
+					threadID: problem.discord_id,
 					message: {
 						content: "New feedback!",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton],
+							},
+						],
+					},
+				}),
+			});
+			const responseData = await response.json();
+			console.log("RESPONSE DATA", responseData);
+			console.log(responseData.channel_id);
+			const messageUrl =
+				"https://discord.com/channels/" +
+				scheme.discord.guild_id +
+				"/" +
+				responseData.channel_id;
+			console.log("Message URL", messageUrl);
+			const threadButton = {
+				type: 2,
+				style: 5,
+				url: messageUrl,
+				label: "View Thread",
+			};
+			await fetch("/api/discord/dm", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					message: {
+						content: "",
 						embeds: [embed],
 						components: [
 							{
@@ -430,8 +455,6 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 					},
 				}),
 			});
-			const responseData = await response.json();
-			console.log(responseData);
 		}
 	});
 }

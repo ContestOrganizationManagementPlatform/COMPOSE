@@ -5,6 +5,7 @@
 	"description": "COMP",
 	"url": "http://localhost:3000",
 	"discord": {
+		"guild_id": "968089252107792444",
 		"embed_color": "0x65c083",
 		"thread_channel": "1182668103130296420",
 		"notifs_channel": "1182668043399221308",
