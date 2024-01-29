@@ -373,40 +373,40 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		console.log(data);
 		*/
 		console.log("DISCORD_ID", problem);
+		const user = await getUser(problem.author_id);
+		const embed = {
+			title: "Feedback received on problem " + user.initials + problem.id,
+			//description: "This is the description of the embed.",
+			type: "rich",
+			color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
+			author: {
+				name: solver_name,
+				//icon_url: "https://example.com/author.png", // URL to the author's icon
+			},
+			fields: [
+				{
+					name: "Problem",
+					value: problem.problem_latex,
+					inline: false, // You can set whether the field is inline
+				},
+				{
+					name: "Feedback",
+					value: feedback.feedback,
+					inline: false,
+				},
+			],
+			footer: {
+				text: solver.discord_id,
+				icon_url: scheme.logo, // URL to the footer icon
+			},
+		};
+		const linkButton = {
+			type: 2, // LINK button component
+			style: 5, // LINK style (5) for external links
+			label: "View Problem",
+			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+		};
 		if (problem.discord_id) {
-			const user = await getUser(problem.author_id);
-			const embed = {
-				title: "Feedback received on problem " + user.initials + problem.id,
-				//description: "This is the description of the embed.",
-				type: "rich",
-				color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
-				author: {
-					name: solver_name,
-					//icon_url: "https://example.com/author.png", // URL to the author's icon
-				},
-				fields: [
-					{
-						name: "Problem",
-						value: problem.problem_latex,
-						inline: false, // You can set whether the field is inline
-					},
-					{
-						name: "Feedback",
-						value: feedback.feedback,
-						inline: false,
-					},
-				],
-				footer: {
-					text: solver.discord_id,
-					icon_url: scheme.logo, // URL to the footer icon
-				},
-			};
-			const linkButton = {
-				type: 2, // LINK button component
-				style: 5, // LINK style (5) for external links
-				label: "View Problem",
-				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-			};
 			const response = await fetch("/api/discord/feedback", {
 				method: "POST",
 				body: JSON.stringify({
@@ -450,6 +450,23 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 							{
 								type: 1,
 								components: [linkButton, threadButton],
+							},
+						],
+					},
+				}),
+			});
+		} else {
+			await fetch("/api/discord/dm", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					message: {
+						content: "",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton],
 							},
 						],
 					},
