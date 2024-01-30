@@ -353,6 +353,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		const solver = await getUser(feedback.solver_id);
 		console.log("problem", problem);
 		console.log("SOLVER", solver);
+		// TODO: Set const `thread` that gets the discord threadID from problem_feedback
 		const discord_id = solver.discord_id;
 		const solver_name = solver.full_name;
 		const discordToken = import.meta.env.VITE_BOT_TOKEN;
@@ -371,6 +372,7 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 		const data = await response.json();
 		console.log(data);
 		*/
+		console.log("DISCORD_ID", problem);
 		const user = await getUser(problem.author_id);
 		const embed = {
 			title: "Feedback received on problem " + user.initials + problem.id,
@@ -381,51 +383,106 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 				name: solver_name,
 				//icon_url: "https://example.com/author.png", // URL to the author's icon
 			},
-			fields: [
-				{
-					name: "Problem",
-					value: problem.problem_latex,
-					inline: false, // You can set whether the field is inline
+				fields: [
+					{
+						name: "Problem",
+						value: "" + problem.problem_latex,
+						inline: false, // You can set whether the field is inline
+					},
+				],
+				footer: {
+					text: solver.discord_id,
+					icon_url: scheme.logo, // URL to the footer icon
 				},
-				{
-					name: "Feedback",
-					value: feedback.feedback,
-					inline: false,
-				},
-			],
-			footer: {
-				text: solver.discord_id,
-				icon_url: scheme.logo, // URL to the footer icon
-			},
-		};
-		const linkButton = {
-			type: 2, // LINK button component
-			style: 5, // LINK style (5) for external links
-			label: "View Feedback",
-			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-		};
-		const threadButton = {
-			type: 2,
-			style: 1,
-			custom_id: "create-thread",
-			label: "Make Thread",
-		};
-		await fetch("/api/discord/dm", {
-			method: "POST",
-			body: JSON.stringify({
-				userId: problem.author_id,
-				message: {
-					content: "",
-					embeds: [embed],
-					components: [
-						{
-							type: 1,
-							components: [linkButton, threadButton],
-						},
-					],
-				},
-			}),
-		});
+			};
+			// Function to add a field if the value is not null
+			function addFieldIfNotNull(name, value, inline = false) {
+				if (value !== null) {
+					embed.fields.push({
+						name: name,
+						value: "" + value,
+						inline: inline,
+					});
+				}
+			}
+			addFieldIfNotNull("Answer", feedback.answer, true);
+			addFieldIfNotNull("Quality", feedback.quality, true);
+			addFieldIfNotNull("Difficulty", feedback.difficulty, true);
+			addFieldIfNotNull("Feedback", feedback.feedback, false);
+			console.log("EMBED", embed);
+			const linkButton = {
+				type: 2, // LINK button component
+				style: 5, // LINK style (5) for external links
+				label: "View Problem",
+				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+			};
+		if (problem.discord_id) {
+			const response = await fetch("/api/discord/feedback", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					threadID: problem.discord_id,
+					message: {
+						content: "New feedback!",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton],
+							},
+						],
+					},
+				}),
+			});
+			const responseData = await response.json();
+			console.log("RESPONSE DATA", responseData);
+			console.log(responseData.channel_id);
+			const messageUrl =
+				"https://discord.com/channels/" +
+				scheme.discord.guild_id +
+				"/" +
+				responseData.channel_id;
+			console.log("Message URL", messageUrl);
+			const threadButton = {
+				type: 2,
+				style: 5,
+				url: messageUrl,
+				label: "View Thread",
+			};
+			await fetch("/api/discord/dm", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					message: {
+						content: "",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton, threadButton],
+							},
+						],
+					},
+				}),
+			});
+		} else {
+			await fetch("/api/discord/dm", {
+				method: "POST",
+				body: JSON.stringify({
+					userId: problem.author_id,
+					message: {
+						content: "",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton],
+							},
+						],
+					},
+				}),
+			});
+		}
 	});
 }
 
