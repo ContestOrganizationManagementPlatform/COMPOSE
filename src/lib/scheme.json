@@ -1,20 +1,20 @@
 {
-	"title": "COMP",
-	"abbreviation": "COMP",
-	"logo": "https://i.ibb.co/NTT4qP5/COMP-logo.png",
-	"description": "COMP is the dev platform for COMP.",
-	"url": "http://localhost:3000",
+	"title": "Mustang Math",
+	"abbreviation": "MM",
+	"logo": "https://mustangmath.com/favicon.png",
+	"description": "The Mustang Math Tournament (MMT) is an online middle school contest hosted by experienced high school and college students, designed to get participants excited about working together on math problems.",
+	"url": "https://compose.mustangmath.com",
 	"discord": {
-		"guild_id": "968089252107792444",
+		"guild_id": "826629811257606155",
 		"embed_color": "0x65c083",
-		"thread_channel": "1182668103130296420",
-		"notifs_channel": "1182668043399221308",
-		"notifs_forum": "1182668248089624587"
+		"thread_channel": "1167667268994478101",
+		"notifs_channel": "1011843767508156496",
+    		"notifs_forum": "1191689032749555762"
 	},
 	"progress": {
 		"after": "2023-11-20T13:00:00Z",
 		"before": "2024-03-01T00:00:00Z",
-		"goal": 200
+		"goal": 120
 	},
 	"styles": {
 		"text-color-light": "#fff",
