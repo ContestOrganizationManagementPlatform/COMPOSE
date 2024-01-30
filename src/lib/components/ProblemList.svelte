@@ -282,6 +282,8 @@
 		size="compact"
 		expandable
 		sortable
+		sortKey={"created_at"}
+		sortDirection={"Descending"}
 		{selectable}
 		bind:selectedRowIds={selectedItems}
 		nonSelectableRowIds={disableAll
