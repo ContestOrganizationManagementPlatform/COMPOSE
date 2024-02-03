@@ -71,6 +71,7 @@
 			}));
 			selectedTest = testProblems.map((pb) => pb.id);
 			let allProblemList = await getProblems({ customSelect: "*" });
+			console.log("PROBLEMS", allProblemList);
 
 			// prevent problems from appearing twice
 			allProblems = allProblemList.filter(
@@ -248,11 +249,15 @@
 				<h3>All Problems</h3>
 				<ProblemList
 					problems={allProblems}
-					condensed
 					selectable
-					editable={false}
-					showUnresolved={false}
-					showSubtopic={false}
+					showList={[
+						"topics_short",
+						"sub_topics",
+						"problem_tests",
+						"average_difficulty",
+						"average_quality",
+						"unresolved_count",
+					]}
 					bind:selectedItems={selectedAll}
 					disableAll={refreshingProblems}
 				/>
@@ -261,18 +266,24 @@
 				<h3>Test Problems</h3>
 				<ProblemList
 					problems={testProblems}
-					condensed
 					selectable
 					draggable
-					editable={false}
+					sortKey={"problem_number"}
+					sortDirection={"ascending"}
 					pageEnabled={false}
-					showUnresolved={false}
-					showSubtopic={false}
+					showList={[
+						"topics_short",
+						"sub_topics",
+						"problem_tests",
+						"average_difficulty",
+						"average_quality",
+						"unresolved_count",
+					]}
 					bind:selectedItems={selectedTest}
 					disableAll={refreshingProblems}
 					customHeaders={[
 						{ key: "drag", value: "", sort: false },
-						{ key: "problem_number", value: "#" },
+						{ key: "problem_number", value: "", icon: "ri-hashtag" },
 					]}
 					on:reorder={handleReorder}
 				/>

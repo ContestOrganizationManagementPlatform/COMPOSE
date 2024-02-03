@@ -352,17 +352,19 @@
 		<li>{message.role}: {message.content}</li>
 	{/each}
 </ul>
-<form on:submit={submitWrapper}>
-	<TextArea
-		class="textArea"
-		labelText="Use CASSIE to filter (Beta)!"
-		placeholder="Type some sort of command to filter (e.g. Show me all problems with difficulty harder than 4 and sort it hardest to easiest.). You can build queries off of the previous one."
-		bind:value={$input}
-		required={true}
-	/>
-	<br />
-	<Button type="submit" title="Apply Filter" />
-</form>
+<div style="width:80%; margin: auto;margin-bottom: 20px;">
+	<form on:submit={submitWrapper}>
+		<TextArea
+			class="textArea"
+			labelText="Use CASSIE to filter (Beta)!"
+			placeholder="Type some sort of command to filter (e.g. Show me all problems with difficulty harder than 4 and sort it hardest to easiest.). You can build queries off of the previous one."
+			bind:value={$input}
+			required={true}
+		/>
+		<br />
+		<Button type="submit" title="Apply Filter" />
+	</form>
+</div>
 <br />
 <Button action={resetProblems} title="Clear Filter" />
 <br /><br />
