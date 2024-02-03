@@ -213,9 +213,6 @@
 
 <svelte:window />
 <div bind:clientWidth={width} class="align-items: right; display: flex;">
-	{width}
-	{maxCols}
-	{colWidth}
 	<MultiSelect
 		bind:selectedIds={showList}
 		direction="top"
