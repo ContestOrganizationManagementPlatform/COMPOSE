@@ -259,10 +259,21 @@
 		{#if loadingProblems}
 			<p>Loading problems...</p>
 		{:else}
-			<div style="padding: 20px;">
+			<div style="width: 80%; margin: auto; padding: 20px;">
 				<ProblemList
 					{problems}
-					customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
+					showList={[
+						"full_name",
+						"topics_short",
+						"sub_topics",
+						"problem_tests",
+						"average_difficulty",
+						"average_quality",
+						"unresolved_count",
+					]}
+					customHeaders={[
+						{ key: "problem_number", value: "", icon: "ri-hashtag" },
+					]}
 				/>
 			</div>
 		{/if}
