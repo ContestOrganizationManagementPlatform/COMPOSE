@@ -125,8 +125,8 @@
 				</Link>
 				<br />
 				<Link
-					href="/manage-testsolves"
-					class={path == "manage-testsolves" ? "active link" : "link"}
+					href="/admin/testsolves"
+					class={path == "/admin/testsolves" ? "active link" : "link"}
 				>
 					<p class="linkPara">Admin: Testsolves</p>
 				</Link>

@@ -10,8 +10,8 @@
 		removeTestsolver,
 		getThisUserRole,
 		getThisUser,
-		getSelectTestsolveAnswers,
-		getProblemTestsolveAnswers,
+		getTestsolveFeedbackAnswers,
+		getProblemFeedback,
 		updateTestsolve,
 		addProblemTestsolveAnswer,
 		updateTestsolveFeedbackAnswers,
@@ -41,15 +41,24 @@
 	let user;
 	(async () => {
 		user = await getThisUser();
+		await loadIsAdmin();
+		console.log("Loaded isAdmin", isAdmin);
+		await permissionCheck();
+		console.log("Completed Perms Check 2");
+		await getLocalFeedbackQuestions();
+		console.log(feedbackQuestions, feedbackAnswers);
 	})();
 
 	async function getLocalFeedbackQuestions() {
 		try {
+			console.log("testsolve 2", testsolve);
 			const test_feedback_questions = await getFeedbackQuestions(
 				testsolve.test_id
 			);
-
+			console.log("TESTFEEDBACKQUESTIONS", test_feedback_questions);
 			for (const x of test_feedback_questions) {
+				console.log("hello");
+				console.log(x);
 				feedbackQuestions[x.id] = x;
 				feedbackAnswers.push({
 					feedback_question: x.id,
@@ -66,7 +75,7 @@
 
 	async function getFeedbackAnswers() {
 		try {
-			feedbackAnswers = await getSelectTestsolveAnswers(
+			feedbackAnswers = await getTestsolveFeedbackAnswers(
 				Number($page.params.id)
 			);
 		} catch (error) {
@@ -80,7 +89,7 @@
 			if (isAdmin) {
 				await removeTestsolver(Number($page.params.id));
 				toast.success("Successfully deleted testsolve!");
-				window.location.href = "/manage-testsolves";
+				window.location.href = "/admin/testsolves";
 			}
 		} catch (error) {
 			handleError(error);
@@ -98,6 +107,7 @@
 					"Testsolve with id " + $page.params.id + " doesn't exist!"
 				);
 			} else {
+				testsolve = testsolve[0];
 				if (
 					(await getThisUserRole()) === 40 ||
 					testsolve.solver_id === user.id
@@ -115,12 +125,14 @@
 				}
 			}
 
+			console.log("testsolve", testsolve);
+
 			if (disallowed) {
 				loading = false;
 			} else {
-				getAnswers();
-				getLocalFeedbackQuestions();
-				getFeedbackAnswers();
+				await getAnswers();
+				await getLocalFeedbackQuestions();
+				await getFeedbackAnswers();
 			}
 		} catch (error) {
 			handleError(error);
@@ -130,15 +142,13 @@
 
 	async function getAnswers() {
 		try {
-			answers = await getProblemTestsolveAnswers(Number($page.params.id));
+			answers = await getProblemFeedback(Number($page.params.id));
 			loading = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
-
-	permissionCheck();
 
 	async function submitTestsolve() {
 		try {
@@ -190,7 +200,6 @@
 			isAdmin = false;
 		}
 	}
-	loadIsAdmin();
 </script>
 
 {#if loading}

@@ -56,6 +56,7 @@
 	function changeAnswer(id) {
 		const curAnswer = answers.find((a) => a.problem_id === id);
 		curAnswer.answer = answerTexts[id];
+		console.log(answerTexts[id]);
 	}
 
 	function changeChecked(id) {
@@ -145,22 +146,23 @@
 					</div>
 				</div>
 			{/each}
-		{/if}
-		<br />
-		<div class="flex">
-			<div class="questionsDiv">
-				<p style="font-size: 20px">
-					<strong>General Testsolving Questions</strong>
-				</p>
-				<br />
-				{#each feedbackAnswers as { feedback_question }, i}
-					<p>{i + 1}. {feedbackQuestions[feedback_question].question}</p>
-					<TextInput bind:value={feedbackAnswers[i].answer} />
+			<br />
+			<div class="flex">
+				<div class="questionsDiv">
+					<p style="font-size: 20px">
+						<strong>General Testsolving Questions</strong>
+					</p>
 					<br />
-				{/each}
+					{#each feedbackAnswers as { feedback_question }, i}
+						<p>{i + 1}. {feedbackQuestions[feedback_question].question}</p>
+						<TextInput bind:value={feedbackAnswers[i].answer} />
+						<br />
+					{/each}
+				</div>
 			</div>
-		</div>
-		<br />
+			<br />
+		{/if}
+
 		{#if submittable}
 			<Button action={submitTest()} title="Submit" />
 		{/if}

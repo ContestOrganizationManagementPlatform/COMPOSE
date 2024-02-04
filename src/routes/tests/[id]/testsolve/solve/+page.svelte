@@ -10,11 +10,11 @@
 		addProblemTestsolveAnswer,
 		checkPriorTestsolve,
 		getFeedbackQuestions,
-		getSelectTestsolveAnswers,
+		getTestsolveFeedbackAnswers,
 		getSelectTestsolvers,
 		getTestCoordinators,
 		getTestInfo,
-		getTestsolveTestsolveAnswers,
+		getTestsolveProblemFeedback,
 		getThisUser,
 		getThisUserRole,
 		getUser,
@@ -101,10 +101,11 @@
 			);
 
 			if (loadedTestsolve.length > 0) {
-				answers = await getTestsolveTestsolveAnswers(loadedTestsolve[0].id);
-				feedbackAnswers = await getSelectTestsolveAnswers(
+				answers = await getTestsolveProblemFeedback(loadedTestsolve[0].id);
+				feedbackAnswers = await getTestsolveFeedbackAnswers(
 					loadedTestsolve[0].id
 				);
+				console.log("ANSWERS", answers, feedbackAnswers);
 				timeOffset = loadedTestsolve[0].time_elapsed;
 			}
 
@@ -120,16 +121,15 @@
 	async function submitTestsolve(completedSolve) {
 		try {
 			endTime = new Date();
-
+			console.log(startTime);
+			console.log("ENDTIME", endTime);
 			// time elapsed in seconds
 			const timeElapsed = Math.floor((endTime - startTime) / 1000) + timeOffset;
-
+			console.log("ELAPSED", timeElapsed);
 			let data;
 
 			// fetch the current test version
 			const testData = await getTestInfo(Number($page.params.id));
-
-			console.log(startTime);
 
 			// check if this is a resubmission
 			if (loadedTestsolve) {

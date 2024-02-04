@@ -36,32 +36,18 @@ export interface TestsolveRequest {
 }
 
 /**
- * Get all testsolvers from the database
- *
- * @param customSelect optional, string
- * @returns testsolvers list
- */
-export async function getAllTestsolvers(customSelect: string = "*") {
-	let { data: testsolveInfo, error } = await supabase
-		.from("testsolvers")
-		.select(customSelect);
-	if (error) throw error;
-	return testsolveInfo;
-}
-
-/**
  * Get a test's testsolvers from the database
  *
  * @param test_id number
  * @param customSelect optional, string
  * @returns testsolvers list
  */
-export async function getTestTestsolvers(
+export async function getTestTestsolves(
 	test_id: number,
 	customSelect: string = "*"
 ) {
 	let { data, error } = await supabase
-		.from("testsolvers")
+		.from("testsolves")
 		.select(customSelect)
 		.eq("test_id", test_id);
 	if (error) throw error;
@@ -75,7 +61,7 @@ export async function getTestTestsolvers(
  * @param customSelect optional, string
  * @returns testsolvers list
  */
-export async function getSolverTestsolvers(
+export async function getSolverTests(
 	solver_id: number,
 	customSelect: string = "*"
 ) {
@@ -119,7 +105,7 @@ export async function getSelectTestsolvers(
  */
 export async function addTestsolver(testsolver: TestsolverRequest) {
 	const { data, error } = await supabase
-		.from("testsolvers")
+		.from("testsolves")
 		.insert([testsolver])
 		.select();
 	if (error) throw error;
@@ -135,7 +121,7 @@ export async function removeTestsolver(testsolver_id: number) {
 	const { error } = await supabase
 		.from("testsolvers")
 		.delete()
-		.eq("id", testsolver_id);
+		.eq("solver_id", testsolver_id);
 	if (error) throw error;
 }
 
@@ -252,20 +238,20 @@ export async function insertTestsolve(testsolve_data: TestsolveRequest) {
  */
 export async function deleteTestsolve(testsolveId: number) {
 	const { data, error } = await supabase
-		.from("testsolvers")
+		.from("testsolves")
 		.delete()
 		.eq("id", testsolveId);
 	if (error) throw error;
 }
 
 /**
- * Get a problem's testsolve answers
+ * Get a problem's feedback by problem_id
  *
  * @param problemId number
  * @param customSelect optional, string
  * @returns list of testsolve answers
  */
-export async function getProblemTestsolveAnswers(
+export async function getProblemFeedback(
 	problemId: number,
 	customSelect: string = "*"
 ) {
@@ -278,32 +264,13 @@ export async function getProblemTestsolveAnswers(
 }
 
 /**
- * Get a problem's testsolve answers in a specific order
- *
- * @param customOrder string
- * @param customSelect optional, string
- * @returns list of testsolve answers
- */
-export async function getProblemTestsolveAnswersOrder(
-	customOrder: string,
-	customSelect: string = "*"
-) {
-	let { data, error } = await supabase
-		.from("problem_feedback")
-		.select(customSelect)
-		.order(customOrder);
-	if (error) throw error;
-	return data;
-}
-
-/**
- * Get testsolve answer from testsolve id
+ * Gets the feedback for the problems in a particular testsolve
  *
  * @param testsolve_id number
  * @param customSelect optional, string
  * @returns list of testsolve answers
  */
-export async function getTestsolveTestsolveAnswers(
+export async function getTestsolveProblemFeedback(
 	testsolve_id: number,
 	customSelect: string = "*"
 ) {
@@ -383,39 +350,39 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 				name: solver_name,
 				//icon_url: "https://example.com/author.png", // URL to the author's icon
 			},
-				fields: [
-					{
-						name: "Problem",
-						value: "" + problem.problem_latex,
-						inline: false, // You can set whether the field is inline
-					},
-				],
-				footer: {
-					text: solver.discord_id,
-					icon_url: scheme.logo, // URL to the footer icon
+			fields: [
+				{
+					name: "Problem",
+					value: "" + problem.problem_latex,
+					inline: false, // You can set whether the field is inline
 				},
-			};
-			// Function to add a field if the value is not null
-			function addFieldIfNotNull(name, value, inline = false) {
-				if (value !== null) {
-					embed.fields.push({
-						name: name,
-						value: "" + value,
-						inline: inline,
-					});
-				}
+			],
+			footer: {
+				text: solver.discord_id,
+				icon_url: scheme.logo, // URL to the footer icon
+			},
+		};
+		// Function to add a field if the value is not null
+		function addFieldIfNotNull(name, value, inline = false) {
+			if (value !== null) {
+				embed.fields.push({
+					name: name,
+					value: "" + value,
+					inline: inline,
+				});
 			}
-			addFieldIfNotNull("Answer", feedback.answer, true);
-			addFieldIfNotNull("Quality", feedback.quality, true);
-			addFieldIfNotNull("Difficulty", feedback.difficulty, true);
-			addFieldIfNotNull("Feedback", feedback.feedback, false);
-			console.log("EMBED", embed);
-			const linkButton = {
-				type: 2, // LINK button component
-				style: 5, // LINK style (5) for external links
-				label: "View Problem",
-				url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
-			};
+		}
+		addFieldIfNotNull("Answer", feedback.answer, true);
+		addFieldIfNotNull("Quality", feedback.quality, true);
+		addFieldIfNotNull("Difficulty", feedback.difficulty, true);
+		addFieldIfNotNull("Feedback", feedback.feedback, false);
+		console.log("EMBED", embed);
+		const linkButton = {
+			type: 2, // LINK button component
+			style: 5, // LINK style (5) for external links
+			label: "View Problem",
+			url: scheme.url + "/problems/" + problem.id, // The external URL you want to link to
+		};
 		if (problem.discord_id) {
 			const response = await fetch("/api/discord/feedback", {
 				method: "POST",
@@ -540,7 +507,7 @@ export async function getTestsolveAnswers(orderedFeedbackQuestions: []) {
  * @param testsolve_id number
  * @returns testsolve feedback answers
  */
-export async function getSelectTestsolveAnswers(testsolve_id: number) {
+export async function getTestsolveFeedbackAnswers(testsolve_id: number) {
 	let { data, error } = await supabase
 		.from("testsolve_feedback_answers")
 		.select("*")

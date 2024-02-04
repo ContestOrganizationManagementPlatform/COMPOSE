@@ -15,7 +15,7 @@
 		getProblemCounts,
 		getThisUser,
 		getProblems,
-		getProblemTestsolveAnswers,
+		getProblemFeedback,
 	} from "$lib/supabase";
 	import { List, Schematics } from "carbon-icons-svelte";
 
