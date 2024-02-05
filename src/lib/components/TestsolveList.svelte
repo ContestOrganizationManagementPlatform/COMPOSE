@@ -15,6 +15,7 @@
 	import Problem from "$lib/components/Problem.svelte";
 	import { sortIDs } from "$lib/sortIDs";
 	import Switcher from "carbon-icons-svelte/lib/Switcher.svelte";
+	import { formatTime } from "$lib/formatDate";
 	import { createEventDispatcher } from "svelte";
 	import { Filter } from "carbon-icons-svelte";
 	import toast from "svelte-french-toast";
@@ -203,6 +204,12 @@
 								</Modal>
 							</div>
 						{/if}
+					</div>
+				{:else if cell.key === "elapsed"}
+					<div style="overflow: hidden;">
+						{cell.value == null || cell.value == ""
+							? "-"
+							: formatTime(cell.value)}
 					</div>
 				{:else}
 					<div style="overflow: hidden;">
