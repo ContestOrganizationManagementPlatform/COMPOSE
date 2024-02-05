@@ -6,13 +6,24 @@
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 	import {
-		getImages,
 		getProblemTestsolveAnswersOrder,
+		getImages,
 		getTestInfo,
 		getTestProblems,
 		getThisUser,
 		getThisUserRole,
 	} from "$lib/supabase";
+	import QRCode from "qrcode";
+	import compilerPath from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url'
+	import rendererPath from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url'
+	import { $typst as Typst } from '@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs';
+	import { ImageBucket } from "$lib/ImageBucket";
+	import type { ProblemImage } from "$lib/getProblemImages";
+	import answerSheet from './answer_sheet.typ?url'
+
+	Typst.setRendererInitOptions({getModule: () => rendererPath});
+	Typst.setCompilerInitOptions({getModule: () => compilerPath});
+
 
 	let testId = Number($page.params.id);
 	let test;
@@ -39,7 +50,7 @@
 		try {
 			test = await getTestInfo(
 				testId,
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,id)"
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
@@ -53,11 +64,11 @@
 			toast.error(error.message);
 		}
 	}
+
 	//Look a comment
 	async function getProblems() {
 		try {
 			let problemList = await getTestProblems(testId);
-			let feedback = await getProblemTestsolveAnswersOrder("problem_id", "*");
 
 			problems = problemList.map((pb) => ({
 				problem_number: pb.problem_number,
@@ -70,150 +81,65 @@
 		}
 	}
 
-	function getProblemFeedback(id) {
-		var returning = [];
-		for (var prob of feedback) {
-			if (prob.problem_id == id) {
-				returning.push(prob);
-			}
-		}
-		return returning;
-	}
-
-	async function getBucketPaths(path) {
-		try {
-			const data = await getImages(path);
-			let ans = [];
-			for (let i = 0; i < data.length; i++) {
-				if (data[i].id != null) {
-					if (path === "") {
-						ans.push(data[i].name);
-					} else {
-						ans.push(path + "/" + data[i].name);
-					}
-				} else {
-					let x;
-					if (path === "") {
-						x = await getBucketPaths(data[i].name);
-					} else {
-						x = await getBucketPaths(path + "/" + data[i].name);
-					}
-					for (let j = 0; j < x.length; j++) {
-						ans.push(x[j]);
-					}
-				}
-			}
-			return ans;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
 	async function openTest() {
 		try {
-			let l =
-				"\\title{" +
-				test.test_name +
-				"}\\author{" +
-				test.tournaments.tournament_name +
-				"}\\date{Mustang Math}\\begin{document}\\maketitle";
-
-			if (group.includes("Feedback")) {
-				l += "\\section*{Test Feedback}";
-				for (var feedback of test.testsolves) {
-					if (feedback.feedback != null && feedback.feedback != "") {
-						l +=
-							"\\textbf{" +
-							feedback.id +
-							":} " +
-							feedback.feedback +
-							"\\newline";
-					}
-				}
+			const generateQR = async (text: string) => {
+		    return await QRCode.toString(text, {"type": "svg"});
 			}
 
-			for (const problem of problems) {
-				l += group.includes("Problem ID")
-					? "\\section*{Problem " +
-					  (problem.problem_number + 1) +
-					  " (" +
-					  problem.front_id +
-					  ")}"
-					: "\\section*{Problem " + (problem.problem_number + 1) + "}";
-				if (group.includes("Problems")) {
-					l +=
-						"\\textbf{Problem:} " +
-						problem.problem_latex +
-						"\\newline\\newline";
-				}
-
-				if (group.includes("Answers") && problem.answer_latex != "") {
-					l +=
-						"\\textbf{Answer:} " + problem.answer_latex + "\\newline\\newline";
-				}
-
-				if (group.includes("Solutions") && problem.solution_latex != "") {
-					l +=
-						"\\textbf{Solution:} " +
-						problem.solution_latex.replace("\\ans{", "\\boxed{") +
-						"\\newline\\newline";
-				}
-
-				if (group.includes("Comments") && problem.comment_latex != "") {
-					l +=
-						"\\textbf{Comment:} " +
-						problem.comment_latex.replace("\\ans{", "\\boxed{") +
-						"\\newline\\newline";
-				}
-
-				if (group.includes("Feedback")) {
-					var feed = getProblemFeedback(problem.problem_number);
-
-					if (feed.length > 0) {
-						l += "\\textbf{Feedback:} ";
-
-						for (var f of feed) {
-							if (f.feedback != "") {
-								l += "\\\\\\textbf{" + f.testsolve_id + ":} " + f.feedback;
-							}
-						}
-
-						l += "\\newline\\newline";
-					}
-				}
+			// When mitex supports brackets, we can remove this.
+			for (let problem of problems) {
+				problem.problem_latex = problem.problem_latex.replaceAll('\\(', '$')
+				problem.problem_latex = problem.problem_latex.replaceAll('\\)', '$')
+				problem.problem_latex = problem.problem_latex.replaceAll('\\[', '$$')
+				problem.problem_latex = problem.problem_latex.replaceAll('\\]', '$$')
 			}
-			l += "\\end{document}";
+			const qr_text = await generateQR(test.id.toString());
+			let utf8Encode = new TextEncoder();
+			Typst.mapShadow("/assets/qr.svg", utf8Encode.encode(qr_text));
+			const test_metadata = JSON.stringify({name: test.test_name});
+			Typst.mapShadow("/assets/test_metadata.json", utf8Encode.encode(test_metadata));
+			Typst.mapShadow("/assets/problems.json", utf8Encode.encode(JSON.stringify(problems)));
+			Typst.mapShadow("/answer_sheet_compiling.toml", utf8Encode.encode("[config]\nlocal = false"));
 
-			let images = await getBucketPaths("");
+			const answer_template_body = await fetch(answerSheet).then(r => r.text());
 
-			const resp = await fetch(
-				// make env variable before pushing
-				import.meta.env.VITE_PDF_GENERATOR_URL,
-				{
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						mode: "no-cors",
-					},
-					body: JSON.stringify({
-						latex: l,
-						images,
-					}),
-				}
-			);
-			const blob = await resp.blob();
-			const newBlob = new Blob([blob]);
-			const blobUrl = window.URL.createObjectURL(newBlob);
-			const link = document.createElement("a");
-			link.href = blobUrl;
-			link.setAttribute("download", test.test_name + ".pdf");
-			document.body.appendChild(link);
-			link.click();
-			link.parentNode.removeChild(link);
+			let { images, errorList }: {images: ProblemImage[], errorList: any[]} = (await Promise.all(
+				problems.map(p => ImageBucket.downloadLatexImages(p.problem_latex))
+			)).reduce((a, e) => {
+				a.errorList = a.errorList.concat(e.errorList);
+				a.images = a.images.concat(e.images);
+				return a;
+			}); 
+			if (errorList.length > 0) {
+				throw errorList;
+			} 
+			
+			for (const image of images) {
+				Typst.mapShadow("/problem_images" + image.name, new Uint8Array(await image.blob.arrayBuffer()));
+			}
+	
+			Typst.pdf({mainContent: answer_template_body}).then((array) => {
+				const downloadURL = (data, fileName) => {
+				  const a = document.createElement('a')
+				  a.href = data
+				  a.download = fileName
+				  document.body.appendChild(a)
+				  a.style.display = 'none'
+				  a.click()
+				  a.remove()
+				};
 
-			// clean up Url
-			window.URL.revokeObjectURL(blobUrl);
+				const downloadBlob = (data, fileName, mimeType) => {
+				  const url = window.URL.createObjectURL(new Blob([data], {
+				    type: mimeType
+				  }))
+				  downloadURL(url, fileName)
+				  setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+				};
+	
+				downloadBlob(array, test.test_name + ".pdf", 'application/pdf');
+			});
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
