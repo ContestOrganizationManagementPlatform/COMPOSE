@@ -28,8 +28,6 @@
 	let test;
 	let allUsers = [];
 
-	let tableData = [];
-
 	async function getTest() {
 		try {
 			loading = true;
@@ -49,7 +47,7 @@
 
 	async function getTestsolves() {
 		try {
-			const testsolveInfo = await getTestTestsolves(
+			const testsolveInfo = await getSolverTestsolves(
 				testId,
 				"*,users(full_name,initials),tests(test_name)"
 			);

@@ -36,6 +36,25 @@ export interface TestsolveRequest {
 }
 
 /**
+ * Get a user's testsolvers from the database
+ *
+ * @param solver_id number
+ * @param customSelect optional, string
+ * @returns testsolvers list
+ */
+export async function getSolverTestsolves(
+	solver_id: number,
+	customSelect: string = "*"
+) {
+	let { data, error } = await supabase
+		.from("testsolves")
+		.select(customSelect)
+		.eq("solver_id", solver_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
  * Get a test's testsolvers from the database
  *
  * @param test_id number
@@ -285,6 +304,27 @@ export async function getTestsolveProblemFeedback(
 }
 
 /**
+ * Gets the feedback for the problems in a particular testsolve
+ *
+ * @param testsolve_id number
+ * @param customSelect optional, string
+ * @returns list of testsolve answers
+ */
+export async function getTestsolveTestFeedback(
+	testsolve_id: number,
+	customSelect: string = "*"
+) {
+	console.log(testsolve_id);
+	console.log(customSelect);
+	let { data, error } = await supabase
+		.from("testsolve_feedback_answers")
+		.select(customSelect)
+		.eq("testsolve_id", testsolve_id);
+	if (error) throw error;
+	return data;
+}
+
+/**
  * Get all testsolve answers with an order
  *
  * @param customOrder string
@@ -301,6 +341,24 @@ export async function getAllTestsolveAnswersOrder(
 		.order(customOrder);
 	if (error) throw error;
 	return data;
+}
+
+export async function upsertTestsolveFeedbackAnswers(problem_feedback: any[]) {
+	console.log("adding", problem_feedback);
+	const { error: error } = await supabase
+		.from("testsolve_feedback_answers")
+		.upsert(problem_feedback, {
+			onConflict: "testsolve_id, feedback_question",
+		});
+	if (error) throw error;
+}
+
+export async function upsertProblemFeedback(problem_feedback: any[]) {
+	console.log("adding", problem_feedback);
+	const { error: error } = await supabase
+		.from("problem_feedback")
+		.upsert(problem_feedback, { onConflict: "testsolve_id, problem_id" });
+	if (error) throw error;
 }
 
 /**

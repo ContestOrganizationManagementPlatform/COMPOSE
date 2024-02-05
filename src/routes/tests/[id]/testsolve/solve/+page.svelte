@@ -287,28 +287,7 @@
 		{feedbackAnswers}
 		{feedbackQuestions}
 	/>
-	<div class="timer">
-		<p>Time elapsed: {formatTime(timeElapsed, { hideHours: true })}</p>
-		<Button action={saveTestsolve} title="Save" bwidth="100%" />
-		<div style="height: 5px" />
-		<Button
-			action={() => {
-				submitTestsolve(true);
-			}}
-			title="Submit"
-			bwidth="100%"
-		/>
-	</div>
 {/if}
 
 <style>
-	.timer {
-		position: fixed;
-		right: 0;
-		top: 0;
-		margin: 10px;
-		padding: 10px;
-		background-color: var(--text-color-light);
-		border: 1px solid black;
-	}
 </style>

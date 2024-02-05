@@ -2,6 +2,7 @@
 	import { page } from "$app/stores";
 	import toast from "svelte-french-toast";
 	import { formatTime } from "$lib/formatDate";
+
 	import TestView from "$lib/components/TestView.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import { handleError } from "$lib/handleError";
@@ -18,6 +19,7 @@
 		getOneTestsolve,
 		checkIfTestCoordinator,
 		deleteTestsolveAnswer,
+		getTest,
 	} from "$lib/supabase";
 
 	let loading = true;
@@ -27,12 +29,15 @@
 	let feedbackQuestions = {};
 	let feedbackAnswers = [];
 
-	let startTime = null;
+	let startTime = new Date().getTime();
 	let endTime = null;
 	let isAdmin: boolean;
 
 	let testsolve = null;
 	let timeElapsed: number;
+
+	timeElapsed = 0; // in ms
+
 	$: timeElapsed =
 		testsolve?.time_elapsed * 1000 ??
 		new Date(testsolve?.end_time).getTime() -
@@ -41,13 +46,25 @@
 	let user;
 	(async () => {
 		user = await getThisUser();
-		await loadIsAdmin();
-		console.log("Loaded isAdmin", isAdmin);
+		await getTestsolve();
 		await permissionCheck();
+		console.log("Loaded isAdmin", isAdmin);
 		console.log("Completed Perms Check 2");
-		await getLocalFeedbackQuestions();
+		//await getLocalFeedbackQuestions();
 		console.log(feedbackQuestions, feedbackAnswers);
+		console.log(isAdmin, testsolve.completed);
 	})();
+
+	async function setFeedbackQuestions() {
+		const test_feedback_questions = await getFeedbackQuestions(
+			testsolve.test_id
+		);
+		for (const x of test_feedback_questions) {
+			console.log("hello");
+			console.log(x);
+			feedbackQuestions[x.id] = x;
+		}
+	}
 
 	async function getLocalFeedbackQuestions() {
 		try {
@@ -78,6 +95,16 @@
 			feedbackAnswers = await getTestsolveFeedbackAnswers(
 				Number($page.params.id)
 			);
+			for (const question of Object.values(feedbackQuestions)) {
+				console.log("QUES", question);
+				if (!(question.id in feedbackAnswers)) {
+					feedbackAnswers.push({
+						testsolve_id: testsolve.id,
+						feedback_question: question.id,
+						answer: "",
+					});
+				}
+			}
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -97,32 +124,31 @@
 		}
 	}
 
+	async function getTestsolve() {
+		testsolve = await getOneTestsolve(Number($page.params.id));
+
+		if (testsolve.length === 0) {
+			throw new Error(
+				"Testsolve with id " + $page.params.id + " doesn't exist!"
+			);
+		} else {
+			testsolve = testsolve[0];
+		}
+	}
+
 	async function permissionCheck() {
 		try {
-			// check permission
-			testsolve = await getOneTestsolve(Number($page.params.id));
-
-			if (testsolve.length === 0) {
-				throw new Error(
-					"Testsolve with id " + $page.params.id + " doesn't exist!"
-				);
-			} else {
-				testsolve = testsolve[0];
-				if (
-					(await getThisUserRole()) === 40 ||
-					testsolve.solver_id === user.id
-				) {
-					disallowed = false;
-				} else {
-					// check if test coordinator
-					const exists = await checkIfTestCoordinator(
-						testsolve.test_id,
-						user.id
-					);
-					if (exists) {
-						disallowed = false;
-					}
-				}
+			if ((await getThisUserRole()) === 40) {
+				disallowed = false;
+				isAdmin = true;
+			}
+			if (await checkIfTestCoordinator(testsolve.test_id, user.id)) {
+				disallowed = false;
+				isAdmin = true;
+			}
+			if (testsolve.solver_id === user.id) {
+				disallowed = false;
+				isAdmin = false;
 			}
 
 			console.log("testsolve", testsolve);
@@ -130,9 +156,10 @@
 			if (disallowed) {
 				loading = false;
 			} else {
-				await getAnswers();
-				await getLocalFeedbackQuestions();
+				//await getLocalFeedbackQuestions();
+				await setFeedbackQuestions();
 				await getFeedbackAnswers();
+				loading = false;
 			}
 		} catch (error) {
 			handleError(error);
@@ -140,14 +167,10 @@
 		}
 	}
 
-	async function getAnswers() {
-		try {
-			answers = await getProblemFeedback(Number($page.params.id));
-			loading = false;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
+	async function completeTestsolve() {
+		console.log("DISPATCH 2");
+		await updateTestsolve(testsolve.id, { completed: true });
+		await getTestsolve();
 	}
 
 	async function submitTestsolve() {
@@ -177,27 +200,11 @@
 					answer: ans.answer,
 				});
 			}
-			getAnswers();
-			getFeedbackAnswers();
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
-	async function loadIsAdmin() {
-		try {
-			const role = await getThisUserRole();
-			if (role >= 40) {
-				isAdmin = true;
-			} else {
-				isAdmin = false;
-			}
+			await getFeedbackAnswers();
 			loading = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
-			isAdmin = false;
 		}
 	}
 </script>
@@ -212,31 +219,27 @@
 		<Button action={deleteTestsolve} title="Delete Testsolve" />
 	{/if}
 	<br />
-
-	<TestView
-		testId={testsolve.test_id}
-		bind:answers
-		answerable
-		reviewing
-		on:submit={submitTestsolve}
-		{feedbackAnswers}
-		{feedbackQuestions}
-	/>
-	<Button action={submitTestsolve} title="Submit" />
-	<br />
-	<div class="timer">
-		<p>Time taken: {formatTime(timeElapsed, { hideHours: true })}</p>
-	</div>
+	{#if !testsolve.completed && !isAdmin}
+		<TestView
+			{testsolve}
+			answerable
+			on:complete={completeTestsolve}
+			{feedbackAnswers}
+			{feedbackQuestions}
+		/>
+	{:else}
+		<TestView
+			{testsolve}
+			answerable
+			reviewing
+			on:submit={submitTestsolve}
+			{feedbackAnswers}
+			{feedbackQuestions}
+		/>
+		<br />
+		<Button action={submitTestsolve} title="Submit" />
+	{/if}
 {/if}
 
 <style>
-	.timer {
-		position: absolute;
-		right: 0;
-		top: 0;
-		margin: 10px;
-		padding: 10px;
-		background-color: var(--text-color-light);
-		border: 1px solid black;
-	}
 </style>

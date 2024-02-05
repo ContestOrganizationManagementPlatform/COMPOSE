@@ -22,7 +22,9 @@
 	import { LogarithmicScale } from "chart.js";
 
 	export let testsolves = [];
-	export let onDelete;
+	export let onDelete = null;
+
+	export let adminView = true;
 
 	export let sortKey = "id";
 	export let sortDirection = "descending";
@@ -159,9 +161,19 @@
 			<div>
 				{#if cell.key === "edit"}
 					<div class="pencil">
-						{#if row.status != "Not Started"}
+						{#if !adminView}
+							{#if row.status != "Complete"}
+								<Link class="link" href={"/testsolve/" + row.id}
+									><i class="ri-play-fill" style="font-size: 20px;" /></Link
+								>
+							{:else}
+								<Link class="link" href={"/testsolve/" + row.id}
+									><i class="ri-eye-fill" style="font-size: 20px;" /></Link
+								>
+							{/if}
+						{:else if row.status != "Not Started"}
 							<Link class="link" href={"/testsolve/" + row.id}
-								><i class="ri-pencil-fill" style="font-size: 20px;" /></Link
+								><i class="ri-eye-fill" style="font-size: 20px;" /></Link
 							>
 						{:else}
 							<i
