@@ -279,7 +279,7 @@ export async function addTestFeedbackQuestion(
  *
  * @param question_id number
  */
-export async function removeTestFeedbackQuestion(question_id: number) {
+export async function removeTestFeedbackQuestion(feedback_question: number) {
 	const { error } = await supabase
 		.from("test_feedback_questions")
 		.delete()
@@ -294,6 +294,7 @@ export async function removeTestFeedbackQuestion(question_id: number) {
  * @returns object in database, including id
  */
 export async function getFeedbackQuestions(test_id: number) {
+	console.log("getting Feedback Questions", test_id);
 	const { data, error } = await supabase
 		.from("test_feedback_questions")
 		.select("*")

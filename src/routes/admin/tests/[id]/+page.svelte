@@ -67,7 +67,7 @@
 				(x) => !testCoordinators.some((tc) => tc.id === x.id)
 			);
 
-			await getFeedbackQuestions(testId);
+			feedbackQuestions = await getFeedbackQuestions(testId);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

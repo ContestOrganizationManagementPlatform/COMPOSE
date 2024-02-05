@@ -9,45 +9,67 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import Modal from "$lib/components/Modal.svelte";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
+	import TestsolveList from "$lib/components/TestsolveList.svelte";
 	import Button from "$lib/components/Button.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
-	import { getTestInfo, getAllUsersOrder, getTestTestsolvers, removeTestsolver } from "$lib/supabase";
+	import {
+		getTestInfo,
+		getAllUsersOrder,
+		getTestTestsolves,
+		addTestsolver,
+		deleteTestsolve,
+		getSolverTestsolves,
+	} from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let loading = true;
 	let selectRef;
-	let testsolvers;
+	let testsolves;
 	let test;
 	let allUsers = [];
 
-	let tableData = [];
+	console.log(testId, loading, selectRef, testsolves, test, allUsers);
 
 	async function getTest() {
 		try {
-			test = await getTestInfo(testId, "test_name");
-			getTestsolvers();
+			loading = true;
+			test = await getTestInfo(testId);
+			console.log("TEST", test);
+			getAllUsers();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
 
-	async function getTestsolvers() {
+	async function onDelete(id) {
+		await deleteTestsolve(id);
+		await getTestsolves();
+	}
+
+	async function getTestsolves() {
 		try {
-			testsolvers = await getTestTestsolvers(testId, "solver_id,users(full_name,initials)");
-
-			testsolvers.forEach((user) => {
-				tableData.push({
-					id: user.solver_id,
-					testsolver: user.users.full_name + " (" + user.users.initials + ")",
-					status: "x",
-					testsolve: "x",
-					delete: user.solver_id,
-				});
-			});
-
-			getAllUsers();
+			console.log("got users");
+			const testsolveInfo = await getTestTestsolves(
+				testId,
+				"*,users(full_name,initials),tests(test_name)"
+			);
+			console.log("got testsolves");
+			console.log(testsolveInfo);
+			testsolves = testsolveInfo.map((e) => ({
+				id: e.id,
+				solver_id: e.solver_id,
+				test_id: e.test_id,
+				solver_name: e.users.full_name,
+				solver_initials: e.users.initials,
+				test_name: e.tests.test_name,
+				start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
+				elapsed: e.time_elapsed,
+				test_version: e.test_version,
+				status: e.status,
+			}));
+			loading = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -56,33 +78,20 @@
 
 	async function getAllUsers() {
 		try {
-			const users = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
-			allUsers = users.filter(
-				(x) => !testsolvers.some((ts) => ts.solver_id === x.id)
-			);
-			loading = false;
+			allUsers = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
+			console.log("got users");
+			getTestsolves();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
-
 	getTest();
 
-	async function addTestsolver() {
+	async function addNewTestsolver() {
 		try {
 			await addTestsolver({ test_id: testId, solver_id: selectRef.value });
-			getTestsolvers();
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
-
-	async function deleteTestsolver(id) {
-		try {
-			await removeTestsolver(id);
-			getTestsolvers();
+			getTestsolves();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -98,7 +107,7 @@
 		<br />
 		<Button href={`/tests/${testId}`} title="Go back" />
 		<br /><br />
-		<h3><strong>Add Testsolvers</strong></h3>
+		<h3><strong>Add Testsolves</strong></h3>
 		<div class="flex">
 			<form on:submit|preventDefault style="width: 50%">
 				<Select bind:ref={selectRef}>
@@ -110,42 +119,15 @@
 					{/each}
 				</Select>
 				<br />
-				<Button action={addTestsolver} title="Add Testsolver" />
+				<Button action={addNewTestsolver} title="Add Testsolver" />
 			</form>
 		</div>
 		<br /> <br />
-		<h3><strong>Current Testsolvers</strong></h3>
-		{#if testsolvers.length === 0}
-			<p>There are no testsolvers</p>
+		<h3><strong>Current Testsolves</strong></h3>
+		{#if testsolves.length === 0}
+			<p>There are no testsolves</p>
 		{:else}
-			<DataTable
-				sortable
-				size="compact"
-				pageSize={10}
-				headers={[
-					{ key: "testsolver", value: "Testsolver" },
-					{ key: "status", value: "Status" },
-					{ key: "testsolve", value: "Testsolve" },
-					{ key: "delete", value: "Delete" },
-				]}
-				rows={tableData}
-			>
-				<svelte:fragment slot="cell" let:row let:cell>
-					{#if cell.key === "testsolve"}
-						<Link icon={Launch} href="/testsolve/{cell.value}" target="_blank"
-							>{cell.value}</Link
-						>
-					{:else if cell.key === "delete"}
-						<Modal
-							runHeader="Remove testsolver"
-							del={true}
-							onSubmit={() => deleteTestsolver(cell.value)}
-						/>
-					{:else}
-						{cell.value}
-					{/if}
-				</svelte:fragment>
-			</DataTable>
+			<TestsolveList {onDelete} {testsolves} />
 		{/if}
 	{/if}
 </div>

@@ -7,7 +7,6 @@
 	import { handleError } from "$lib/handleError";
 	import {
 		getImages,
-		getProblemTestsolveAnswersOrder,
 		getTestInfo,
 		getTestProblems,
 		getThisUser,
@@ -39,7 +38,7 @@
 		try {
 			test = await getTestInfo(
 				testId,
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,id)"
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
@@ -57,7 +56,6 @@
 	async function getProblems() {
 		try {
 			let problemList = await getTestProblems(testId);
-			let feedback = await getProblemTestsolveAnswersOrder("problem_id", "*");
 
 			problems = problemList.map((pb) => ({
 				problem_number: pb.problem_number,
