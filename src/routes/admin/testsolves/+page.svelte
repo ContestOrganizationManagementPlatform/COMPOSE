@@ -36,11 +36,7 @@
 				start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
 				elapsed: e.time_elapsed,
 				test_version: e.test_version,
-				status: e.start_time
-					? e.completed
-						? "Done"
-						: "Started"
-					: "Not Started",
+				status: e.status,
 			}));
 			loading = false;
 		} catch (error) {

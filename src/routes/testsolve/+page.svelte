@@ -46,11 +46,7 @@
 				start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
 				elapsed: e.time_elapsed,
 				test_version: e.test_version,
-				status: e.start_time
-					? e.completed
-						? "Done"
-						: "Started"
-					: "Not Started",
+				status: e.status,
 			}));
 			loading = false;
 		} catch (error) {
@@ -81,7 +77,7 @@
 					</h3>
 					<div style="margin-top: 10px">
 						<Button
-							href="/tests/{test.id}/testsolve/solve"
+							href="/testsolve/{test.id}"
 							title={!test.started ? "Begin solve" : "Continue solve"}
 						/>
 					</div>

@@ -38,7 +38,7 @@
 		try {
 			test = await getTestInfo(
 				testId,
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,id)"
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =

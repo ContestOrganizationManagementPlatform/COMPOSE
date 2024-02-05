@@ -26,13 +26,9 @@ export interface TestsolveRequest {
 	test_id: number;
 	solver_id: number;
 	start_time?: string;
-	end_time?: string;
-	feedback?: string;
 	completed: boolean;
 	time_elapsed?: string;
 	test_version: string;
-	answers: TestsolveAnswerRequest[];
-	feedback_answers: TestsolveFeedbackAnswerRequest[];
 }
 
 /**
@@ -194,29 +190,6 @@ export async function getOneTestsolve(id: number, customSelect: string = "*") {
 }
 
 /**
- * Check if prior testsolve
- *
- * @param test_id number
- * @param solver_id number
- * @param completed boolean
- * @returns testsolves list
- */
-export async function checkPriorTestsolve(
-	test_id: number,
-	solver_id: number,
-	completed: boolean
-) {
-	let { data, error } = await supabase
-		.from("testsolves")
-		.select("*")
-		.eq("test_id", test_id)
-		.eq("solver_id", solver_id)
-		.eq("completed", completed);
-	if (error) throw error;
-	return data;
-}
-
-/**
  * Update specific testsolve from the database
  *
  * @param testsolve_id number
@@ -361,17 +334,7 @@ export async function upsertProblemFeedback(problem_feedback: any[]) {
 	if (error) throw error;
 }
 
-/**
- * Insert testsolve answers to a problem
- *
- * @param problem_feedback any[]
- */
-export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
-	console.log("adding", problem_feedback);
-	const { error: error } = await supabase
-		.from("problem_feedback")
-		.insert(problem_feedback);
-	if (error) throw error;
+export async function sendFeedbackMessage(problem_feedback: any[]) {
 	problem_feedback.forEach(async (feedback) => {
 		console.log("feedback", feedback);
 		const problem = await getProblem(feedback.problem_id);
@@ -512,6 +475,20 @@ export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
 }
 
 /**
+ * Insert testsolve answers to a problem
+ *
+ * @param problem_feedback any[]
+ */
+export async function addProblemTestsolveAnswer(problem_feedback: any[]) {
+	console.log("adding", problem_feedback);
+	const { error: error } = await supabase
+		.from("problem_feedback")
+		.insert(problem_feedback);
+	if (error) throw error;
+	await sendFeedbackMessage(problem_feedback);
+}
+
+/**
  * Update a problem's testsolve answers
  *
  * @param feedbackId number
@@ -533,11 +510,11 @@ export async function updateTestsolveAnswer(
  *
  * @param testsolveId number
  */
-export async function deleteTestsolveAnswer(feedbackId: number) {
+export async function deleteTestsolveAnswer(testsolve_id: number) {
 	let { error } = await supabase
 		.from("problem_feedback")
 		.delete()
-		.eq("testsolve_id", feedbackId);
+		.eq("testsolve_id", testsolve_id);
 	if (error) throw error;
 }
 

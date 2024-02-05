@@ -18,9 +18,13 @@
 		updateTestsolveFeedbackAnswers,
 		getOneTestsolve,
 		checkIfTestCoordinator,
+		getTestsolveProblemFeedback,
 		deleteTestsolveAnswer,
 		getTest,
+		sendFeedbackMessage,
+		getTestCoordinators,
 	} from "$lib/supabase";
+	import scheme from "$lib/scheme.json";
 
 	let loading = true;
 	let disallowed = true;
@@ -50,66 +54,8 @@
 		await permissionCheck();
 		console.log("Loaded isAdmin", isAdmin);
 		console.log("Completed Perms Check 2");
-		//await getLocalFeedbackQuestions();
-		console.log(feedbackQuestions, feedbackAnswers);
-		console.log(isAdmin, testsolve.completed);
+		console.log(isAdmin, testsolve.status);
 	})();
-
-	async function setFeedbackQuestions() {
-		const test_feedback_questions = await getFeedbackQuestions(
-			testsolve.test_id
-		);
-		for (const x of test_feedback_questions) {
-			console.log("hello");
-			console.log(x);
-			feedbackQuestions[x.id] = x;
-		}
-	}
-
-	async function getLocalFeedbackQuestions() {
-		try {
-			console.log("testsolve 2", testsolve);
-			const test_feedback_questions = await getFeedbackQuestions(
-				testsolve.test_id
-			);
-			console.log("TESTFEEDBACKQUESTIONS", test_feedback_questions);
-			for (const x of test_feedback_questions) {
-				console.log("hello");
-				console.log(x);
-				feedbackQuestions[x.id] = x;
-				feedbackAnswers.push({
-					feedback_question: x.id,
-					answer: "",
-				});
-			}
-		} catch (error) {
-			if (error.code !== "PGRST116") {
-				handleError(error);
-				toast.error(error);
-			}
-		}
-	}
-
-	async function getFeedbackAnswers() {
-		try {
-			feedbackAnswers = await getTestsolveFeedbackAnswers(
-				Number($page.params.id)
-			);
-			for (const question of Object.values(feedbackQuestions)) {
-				console.log("QUES", question);
-				if (!(question.id in feedbackAnswers)) {
-					feedbackAnswers.push({
-						testsolve_id: testsolve.id,
-						feedback_question: question.id,
-						answer: "",
-					});
-				}
-			}
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
 
 	async function deleteTestsolve() {
 		try {
@@ -149,18 +95,15 @@
 			if (testsolve.solver_id === user.id) {
 				disallowed = false;
 				isAdmin = false;
+				if (testsolve.status == "Not Started") {
+					await updateTestsolve(testsolve.id, { status: "Testsolving" });
+					await getTestsolve();
+				}
 			}
 
 			console.log("testsolve", testsolve);
 
-			if (disallowed) {
-				loading = false;
-			} else {
-				//await getLocalFeedbackQuestions();
-				await setFeedbackQuestions();
-				await getFeedbackAnswers();
-				loading = false;
-			}
+			loading = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -169,39 +112,60 @@
 
 	async function completeTestsolve() {
 		console.log("DISPATCH 2");
-		await updateTestsolve(testsolve.id, { completed: true });
+		await updateTestsolve(testsolve.id, { status: "Reviewing" });
 		await getTestsolve();
 	}
 
 	async function submitTestsolve() {
 		try {
-			endTime = new Date();
+			console.log("Submit");
+			await updateTestsolve(testsolve.id, { status: "Complete" });
 
-			await updateTestsolve(Number($page.params.id), { feedback: "" });
-
-			// delete old answers
-			await deleteTestsolveAnswer(Number($page.params.id));
-			await addProblemTestsolveAnswer(
-				answers.map((ans) => ({
-					solver_id: user.id,
-					testsolve_id: $page.params.id,
-					problem_id: ans.problem_id,
-					answer: ans.answer,
-					feedback: ans.feedback,
-					correct: ans.correct,
-				}))
+			const testsolve_feedback = await getTestsolveProblemFeedback(
+				testsolve.id
 			);
+			console.log(testsolve_feedback);
+			await sendFeedbackMessage(testsolve_feedback);
 
-			loading = true;
-			for (const ans of feedbackAnswers) {
-				await updateTestsolveFeedbackAnswers(ans.id, {
-					testsolve_id: $page.params.id,
-					feedback_question: ans.feedback_question,
-					answer: ans.answer,
+			const embed = {
+				title: "Testsolve Complete!",
+				//description: "This is the description of the embed.",
+				type: "rich",
+				color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+				author: {
+					name: user.full_name,
+					//icon_url: "https://example.com/author.png", // URL to the author's icon
+				},
+				footer: {
+					text: "COMPOSE",
+					icon_url: scheme.logo, // URL to the footer icon
+				},
+			};
+
+			const linkButton = {
+				type: 2, // LINK button component
+				style: 5, // LINK style (5) for external links
+				label: "View Testsolve",
+				url: scheme.url + "/testsolve/" + Number($page.params.id), // The external URL you want to link to
+			};
+			const coordinators = await getTestCoordinators(testsolve.test_id);
+			console.log("COORD", coordinators);
+			for (const coordinator of coordinators) {
+				fetch("/api/discord/dm", {
+					method: "POST",
+					body: JSON.stringify({
+						userId: coordinator.coordinator_id,
+						message: "",
+						embeds: [embed],
+						components: [
+							{
+								type: 1,
+								components: [linkButton],
+							},
+						],
+					}),
 				});
 			}
-			await getFeedbackAnswers();
-			loading = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -212,32 +176,23 @@
 {#if loading}
 	<p>Loading...</p>
 {:else if disallowed}
-	<p>You are not a testsolver for this test!</p>
+	<p>You are not authorized!</p>
 {:else}
 	<br />
 	{#if isAdmin}
 		<Button action={deleteTestsolve} title="Delete Testsolve" />
 	{/if}
 	<br />
-	{#if !testsolve.completed && !isAdmin}
-		<TestView
-			{testsolve}
-			answerable
-			on:complete={completeTestsolve}
-			{feedbackAnswers}
-			{feedbackQuestions}
-		/>
+	{#if testsolve.status == "Testsolving" && !isAdmin}
+		<TestView {testsolve} on:complete={completeTestsolve} />
 	{:else}
 		<TestView
 			{testsolve}
-			answerable
 			reviewing
+			submittable={testsolve.status != "Complete"}
 			on:submit={submitTestsolve}
-			{feedbackAnswers}
-			{feedbackQuestions}
 		/>
 		<br />
-		<Button action={submitTestsolve} title="Submit" />
 	{/if}
 {/if}
 

@@ -19,6 +19,7 @@
 		getTestTestsolves,
 		addTestsolver,
 		deleteTestsolve,
+		getSolverTestsolves,
 	} from "$lib/supabase";
 
 	let testId = $page.params.id;
@@ -27,6 +28,8 @@
 	let testsolves;
 	let test;
 	let allUsers = [];
+
+	console.log(testId, loading, selectRef, testsolves, test, allUsers);
 
 	async function getTest() {
 		try {
@@ -47,10 +50,12 @@
 
 	async function getTestsolves() {
 		try {
-			const testsolveInfo = await getSolverTestsolves(
+			console.log("got users");
+			const testsolveInfo = await getTestTestsolves(
 				testId,
 				"*,users(full_name,initials),tests(test_name)"
 			);
+			console.log("got testsolves");
 			console.log(testsolveInfo);
 			testsolves = testsolveInfo.map((e) => ({
 				id: e.id,
@@ -62,11 +67,7 @@
 				start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
 				elapsed: e.time_elapsed,
 				test_version: e.test_version,
-				status: e.start_time
-					? e.completed
-						? "Done"
-						: "Started"
-					: "Not Started",
+				status: e.status,
 			}));
 			loading = false;
 		} catch (error) {
@@ -78,6 +79,7 @@
 	async function getAllUsers() {
 		try {
 			allUsers = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
+			console.log("got users");
 			getTestsolves();
 		} catch (error) {
 			handleError(error);

@@ -29,10 +29,7 @@
 
 	export let testsolve;
 	export let reviewing = false;
-	export let answerable = false;
 	export let submittable = false;
-	export let feedbackAnswers = [];
-	export let feedbackQuestions = {};
 	export let problemFeedbackObject = {
 		answer: "",
 		feedback: "",
@@ -186,7 +183,6 @@
 				final.push({ ...item, problem_id: id, testsolve_id: testsolve.id });
 			}
 			console.log("FEEDBACK", final[0]);
-			alert("Before unload event triggered.");
 			await upsertProblemFeedback(final);
 		});
 	});
@@ -194,6 +190,7 @@
 	onDestroy(async () => {
 		console.log("Destroying");
 		supabase.removeChannel("testsolve-problems-" + testsolve.id);
+		supabase.removeChannel("testsolve-tests-" + testsolve.id);
 		timerInterval ?? clearInterval(timerInterval);
 	});
 
@@ -266,6 +263,7 @@
 			{
 				problem_id: id,
 				testsolve_id: testsolve.id,
+				solver_id: testsolve.solver_id,
 				answer: problemFeedbackMap[id].answer,
 				time_elapsed: problemTime,
 			},
@@ -290,6 +288,7 @@
 			{
 				problem_id: id,
 				testsolve_id: testsolve.id,
+				solver_id: testsolve.solver_id,
 				correct: problemFeedbackMap[id].correct,
 			},
 		];
@@ -301,6 +300,7 @@
 			{
 				problem_id: id,
 				testsolve_id: testsolve.id,
+				solver_id: testsolve.solver_id,
 				feedback: problemFeedbackMap[id].feedback,
 			},
 		];
@@ -316,17 +316,18 @@
 			problemFeedbackMap[id].difficulty == "" ||
 			(!isNaN(num) && num >= 1 && num <= 10)
 		) {
-			diffWarn = null;
 			const feedback = [
 				{
 					problem_id: id,
 					testsolve_id: testsolve.id,
+					solver_id: testsolve.solver_id,
 					difficulty: num,
 				},
 			];
 			upsertProblemFeedback(feedback);
 		} else {
-			diffWarn = "You must enter an integer from 1-10, or leave it blank";
+			toast.error("You must enter an integer from 1-10, or leave it blank");
+			problemFeedbackMap[id].difficulty = "";
 		}
 		// Check if the value is within the range of 1 to 10 (inclusive)
 	}
@@ -340,24 +341,25 @@
 			problemFeedbackMap[id].quality == "" ||
 			(!isNaN(num) && num >= 1 && num <= 10)
 		) {
-			qualWarn = null;
 			const feedback = [
 				{
 					problem_id: id,
 					testsolve_id: testsolve.id,
+					solver_id: testsolve.solver_id,
 					quality: num,
 				},
 			];
 			upsertProblemFeedback(feedback);
 		} else {
-			qualWarn = "You must enter an integer from 1-10, or leave it blank";
+			toast.error("You must enter an integer from 1-10, or leave it blank");
+			problemFeedbackMap[id].quality = "";
 		}
 		// Check if the value is within the range of 1 to 10 (inclusive)
 	}
 
-	function completeTest() {
+	async function completeTest() {
 		try {
-			console.log("DISPATCHING");
+			await updateTestsolve(testsolve.id, { time_elapsed: timeElapsed });
 			dispatch("complete");
 		} catch (error) {
 			handleError(error);
@@ -365,8 +367,9 @@
 		}
 	}
 
-	function submitTest() {
+	async function submitTest() {
 		try {
+			console.log("DISPATCHING");
 			dispatch("submit");
 		} catch (error) {
 			handleError(error);
@@ -433,21 +436,19 @@
 						{/if}
 					</div>
 					<div class="feedback-div">
-						{#if answerable}
-							<div>
-								Time: {formatTime(
-									problemFeedbackMap[problem.problem_id].time_elapsed
-								)}
-							</div>
-							<div style="margin-top: 10px;">
-								<TextInput
-									labelText={reviewing ? "Your answer" : "Answer"}
-									disabled={reviewing}
-									bind:value={problemFeedbackMap[problem.problem_id].answer}
-									on:blur={(e) => changeAnswer(e, problem.problem_id)}
-								/>
-							</div>
-						{/if}
+						<div>
+							Time: {formatTime(
+								problemFeedbackMap[problem.problem_id].time_elapsed
+							)}
+						</div>
+						<div style="margin-top: 10px;">
+							<TextInput
+								labelText={reviewing ? "Your answer" : "Answer"}
+								disabled={reviewing}
+								bind:value={problemFeedbackMap[problem.problem_id].answer}
+								on:blur={(e) => changeAnswer(e, problem.problem_id)}
+							/>
+						</div>
 						{#if reviewing}
 							<div style="margin-top: 3px;">
 								<Checkbox
@@ -471,8 +472,6 @@
 										placeholder={"1-10"}
 										bind:value={problemFeedbackMap[problem.problem_id]
 											.difficulty}
-										warn={diffWarn ? true : false}
-										warnText={diffWarn ?? ""}
 										on:change={(e) => {
 											console.log("CHANGED DIFF", e);
 											changeDifficulty(problem.problem_id);
@@ -484,8 +483,6 @@
 										labelText={"Quality"}
 										placeholder={"1-10"}
 										bind:value={problemFeedbackMap[problem.problem_id].quality}
-										warn={qualWarn ? true : false}
-										warnText={qualWarn ?? ""}
 										on:change={(e) => {
 											changeQuality(problem.problem_id);
 										}}
@@ -499,14 +496,17 @@
 		{/if}
 
 		{#if submittable}
-			<Button action={submitTest()} title="Submit" />
+			<Button action={submitTest} title="Submit" />
 		{/if}
+		<br />
 	</div>
 </div>
 {#if reviewing}
 	<div class="panel">
 		<p>Total Time: {formatTime(timeElapsed, { hideHours: false })}</p>
-		<Button action={submitTest} title="Submit" bwidth="100%" />
+		{#if submittable}
+			<Button action={submitTest} title="Submit" bwidth="100%" />
+		{/if}
 	</div>
 {:else}<div class="panel">
 		<p>Time elapsed: {formatTime(timeElapsed, { hideHours: false })}</p>
