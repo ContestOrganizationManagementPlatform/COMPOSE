@@ -86,6 +86,14 @@
 			const generateQR = async (text: string) => {
 		    return await QRCode.toString(text, {"type": "svg"});
 			}
+
+			// When mitex supports brackets, we can remove this.
+			for (let problem of problems) {
+				problem.problem_latex = problem.problem_latex.replaceAll('\\(', '$')
+				problem.problem_latex = problem.problem_latex.replaceAll('\\)', '$')
+				problem.problem_latex = problem.problem_latex.replaceAll('\\[', '$$')
+				problem.problem_latex = problem.problem_latex.replaceAll('\\]', '$$')
+			}
 			const qr_text = await generateQR(test.id.toString());
 			let utf8Encode = new TextEncoder();
 			Typst.mapShadow("/assets/qr.svg", utf8Encode.encode(qr_text));
