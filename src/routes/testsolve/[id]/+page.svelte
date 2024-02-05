@@ -23,6 +23,7 @@
 		getTest,
 		sendFeedbackMessage,
 		getTestCoordinators,
+		getUser,
 	} from "$lib/supabase";
 	import scheme from "$lib/scheme.json";
 
@@ -120,6 +121,8 @@
 		try {
 			console.log("Submit");
 			await updateTestsolve(testsolve.id, { status: "Complete" });
+			await getTestsolve();
+			toast.success("Submitted!");
 
 			const testsolve_feedback = await getTestsolveProblemFeedback(
 				testsolve.id
@@ -127,13 +130,16 @@
 			console.log(testsolve_feedback);
 			await sendFeedbackMessage(testsolve_feedback);
 
+			const test = await getTest(testsolve.test_id);
+			const user_name = (await getUser(user.id)).full_name;
+			console.log("USER", user_name);
 			const embed = {
-				title: "Testsolve Complete!",
+				title: test.test_name + " Testsolve Complete!",
 				//description: "This is the description of the embed.",
 				type: "rich",
-				color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+				color: parseInt(scheme.discord.embed_color, 16), // You can set the color using hex values
 				author: {
-					name: user.full_name,
+					name: user_name,
 					//icon_url: "https://example.com/author.png", // URL to the author's icon
 				},
 				footer: {
@@ -148,21 +154,25 @@
 				label: "View Testsolve",
 				url: scheme.url + "/testsolve/" + Number($page.params.id), // The external URL you want to link to
 			};
+
 			const coordinators = await getTestCoordinators(testsolve.test_id);
 			console.log("COORD", coordinators);
 			for (const coordinator of coordinators) {
+				console.log("COOR", coordinator);
 				fetch("/api/discord/dm", {
 					method: "POST",
 					body: JSON.stringify({
 						userId: coordinator.coordinator_id,
-						message: "",
-						embeds: [embed],
-						components: [
-							{
-								type: 1,
-								components: [linkButton],
-							},
-						],
+						message: {
+							message: "",
+							embeds: [embed],
+							components: [
+								{
+									type: 1,
+									components: [linkButton],
+								},
+							],
+						},
 					}),
 				});
 			}
