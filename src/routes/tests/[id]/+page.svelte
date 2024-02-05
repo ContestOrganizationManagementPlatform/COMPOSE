@@ -7,6 +7,7 @@
 	import { handleError } from "$lib/handleError";
 	import {
 		getProblemTestsolveAnswersOrder,
+		getImages,
 		getTestInfo,
 		getTestProblems,
 		getThisUser,
@@ -49,7 +50,7 @@
 		try {
 			test = await getTestInfo(
 				testId,
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,feedback,id)"
+				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,id)"
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
@@ -68,7 +69,6 @@
 	async function getProblems() {
 		try {
 			let problemList = await getTestProblems(testId);
-			let feedback = await getProblemTestsolveAnswersOrder("problem_id", "*");
 
 			problems = problemList.map((pb) => ({
 				problem_number: pb.problem_number,
@@ -185,10 +185,21 @@
 		{#if loadingProblems}
 			<p>Loading problems...</p>
 		{:else}
-			<div style="padding: 20px;">
+			<div style="width: 80%; margin: auto; padding: 20px;">
 				<ProblemList
 					{problems}
-					customHeaders={[{ key: "problem_number", value: "#", width: "30px" }]}
+					showList={[
+						"full_name",
+						"topics_short",
+						"sub_topics",
+						"problem_tests",
+						"average_difficulty",
+						"average_quality",
+						"unresolved_count",
+					]}
+					customHeaders={[
+						{ key: "problem_number", value: "", icon: "ri-hashtag" },
+					]}
 				/>
 			</div>
 		{/if}
