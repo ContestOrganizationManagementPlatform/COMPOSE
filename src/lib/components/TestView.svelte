@@ -457,13 +457,15 @@
 									on:change={() => changeChecked(problem.problem_id)}
 								/>
 							</div>
-							<div>
-								<TextArea
-									labelText="Feedback"
-									bind:value={problemFeedbackMap[problem.problem_id].feedback}
-									on:blur={(e) => changeFeedback(problem.problem_id)}
-								/>
-							</div>
+						{/if}
+						<div>
+							<TextArea
+								labelText="Feedback"
+								bind:value={problemFeedbackMap[problem.problem_id].feedback}
+								on:blur={(e) => changeFeedback(problem.problem_id)}
+							/>
+						</div>
+						{#if reviewing}
 							<br />
 							<div class="flex">
 								<div style="margin: 3px">

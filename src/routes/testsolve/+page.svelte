@@ -11,7 +11,7 @@
 		getAllTests,
 		getThisUserRole,
 		getThisUser,
-		getSolverTestsolves,
+		getSolverTestsolvesDetailed,
 		getAllTestsolves,
 		getSelectTestsolves,
 	} from "$lib/supabase";
@@ -20,8 +20,8 @@
 
 	let availableTests = [];
 	let testsolves = [];
+	let user = null;
 
-	let user;
 	(async () => {
 		user = await getThisUser();
 		await getTestsolves();
@@ -30,24 +30,7 @@
 	async function getTestsolves() {
 		try {
 			loading = true;
-			const testsolveInfo = await getSolverTestsolves(
-				user.id,
-				"*,users(full_name,initials),tests(test_name)"
-			);
-			console.log("user", user.id);
-			console.log("Info", testsolveInfo);
-			testsolves = testsolveInfo.map((e) => ({
-				id: e.id,
-				solver_id: e.solver_id,
-				test_id: e.test_id,
-				solver_name: e.users.full_name,
-				solver_initials: e.users.initials,
-				test_name: e.tests.test_name,
-				start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
-				elapsed: e.time_elapsed,
-				test_version: e.test_version,
-				status: e.status,
-			}));
+			testsolves = await getSolverTestsolvesDetailed(user.id);
 			loading = false;
 		} catch (error) {
 			handleError(error);

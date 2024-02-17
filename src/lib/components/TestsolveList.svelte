@@ -39,7 +39,7 @@
 		"status",
 		"test_name",
 		"test_version",
-		"solver_name",
+		"solvers",
 		"start_time",
 		"elapsed",
 	];
@@ -53,15 +53,15 @@
 	let editHeader = { key: "edit", value: "", width: "30px" };
 
 	let headers = [
-		{ key: "status", value: "Status", icon: "ri-info-i" },
+		{ key: "status", value: "Status", icon: "ri-information-fill" },
 		{ key: "test_name", value: "Test", icon: "ri-archive-fill" },
 		{
 			key: "test_version",
 			value: "Version",
-			short: "V",
+			short: "V.",
 			icon: "ri-folders-fill",
 		},
-		{ key: "solver_name", value: "Solver", icon: "ri-user-fill" },
+		{ key: "solvers", value: "Solvers", icon: "ri-user-fill" },
 		{
 			key: "start_time",
 			value: "Start Time",
@@ -113,8 +113,8 @@
 				text: "Version",
 			},
 			{
-				id: "solver_name",
-				text: "Solver",
+				id: "solvers",
+				text: "Solvers",
 			},
 			{
 				id: "start_time",
@@ -210,6 +210,16 @@
 						{cell.value == null || cell.value == ""
 							? "-"
 							: formatTime(cell.value)}
+					</div>
+				{:else if cell.key === "solvers"}
+					<div style="overflow: hidden;">
+						{#if !cell.value}
+							{"-"}
+						{:else if colWidth > 120}
+							{cell.value.names.join(", ")}
+						{:else}
+							{cell.value.initials.join(", ")}
+						{/if}
 					</div>
 				{:else}
 					<div style="overflow: hidden;">

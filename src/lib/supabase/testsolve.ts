@@ -1,6 +1,7 @@
 import { supabase } from "../supabaseClient";
 import { getProblem } from "$lib/supabase/problems";
 import { getUser } from "$lib/supabase";
+import { formatDate } from "$lib/formatDate";
 import scheme from "$lib/scheme.json";
 
 export interface TestsolverRequest {
@@ -43,11 +44,51 @@ export async function getSolverTestsolves(
 	customSelect: string = "*"
 ) {
 	let { data, error } = await supabase
-		.from("testsolves")
+		.from("testsolvers")
 		.select(customSelect)
 		.eq("solver_id", solver_id);
+
 	if (error) throw error;
+	console.log("D", data);
 	return data;
+}
+
+/**
+ * Get a user's testsolves from the database, along with connected information. Also parses it into a nicely usable format.
+ *
+ * @param customSelect optional, string
+ * @returns testsolves list
+ */
+export async function getSolverTestsolvesDetailed(solver_id: number) {
+	const testsolveInfo = await getSolverTestsolves(
+		solver_id,
+		"testsolves(*,testsolvers(solver_id,users(full_name,initials)),tests(test_name))"
+	);
+	console.log("TSINFO", testsolveInfo);
+	const testsolves = testsolveInfo.map((item) => {
+		const e = item.testsolves;
+		return {
+			id: e.id,
+			test_id: e.test_id,
+			solvers: e.testsolvers.length
+				? {
+						ids: e.testsolvers.map((item) => item.solver_id),
+						names: e.testsolvers.map((item) =>
+							item.users ? item.users.full_name : null
+						),
+						initials: e.testsolvers.map((item) =>
+							item.users ? item.users.initials : null
+						),
+				  }
+				: null,
+			test_name: e.tests.test_name,
+			start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
+			elapsed: e.time_elapsed,
+			test_version: e.test_version,
+			status: e.status,
+		};
+	});
+	return testsolves;
 }
 
 /**
@@ -70,46 +111,86 @@ export async function getTestTestsolves(
 }
 
 /**
- * Get a solver's id from the database
+ * Get all testsolves from the database, along with connected information. Also parses it into a nicely usable format.
  *
- * @param solver_id number
  * @param customSelect optional, string
- * @returns testsolvers list
+ * @returns testsolves list
  */
-export async function getSolverTests(
-	solver_id: number,
-	customSelect: string = "*"
-) {
-	let { data, error } = await supabase
-		.from("testsolvers")
-		.select(customSelect)
-		.eq("solver_id", solver_id);
-	if (error) throw error;
-	return data;
+export async function getTestTestsolvesDetailed(test_id: number) {
+	const testsolveInfo = await getTestTestsolves(
+		test_id,
+		"*,testsolvers(solver_id,users(full_name,initials)),tests(test_name)"
+	);
+	console.log(testsolveInfo);
+	const testsolves = testsolveInfo.map((e) => ({
+		id: e.id,
+		test_id: e.test_id,
+		solvers: e.testsolvers.length
+			? {
+					ids: e.testsolvers.map((item) => item.solver_id),
+					names: e.testsolvers.map((item) =>
+						item.users ? item.users.full_name : null
+					),
+					initials: e.testsolvers.map((item) =>
+						item.users ? item.users.initials : null
+					),
+			  }
+			: null,
+		test_name: e.tests.test_name,
+		start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
+		elapsed: e.time_elapsed,
+		test_version: e.test_version,
+		status: e.status,
+	}));
+	return testsolves;
 }
 
 /**
- * Get select testsolvers from the database
+ * Get all testsolves from the database
  *
- * @param test_id number
- * @param solver_id number
  * @param customSelect optional, string
- * @returns count
+ * @returns testsolves list
  */
-export async function getSelectTestsolvers(
-	test_id: number,
-	solver_id: number,
-	customSelect: string = "*"
-) {
-	let { data, error, count } = await supabase
-		.from("testsolvers")
-		.select(customSelect, { count: "exact", head: true })
-		.eq("test_id", test_id)
-		.eq("solver_id", solver_id);
-	if (error) {
-		throw error;
-	}
-	return count;
+export async function getAllTestsolves(customSelect: string = "*") {
+	let { data: testsolveInfo, error } = await supabase
+		.from("testsolves")
+		.select(customSelect);
+	if (error) throw error;
+	return testsolveInfo;
+}
+
+/**
+ * Get all testsolves from the database, along with connected information. Also parses it into a nicely usable format.
+ *
+ * @param customSelect optional, string
+ * @returns testsolves list
+ */
+export async function getAllTestsolvesDetailed() {
+	const testsolveInfo = await getAllTestsolves(
+		"*,testsolvers(solver_id,users(full_name,initials)),tests(test_name)"
+	);
+	console.log(testsolveInfo);
+	const testsolves = testsolveInfo.map((e) => ({
+		id: e.id,
+		test_id: e.test_id,
+		solvers: e.testsolvers.length
+			? {
+					ids: e.testsolvers.map((item) => item.solver_id),
+					names: e.testsolvers.map((item) =>
+						item.users ? item.users.full_name : null
+					),
+					initials: e.testsolvers.map((item) =>
+						item.users ? item.users.initials : null
+					),
+			  }
+			: null,
+		test_name: e.tests.test_name,
+		start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
+		elapsed: e.time_elapsed,
+		test_version: e.test_version,
+		status: e.status,
+	}));
+	return testsolves;
 }
 
 /**
@@ -128,6 +209,90 @@ export async function addTestsolver(testsolver: TestsolverRequest) {
 }
 
 /**
+ * Creates a new testsolve in the database and adds testsolvers to said testsolve.
+ *
+ * @param testsolver object
+ * @returns object in database, including id
+ */
+export async function insertTestsolvers(test_id, solvers) {
+	const { data: testsolveData, error: testsolveError } = await supabase
+		.from("testsolves")
+		.insert([{ test_id: test_id }])
+		.select();
+	if (testsolveError) throw testsolveError;
+	console.log("DATA", testsolveData);
+	const solverInsert = solvers.map((item) => ({
+		testsolve_id: testsolveData[0].id,
+		solver_id: item.id,
+	}));
+	const { data: solverData, error: solverError } = await supabase
+		.from("testsolvers")
+		.insert(solverInsert)
+		.select();
+	if (solverError) throw solverError;
+	return testsolveData[0];
+}
+
+/**
+ * Handles the other functions of adding a testsolver (e.g. Discord)
+ *
+ * @param testsolver object
+ * @returns object in database, including id
+ */
+export async function addTestsolvers(test, solvers) {
+	const testsolve = await insertTestsolvers(test.id, solvers);
+	console.log("TESTSOLVE", testsolve);
+
+	for (const solver of solvers) {
+		const embed = {
+			title: "Assigned Testsolve: " + test.test_name,
+			//description: "This is the description of the embed.",
+			type: "rich",
+			color: parseInt(scheme.embed_color, 16), // You can set the color using hex values
+			author: {
+				name: solver.full_name,
+				//icon_url: "https://example.com/author.png", // URL to the author's icon
+			},
+			footer: {
+				text: "COMPOSE",
+				icon_url: scheme.logo, // URL to the footer icon
+			},
+		};
+
+		const linkButton2 = {
+			type: 2, // LINK button component
+			style: 5, // LINK style (5) for external links
+			label: "Start Testsolve",
+			url: scheme.url + "/testsolve/" + testsolve.id, // The external URL you want to link to
+		};
+
+		const linkButton1 = {
+			type: 2, // LINK button component
+			style: 5, // LINK style (5) for external links
+			label: "View Testsolve",
+			url: scheme.url + "/testsolve", // The external URL you want to link to
+		};
+
+		await fetch("/api/discord/dm", {
+			method: "POST",
+			body: JSON.stringify({
+				userId: solver.id,
+				message: {
+					message: "",
+					embeds: [embed],
+					components: [
+						{
+							type: 1,
+							components: [linkButton1, linkButton2],
+						},
+					],
+				},
+			}),
+		});
+	}
+}
+
+/**
  * Deletes a testsolver in database given their testsolver id (not user id). Returns nothing.
  *
  * @param testsolver_id number
@@ -138,20 +303,6 @@ export async function removeTestsolver(testsolver_id: number) {
 		.delete()
 		.eq("solver_id", testsolver_id);
 	if (error) throw error;
-}
-
-/**
- * Get all testsolves from the database
- *
- * @param customSelect optional, string
- * @returns testsolves list
- */
-export async function getAllTestsolves(customSelect: string = "*") {
-	let { data: testsolveInfo, error } = await supabase
-		.from("testsolves")
-		.select(customSelect);
-	if (error) throw error;
-	return testsolveInfo;
 }
 
 /**
@@ -186,7 +337,7 @@ export async function getOneTestsolve(id: number, customSelect: string = "*") {
 		.select(customSelect)
 		.eq("id", id);
 	if (error) throw error;
-	return data;
+	return data[0];
 }
 
 /**
