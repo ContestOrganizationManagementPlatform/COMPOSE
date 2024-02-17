@@ -5,8 +5,10 @@
 		SelectItem,
 		DataTable,
 		Link,
+		MultiSelect,
 	} from "carbon-components-svelte";
 	import Loading from "$lib/components/Loading.svelte";
+	import { formatDate } from "$lib/formatDate.js";
 	import Modal from "$lib/components/Modal.svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
@@ -17,20 +19,20 @@
 	import {
 		getTestInfo,
 		getAllUsersOrder,
-		getTestTestsolves,
-		addTestsolver,
+		getTestTestsolvesDetailed,
+		addTestsolvers,
 		deleteTestsolve,
 		getSolverTestsolves,
 	} from "$lib/supabase";
 
 	let testId = $page.params.id;
 	let loading = true;
-	let selectRef;
+	let solver_ids = [];
 	let testsolves;
 	let test;
-	let allUsers = [];
+	let users = [];
 
-	console.log(testId, loading, selectRef, testsolves, test, allUsers);
+	console.log(testId, loading, solver_ids, testsolves, test, users);
 
 	async function getTest() {
 		try {
@@ -52,24 +54,7 @@
 	async function getTestsolves() {
 		try {
 			console.log("got users");
-			const testsolveInfo = await getTestTestsolves(
-				testId,
-				"*,users(full_name,initials),tests(test_name)"
-			);
-			console.log("got testsolves");
-			console.log(testsolveInfo);
-			testsolves = testsolveInfo.map((e) => ({
-				id: e.id,
-				solver_id: e.solver_id,
-				test_id: e.test_id,
-				solver_name: e.users.full_name,
-				solver_initials: e.users.initials,
-				test_name: e.tests.test_name,
-				start_time: e.start_time ? formatDate(new Date(e.start_time)) : null,
-				elapsed: e.time_elapsed,
-				test_version: e.test_version,
-				status: e.status,
-			}));
+			testsolves = await getTestTestsolvesDetailed(testId);
 			loading = false;
 		} catch (error) {
 			handleError(error);
@@ -79,7 +64,7 @@
 
 	async function getAllUsers() {
 		try {
-			allUsers = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
+			users = await getAllUsersOrder("full_name", "*,test_coordinators(*)");
 			console.log("got users");
 			getTestsolves();
 		} catch (error) {
@@ -88,16 +73,6 @@
 		}
 	}
 	getTest();
-
-	async function addNewTestsolver() {
-		try {
-			await addTestsolver({ test_id: testId, solver_id: selectRef.value });
-			getTestsolves();
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	}
 </script>
 
 <div style="padding: 10px">
@@ -111,16 +86,39 @@
 		<h3><strong>Add Testsolves</strong></h3>
 		<div class="flex">
 			<form on:submit|preventDefault style="width: 50%">
-				<Select bind:ref={selectRef}>
-					{#each allUsers as user}
-						<SelectItem
-							value={user.id}
-							text={user.full_name + " (" + user.initials + ")"}
-						/>
-					{/each}
-				</Select>
+				<MultiSelect
+					titleText="Testsolvers"
+					label="Select Testsolvers"
+					bind:selectedIds={solver_ids}
+					items={users.map((item) => ({
+						id: item.id,
+						text: item.full_name,
+					}))}
+				/>
 				<br />
-				<Button action={addNewTestsolver} title="Add Testsolver" />
+				<Button
+					action={async () => {
+						try {
+							console.log("USERS", solver_ids);
+							if (!solver_ids.length) {
+								toast.error("Please select a user");
+							} else {
+								const solvers = users.filter((obj) =>
+									solver_ids.includes(obj.id)
+								);
+								console.log("TEST", test);
+								console.log("SOLVERS", solvers);
+								await addTestsolvers(test, solvers);
+								toast.success("Success! Added testsolve.");
+								await getTestsolves();
+							}
+						} catch (error) {
+							handleError(error);
+							toast.error(error.message);
+						}
+					}}
+					title="Add Testsolve"
+				/>
 			</form>
 		</div>
 		<br /> <br />

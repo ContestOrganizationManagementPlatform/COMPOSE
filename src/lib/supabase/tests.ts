@@ -28,6 +28,7 @@ export interface TestFeedbackQuestionRequest {
 export async function getAllTests(customSelect = "*") {
 	let { data, error } = await supabase.from("tests").select(customSelect);
 	if (error) throw error;
+	console.log("TESTDATA", data);
 	return data;
 }
 
