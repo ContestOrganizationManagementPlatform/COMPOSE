@@ -8,7 +8,7 @@
 	import { handleError } from "$lib/handleError";
 	import {
 		getFeedbackQuestions,
-		removeTestsolver,
+		deleteTestsolve,
 		getThisUserRole,
 		getThisUser,
 		getTestsolveFeedbackAnswers,
@@ -39,6 +39,7 @@
 	let isAdmin: boolean;
 
 	let testsolve = null;
+	let solverIds = null;
 	let timeElapsed: number;
 
 	timeElapsed = 0; // in ms
@@ -51,6 +52,7 @@
 	let user;
 	(async () => {
 		user = await getThisUser();
+		console.log("USER_ID", user.id);
 		await getTestsolve();
 		await permissionCheck();
 		console.log("Loaded isAdmin", isAdmin);
@@ -58,10 +60,10 @@
 		console.log(isAdmin, testsolve.status);
 	})();
 
-	async function deleteTestsolve() {
+	async function deleteThisTestsolve() {
 		try {
 			if (isAdmin) {
-				await removeTestsolver(Number($page.params.id));
+				await deleteTestsolve(Number($page.params.id));
 				toast.success("Successfully deleted testsolve!");
 				window.location.href = "/admin/testsolves";
 			}
@@ -72,28 +74,39 @@
 	}
 
 	async function getTestsolve() {
-		testsolve = await getOneTestsolve(Number($page.params.id));
+		testsolve = await getOneTestsolve(
+			Number($page.params.id),
+			"*,tests(test_name),testsolvers(solver_id)"
+		);
 
 		if (testsolve.length === 0) {
 			throw new Error(
 				"Testsolve with id " + $page.params.id + " doesn't exist!"
 			);
 		} else {
-			testsolve = testsolve[0];
+			console.log("TESTSOLVE", testsolve);
+			solverIds = new Set(testsolve.testsolvers.map((obj) => obj.solver_id));
+			console.log("solverIds1", solverIds);
 		}
 	}
 
 	async function permissionCheck() {
 		try {
 			if ((await getThisUserRole()) === 40) {
+				console.log("Here");
 				disallowed = false;
 				isAdmin = true;
 			}
+			console.log("THERE");
+			console.log("TESTSOLVE2", testsolve);
+			console.log("TEST_ID", testsolve.test_id);
+
 			if (await checkIfTestCoordinator(testsolve.test_id, user.id)) {
 				disallowed = false;
 				isAdmin = true;
 			}
-			if (testsolve.solver_id === user.id) {
+			console.log("solverIds2", solverIds);
+			if (solverIds.has(user.id)) {
 				disallowed = false;
 				isAdmin = false;
 				if (testsolve.status == "Not Started") {
@@ -190,7 +203,7 @@
 {:else}
 	<br />
 	{#if isAdmin}
-		<Button action={deleteTestsolve} title="Delete Testsolve" />
+		<Button action={deleteThisTestsolve} title="Delete Testsolve" />
 	{/if}
 	<br />
 	{#if testsolve.status == "Testsolving" && !isAdmin}
