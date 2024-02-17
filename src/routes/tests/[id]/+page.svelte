@@ -6,7 +6,6 @@
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 	import {
-		getProblemTestsolveAnswersOrder,
 		getImages,
 		getTestInfo,
 		getTestProblems,
@@ -14,16 +13,15 @@
 		getThisUserRole,
 	} from "$lib/supabase";
 	import QRCode from "qrcode";
-	import compilerPath from '@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url'
-	import rendererPath from '@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url'
-	import { $typst as Typst } from '@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs';
+	import compilerPath from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
+	import rendererPath from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
+	import { $typst as Typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
 	import { ImageBucket } from "$lib/ImageBucket";
 	import type { ProblemImage } from "$lib/getProblemImages";
-	import answerSheet from './answer_sheet.typ?url'
+	import answerSheet from "./answer_sheet.typ?url";
 
-	Typst.setRendererInitOptions({getModule: () => rendererPath});
-	Typst.setCompilerInitOptions({getModule: () => compilerPath});
-
+	Typst.setRendererInitOptions({ getModule: () => rendererPath });
+	Typst.setCompilerInitOptions({ getModule: () => compilerPath });
 
 	let testId = Number($page.params.id);
 	let test;
@@ -84,61 +82,82 @@
 	async function openTest() {
 		try {
 			const generateQR = async (text: string) => {
-		    return await QRCode.toString(text, {"type": "svg"});
-			}
+				return await QRCode.toString(text, { type: "svg" });
+			};
 
 			// When mitex supports brackets, we can remove this.
 			for (let problem of problems) {
-				problem.problem_latex = problem.problem_latex.replaceAll('\\(', '$')
-				problem.problem_latex = problem.problem_latex.replaceAll('\\)', '$')
-				problem.problem_latex = problem.problem_latex.replaceAll('\\[', '$$')
-				problem.problem_latex = problem.problem_latex.replaceAll('\\]', '$$')
+				problem.problem_latex = problem.problem_latex.replaceAll("\\(", "$");
+				problem.problem_latex = problem.problem_latex.replaceAll("\\)", "$");
+				problem.problem_latex = problem.problem_latex.replaceAll("\\[", "$$");
+				problem.problem_latex = problem.problem_latex.replaceAll("\\]", "$$");
 			}
 			const qr_text = await generateQR(test.id.toString());
 			let utf8Encode = new TextEncoder();
 			Typst.mapShadow("/assets/qr.svg", utf8Encode.encode(qr_text));
-			const test_metadata = JSON.stringify({name: test.test_name});
-			Typst.mapShadow("/assets/test_metadata.json", utf8Encode.encode(test_metadata));
-			Typst.mapShadow("/assets/problems.json", utf8Encode.encode(JSON.stringify(problems)));
-			Typst.mapShadow("/answer_sheet_compiling.toml", utf8Encode.encode("[config]\nlocal = false"));
+			const test_metadata = JSON.stringify({ name: test.test_name });
+			Typst.mapShadow(
+				"/assets/test_metadata.json",
+				utf8Encode.encode(test_metadata)
+			);
+			Typst.mapShadow(
+				"/assets/problems.json",
+				utf8Encode.encode(JSON.stringify(problems))
+			);
+			Typst.mapShadow(
+				"/answer_sheet_compiling.toml",
+				utf8Encode.encode("[config]\nlocal = false")
+			);
 
-			const answer_template_body = await fetch(answerSheet).then(r => r.text());
+			const answer_template_body = await fetch(answerSheet).then((r) =>
+				r.text()
+			);
 
-			let { images, errorList }: {images: ProblemImage[], errorList: any[]} = (await Promise.all(
-				problems.map(p => ImageBucket.downloadLatexImages(p.problem_latex))
-			)).reduce((a, e) => {
-				a.errorList = a.errorList.concat(e.errorList);
-				a.images = a.images.concat(e.images);
-				return a;
-			}); 
+			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
+				(
+					await Promise.all(
+						problems.map((p) =>
+							ImageBucket.downloadLatexImages(p.problem_latex)
+						)
+					)
+				).reduce((a, e) => {
+					a.errorList = a.errorList.concat(e.errorList);
+					a.images = a.images.concat(e.images);
+					return a;
+				});
 			if (errorList.length > 0) {
 				throw errorList;
-			} 
-			
-			for (const image of images) {
-				Typst.mapShadow("/problem_images" + image.name, new Uint8Array(await image.blob.arrayBuffer()));
 			}
-	
-			Typst.pdf({mainContent: answer_template_body}).then((array) => {
+
+			for (const image of images) {
+				Typst.mapShadow(
+					"/problem_images" + image.name,
+					new Uint8Array(await image.blob.arrayBuffer())
+				);
+			}
+
+			Typst.pdf({ mainContent: answer_template_body }).then((array) => {
 				const downloadURL = (data, fileName) => {
-				  const a = document.createElement('a')
-				  a.href = data
-				  a.download = fileName
-				  document.body.appendChild(a)
-				  a.style.display = 'none'
-				  a.click()
-				  a.remove()
+					const a = document.createElement("a");
+					a.href = data;
+					a.download = fileName;
+					document.body.appendChild(a);
+					a.style.display = "none";
+					a.click();
+					a.remove();
 				};
 
 				const downloadBlob = (data, fileName, mimeType) => {
-				  const url = window.URL.createObjectURL(new Blob([data], {
-				    type: mimeType
-				  }))
-				  downloadURL(url, fileName)
-				  setTimeout(() => window.URL.revokeObjectURL(url), 1000)
+					const url = window.URL.createObjectURL(
+						new Blob([data], {
+							type: mimeType,
+						})
+					);
+					downloadURL(url, fileName);
+					setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 				};
-	
-				downloadBlob(array, test.test_name + ".pdf", 'application/pdf');
+
+				downloadBlob(array, test.test_name + ".pdf", "application/pdf");
 			});
 		} catch (error) {
 			handleError(error);
