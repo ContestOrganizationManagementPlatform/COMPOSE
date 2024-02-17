@@ -10,7 +10,6 @@
 	import Loading from "$lib/components/Loading.svelte";
 	import { formatDate } from "$lib/formatDate.js";
 	import Modal from "$lib/components/Modal.svelte";
-	import { formatDate } from "$lib/formatDate.js";
 	import Launch from "carbon-icons-svelte/lib/Launch.svelte";
 	import TestsolveList from "$lib/components/TestsolveList.svelte";
 	import Button from "$lib/components/Button.svelte";
