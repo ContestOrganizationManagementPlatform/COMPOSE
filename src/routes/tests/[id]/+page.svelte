@@ -87,6 +87,9 @@
 			const generateQR = async (text: string) => {
 				return await QRCode.toString(text, { type: "svg" });
 			};
+			const answer_template_body = await fetch(answerSheet).then((r) =>
+				r.text()
+			);
 
 			// When mitex supports brackets, we can remove this.
 			for (let problem of problems) {
@@ -119,9 +122,9 @@
 				"/answer_sheet_compiling.toml",
 				utf8Encode.encode("[config]\nlocal = false")
 			);
-
-			const answer_template_body = await fetch(answerSheet).then((r) =>
-				r.text()
+			Typst.mapShadow(
+				"/main.typ",
+				utf8Encode.encode(answer_template_body)
 			);
 
 			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
@@ -147,28 +150,31 @@
 				);
 			}
 
-			Typst.pdf({ mainContent: answer_template_body }).then((array) => {
-				const downloadURL = (data, fileName) => {
-					const a = document.createElement("a");
-					a.href = data;
-					a.download = fileName;
-					document.body.appendChild(a);
-					a.style.display = "none";
-					a.click();
-					a.remove();
-				};
+			const downloadURL = (data, fileName) => {
+				const a = document.createElement("a");
+				a.href = data;
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.style.display = "none";
+				a.click();
+				a.remove();
+			};
+			const downloadBlob = (data, fileName, mimeType) => {
+				const url = window.URL.createObjectURL(
+					new Blob([data], {
+						type: mimeType,
+					})
+				);
+				downloadURL(url, fileName);
+				setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+			};
 
-				const downloadBlob = (data, fileName, mimeType) => {
-					const url = window.URL.createObjectURL(
-						new Blob([data], {
-							type: mimeType,
-						})
-					);
-					downloadURL(url, fileName);
-					setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-				};
-
+			Typst.pdf({ mainFilePath: "/main.typ" }).then((array) => {
 				downloadBlob(array, test.test_name + ".pdf", "application/pdf");
+			});
+
+			(await Typst.getCompiler()).query({mainFilePath: "/main.typ", selector: "<box_positions>", field: "value"}).then((box_positions) => {
+				downloadBlob(JSON.stringify(box_positions[0]), "box_positions.json", "application/json");
 			});
 		} catch (error) {
 			handleError(error);

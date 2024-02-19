@@ -1,5 +1,6 @@
 #import "@preview/mitex:0.2.1": *
 #import "@preview/codetastic:0.2.2": qrcode
+#import "@preview/tablex:0.0.8": gridx, hlinex, vlinex
 
 #let macros = (
   // Boxing answers
@@ -32,7 +33,7 @@
     (
       (problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$"), (
         problem_latex: "Count how many toes you have. What is that number divided by $2$?",
-      ),
+      ), ..range(20).map(i => (problem_latex: "Problem # " + str(i))),
     ), (name: "Test Name", id: "T16", day: 13, month: 4, year: 2024),
   )
 } else {
@@ -51,6 +52,7 @@
   mitex-convert(mode: "text", macros + "\n" + replace_image(latex))
 }
 
+// Make a qr code in a box.
 #let make_qr(qr_string) = {
   let qr = (length: 70pt)
   let stroke = 2pt
@@ -66,8 +68,7 @@
       #target_string
     ], inset: 2pt)
   }
-
-  let qr_and_text = in_box(if qr_string != none { qr_string } else { "measuring string" })
+  let qr_and_text = in_box(qr_string)
 
   align(
     center, style(
@@ -75,44 +76,83 @@
         let (width, height) = measure(qr_and_text, styles)
         let padding = 4pt
         box(
-          width: width + padding, height: height + padding, stroke: qr_box.stroke, align(center + horizon, if qr_string != none {
-            qr_and_text
-          } else {
-            "Test Taker \nID Sticker"
-          }), inset: padding + qr_box.stroke / 2, fill: if qr_string != none {
-            none
-          } else {
-            gray.lighten(80%)
-          },
+          width: width + padding, height: height + padding, stroke: qr_box.stroke, align(center + horizon, qr_and_text), inset: padding + qr_box.stroke / 2,
         )
       },
     ),
   )
 }
 
+#let identification_sticker_box = {
+  let stroke = 1pt
+
+  box(
+    width: 2.625in + stroke * 2, height: 1in + stroke * 2, stroke: stroke, radius: 3pt, fill: gray.lighten(50%), "Place Identification Sticker Here",
+  )
+}
+
+// Set page size and set page header for answer sheet boxes.
 #set page(
-  header: [
-    #set text(10pt)
-    #place(top + left, dy: 10pt, make_qr(test_metadata.id))
-    #place(top + right, dy: 10pt, make_qr(none))
-    #align(
-      center + horizon, [
-        #text(weight: "bold", 18pt, "Stanford Math Tournament") \ \
-        #text(12pt, test_metadata.name + " Test")
-        #v(0pt)
-        #text(
-          10pt, datetime(
-            day: test_metadata.day, month: test_metadata.month, year: test_metadata.year,
-          ).display("[month repr:short] [day], [year padding:zero repr:full]"),
-        )
-      ],
-    )
-    #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-  ], header-ascent: 30%, margin: (top: 20%),
+  header: locate(
+    location => [
+      #set text(10pt)
+      #place(
+        top + left, dy: 10pt, make_qr(test_metadata.id + "P" + str(location.page())),
+      )
+      #align(
+        center + horizon, [
+          #text(weight: "bold", 18pt, "Stanford Math Tournament") \ \
+          #text(12pt, test_metadata.name + " Test")
+          #v(0pt)
+          #text(
+            10pt, datetime(
+              day: test_metadata.day, month: test_metadata.month, year: test_metadata.year,
+            ).display("[month repr:short] [day], [year padding:zero repr:full]"),
+          )
+        ],
+      )
+      #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
+      #align(center + horizon, identification_sticker_box)
+    ],
+  ), header-ascent: 12%, margin: (top: 30%), height: 11in, width: 8.5in,
 )
 
-= #test_metadata.name
+#let answer_box(i, layout) = {
+  // Rounded corners box.
+  box(
+    width: 100% * layout.width, height: 0.8in, stroke: 1pt, radius: 5pt, [
+      // Two column grid with a dividing line.
+      #gridx(
+        columns: (0.5in, 1fr), rows: (1fr), [#{ i + 1 }.], align: center + horizon, vlinex(), "",
+      )
+    ],
+  )
+}
 
+#let problem_count = problems.len()
+
+// Generate boxes and measure them.
+#{
+  columns(2, gutter: 11pt, range(problem_count).map(i => {
+    layout(size => {
+      style(styles => {
+        let elem = answer_box(i, size)
+        [#elem #metadata(measure(elem, styles)) #label("box_" + str(i))]
+      })
+    })
+  }).join())
+}
+
+// Generate metadata for box positions. (accessible via external query)
+#locate(loc => {
+  let a = range(problem_count).map(i => {
+    let elem = query(selector(label("box_" + str(i))), loc).first()
+    (elem.value, elem.location().position(),)
+  });
+  [#metadata(a) #label("box_positions")]
+})
+
+// Set page header for problems.
 #set page(header: [
   #set text(10pt)
   #grid(
@@ -127,6 +167,7 @@
   #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
 ], margin: auto)
 
+// Typeset problems.
 #enum(..problems.enumerate().map(((i, p)) => {
   let p_latex = replace_image(p.problem_latex)
   let p_typst = convert_to_typst(p_latex)
