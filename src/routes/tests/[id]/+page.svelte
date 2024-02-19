@@ -48,7 +48,7 @@
 		try {
 			test = await getTestInfo(
 				testId,
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,id)"
+				"*,test_coordinators(users(*)),tournaments(tournament_name,tournament_date),testsolves(test_id,id)"
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
@@ -79,7 +79,10 @@
 		}
 	}
 
-	async function openTest() {
+	async function downloadTest(e) {
+		let original_text = e.target.innerText;
+		e.target.innerText = "Processing";
+
 		try {
 			const generateQR = async (text: string) => {
 				return await QRCode.toString(text, { type: "svg" });
@@ -92,10 +95,18 @@
 				problem.problem_latex = problem.problem_latex.replaceAll("\\[", "$$");
 				problem.problem_latex = problem.problem_latex.replaceAll("\\]", "$$");
 			}
-			const qr_text = await generateQR(test.id.toString());
+
 			let utf8Encode = new TextEncoder();
-			Typst.mapShadow("/assets/qr.svg", utf8Encode.encode(qr_text));
-			const test_metadata = JSON.stringify({ name: test.test_name });
+			let [year, month, day] = test.tournaments.tournament_date
+				.split("-")
+				.map((n) => parseInt(n));
+			const test_metadata = JSON.stringify({
+				name: test.test_name,
+				id: "T" + test.id,
+				day,
+				month,
+				year,
+			});
 			Typst.mapShadow(
 				"/assets/test_metadata.json",
 				utf8Encode.encode(test_metadata)
@@ -163,6 +174,8 @@
 			handleError(error);
 			toast.error(error.message);
 		}
+
+		e.target.innerText = original_text;
 	}
 
 	getTest();
@@ -249,7 +262,7 @@
 				{/each}
 
 				<br />
-				<button on:click={openTest}>Download Test</button>
+				<button on:click={downloadTest}>Download Test</button>
 				<br /><br />
 			</div>
 		</div>
