@@ -34,7 +34,9 @@
       (problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$"), (
         problem_latex: "Count how many toes you have. What is that number divided by $2$?",
       ), ..range(20).map(i => (problem_latex: "Problem # " + str(i))),
-    ), (name: "Test Name", id: "T16", day: 13, month: 4, year: 2024),
+    ), (
+      name: "Test Name", id: "T16", day: 13, month: 4, year: 2024, team_test: false,
+    ),
   )
 } else {
   (json("/assets/problems.json"), json("/assets/test_metadata.json"),)
@@ -83,11 +85,28 @@
   )
 }
 
-#let identification_sticker_box = {
+#let id_box(fill: none, inset: 8pt, content) = {
   let stroke = 1pt
-
   box(
-    width: 2.625in + stroke * 2, height: 1in + stroke * 2, stroke: stroke, radius: 3pt, fill: gray.lighten(50%), "Place Identification Sticker Here",
+    width: 2.625in + stroke * 2, height: 1in + stroke * 2, stroke: stroke, radius: 3pt, inset: inset, fill: fill, content,
+  )
+}
+
+#let identification_sticker_box = {
+  id_box(fill: gray.lighten(50%), "Place Identification Sticker Here")
+}
+
+#let written_identification_box = {
+  set text(10pt)
+  let rows = if test_metadata.team_test {
+    ([Team ID (e.g. 001): ], [Team Name: ])
+  } else {
+    ([Student ID (e.g. 001A): ], [Student Name: ], [Team Name: ],)
+  }
+  id_box(
+    inset: 0pt, gridx(
+      columns: (100%), rows: rows.map(_ => 1fr), align: start + horizon, stroke: 0.5pt, ..rows.intersperse(hlinex()),
+    ),
   )
 }
 
@@ -97,12 +116,14 @@
     location => [
       #set text(10pt)
       #place(
-        top + left, dy: 10pt, make_qr(test_metadata.id + "P" + str(location.page())),
+        top + right, dy: 10pt, make_qr(test_metadata.id + "P" + str(location.page())),
       )
       #align(
         center + horizon, [
-          #text(weight: "bold", 18pt, "Stanford Math Tournament") \ \
-          #text(12pt, test_metadata.name + " Test")
+          #text(
+            weight: "bold", 18pt, test_metadata.name + " Test (" + if test_metadata.team_test { "Team" } else { "Individual" } + ")",
+          ) \ \
+          #text(12pt, "Stanford Math Tournament") \
           #v(0pt)
           #text(
             10pt, datetime(
@@ -111,8 +132,11 @@
           )
         ],
       )
+      #grid(
+        columns: (1fr, 1fr), align(center + horizon, written_identification_box), align(center + horizon, identification_sticker_box),
+      )
       #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-      #align(center + horizon, identification_sticker_box)
+
     ],
   ), header-ascent: 12%, margin: (top: 30%), height: 11in, width: 8.5in,
 )
@@ -120,7 +144,7 @@
 #let answer_box(i, layout) = {
   // Rounded corners box.
   box(
-    width: 100% * layout.width, height: 0.8in, stroke: 1pt, radius: 5pt, [
+    width: 100% * layout.width, height: 0.55in, stroke: 1pt, radius: 5pt, [
       // Two column grid with a dividing line.
       #gridx(
         columns: (0.5in, 1fr), rows: (1fr), [#{ i + 1 }.], align: center + horizon, vlinex(), "",
@@ -133,7 +157,7 @@
 
 // Generate boxes and measure them.
 #{
-  columns(2, gutter: 11pt, range(problem_count).map(i => {
+  columns(3, gutter: 11pt, range(problem_count).map(i => {
     layout(size => {
       style(styles => {
         let elem = answer_box(i, size)
