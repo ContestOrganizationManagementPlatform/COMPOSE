@@ -42,7 +42,7 @@
 		"Comments",
 		"Feedback",
 	];
-	let group = values.slice(0, 1);
+	let selected_values = values.slice(0, 1);
 
 	async function getTest() {
 		try {
@@ -91,25 +91,24 @@
 				r.text()
 			);
 
-			// When mitex supports brackets, we can remove this.
-			for (let problem of problems) {
-				problem.problem_latex = problem.problem_latex.replaceAll("\\(", "$");
-				problem.problem_latex = problem.problem_latex.replaceAll("\\)", "$");
-				problem.problem_latex = problem.problem_latex.replaceAll("\\[", "$$");
-				problem.problem_latex = problem.problem_latex.replaceAll("\\]", "$$");
-			}
-
 			let utf8Encode = new TextEncoder();
 			let [year, month, day] = test.tournaments.tournament_date
 				.split("-")
 				.map((n) => parseInt(n));
+			const is_selected = (option) => selected_values.find(o => o == option) != undefined;
 			const test_metadata = JSON.stringify({
 				name: test.test_name,
 				id: "T" + test.id,
 				day,
 				month,
 				year,
+				team_test: false, // TODO: label tests in database as team or individual
+				display: {
+					answers: is_selected("Answers"),
+					solutions: is_selected("Solutions"),
+				}
 			});
+
 			Typst.mapShadow(
 				"/assets/test_metadata.json",
 				utf8Encode.encode(test_metadata)
@@ -264,7 +263,7 @@
 				<p><strong>PDF Options</strong></p>
 
 				{#each values as value}
-					<Checkbox bind:group labelText={value} {value} />
+					<Checkbox bind:group={selected_values} labelText={value} {value} />
 				{/each}
 
 				<br />

@@ -2,56 +2,25 @@
 #import "@preview/codetastic:0.2.2": qrcode
 #import "@preview/tablex:0.0.8": gridx, hlinex, vlinex
 
-#let macros = (
-  // Boxing answers
-  "\\ans": ("[1]", "\\boxed{#1}"),
-  // Wrap with absolute value
-  "\\Abs": ("[1]", "\\left\\lVert #1 \\right\\rVert"),
-  // Wrap with < > angle brackets
-  "\\ang": ("[1]", "\\left \\langle #1 \\right \\rangle"),
-  // Set notation {x, y}
-  "\\set": ("[1]", "\\left\\{#1\\right\\}"),
-  // Scaled parentheses
-  "\\paren": ("[1]", "\\left(#1\\right)"),
-  // Floor brackets
-  "\\floor": ("[1]", "\\left\\lfloor #1 \\right\\rfloor"),
-  // Ceiling brackets
-  "\\ceil": ("[1]", "\\left\\lceil #1 \\right\\rceil"),
-  // Vector notation, overarrow
-  "\\VEC": ("[1]", "\\overrightarrow{#1}"),
-  // Modulus operator
-  "\\Mod": ("[1]", "\\enspace(\\text{mod}\\ #1)"),
-).pairs().map(pair => {
-  let (name, value) = pair
-  let (arg_count, body) = value
-  "\\newcommand{" + name + "}" + arg_count + "{" + body + "}"
-}).join("\n")
-
 #let is_local = toml("./answer_sheet_compiling.toml").config.local
 #let (problems, test_metadata) = if is_local {
   (
     (
-      (problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$"), (
-        problem_latex: "Count how many toes you have. What is that number divided by $2$?",
-      ), ..range(20).map(i => (problem_latex: "Problem # " + str(i))),
+      (
+        problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$", answer_latex: "$\\frac{3}{4}$", solution_latex: "Think deeply, then guess the answer.",
+      ), (
+        problem_latex: "Count how many toes you have. What is that number divided by $2$?", answer_latex: "5", solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5}.$",
+      ), ..range(20).map(
+        i => (
+          problem_latex: "Problem # " + str(i), answer_latex: "Generic answer", solution_latex: "Generic solution",
+        ),
+      ),
     ), (
-      name: "Test Name", id: "T16", day: 13, month: 4, year: 2024, team_test: false,
+      name: "Test Name", id: "T16", day: 13, month: 4, year: 2024, team_test: false, display: (answers: true, solutions: true),
     ),
   )
 } else {
   (json("/assets/problems.json"), json("/assets/test_metadata.json"),)
-}
-
-#let replace_image(latex) = {
-  let image_regex = regex(`\\(image|includegraphics)(\[[^\]]*\])*\{([^\}]+)\}`.text);
-  latex.replace(image_regex, (m, ..) => {
-    let path = "/problem_images" + m.captures.last()
-    "\\iftypst\n #figure(image(\"" + path + "\", height: 20%))\n\\fi"
-  })
-}
-
-#let convert_to_typst(latex) = {
-  mitex-convert(mode: "text", macros + "\n" + replace_image(latex))
 }
 
 // Make a qr code in a box.
@@ -192,8 +161,75 @@
 ], margin: auto)
 
 // Typeset problems.
-#enum(..problems.enumerate().map(((i, p)) => {
-  let p_latex = replace_image(p.problem_latex)
-  let p_typst = convert_to_typst(p_latex)
-  enum.item(eval(p_typst, mode: "markup", scope: mitex-scope))
-}))
+#let macros = (
+  // Boxing answers
+  "\\ans": ("[1]", "\\boxed{#1}"),
+  // Wrap with absolute value
+  "\\Abs": ("[1]", "\\left\\lVert #1 \\right\\rVert"),
+  // Wrap with < > angle brackets
+  "\\ang": ("[1]", "\\left \\langle #1 \\right \\rangle"),
+  // Set notation {x, y}
+  "\\set": ("[1]", "\\left\\{#1\\right\\}"),
+  // Scaled parentheses
+  "\\paren": ("[1]", "\\left(#1\\right)"),
+  // Floor brackets
+  "\\floor": ("[1]", "\\left\\lfloor #1 \\right\\rfloor"),
+  // Ceiling brackets
+  "\\ceil": ("[1]", "\\left\\lceil #1 \\right\\rceil"),
+  // Vector notation, overarrow
+  "\\VEC": ("[1]", "\\overrightarrow{#1}"),
+  // Modulus operator
+  "\\Mod": ("[1]", "\\enspace(\\text{mod}\\ #1)"),
+).pairs().map(pair => {
+  let (name, value) = pair
+  let (arg_count, body) = value
+  "\\newcommand{" + name + "}" + arg_count + "{" + body + "}"
+}).join()
+
+#let replace_image(latex) = {
+  let image_regex = regex(`\\(image|includegraphics)(\[[^\]]*\])*\{([^\}]+)\}`.text);
+  latex.replace(image_regex, (m, ..) => {
+    let path = "/problem_images" + m.captures.last()
+    "\\iftypst\n #figure(image(\"" + path + "\", height: 20%))\n\\fi"
+  })
+}
+
+#let convert_to_typst(latex) = {
+  // When mitex supports brackets, we can remove this.
+  latex = latex.replace("\\(", "$")
+  latex = latex.replace("\\)", "$")
+  latex = latex.replace("\\[", "$$")
+  latex = latex.replace("\\]", "$$")
+  mitex-convert(mode: "text", macros + replace_image(latex))
+}
+
+#set enum(tight: false)
+#enum(
+  ..problems.enumerate().map(
+    ((i, p)) => {
+      let p_latex = replace_image(p.problem_latex)
+      let p_typst = convert_to_typst(p_latex)
+      enum.item(
+        [
+          #eval(p_typst, mode: "markup", scope: mitex-scope)
+
+          #if test_metadata.display.answers {
+            [
+              *Answer: #eval(
+                convert_to_typst(replace_image(p.answer_latex)), mode: "markup", scope: mitex-scope,
+              )*
+            ]
+          }
+
+          #if test_metadata.display.solutions {
+            [
+              *Solution:* #eval(
+                convert_to_typst(replace_image(p.solution_latex)), mode: "markup", scope: mitex-scope,
+              )
+            ]
+          }
+        ],
+      )
+    },
+  ),
+)
