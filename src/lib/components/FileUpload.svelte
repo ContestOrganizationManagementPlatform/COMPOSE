@@ -1,11 +1,24 @@
 <script>
 	import JSZip from "jszip";
+	import pdfjsLib from "pdfjs-dist";
 
 	export let splitPdf = false;
 
-	let files = [];
+	let files;
+
+	$: if (files) {
+		// Note that `files` is of type `FileList`, not an Array:
+		// https://developer.mozilla.org/en-US/docs/Web/API/FileList
+		console.log(files);
+
+		for (const file of files) {
+			console.log(`${file.name}: ${file.size} bytes`);
+		}
+	}
 
 	async function handleFileUpload(event) {
+		console.log("FILE UPLOAD");
+		console.log(event);
 		const uploadedFiles = event.target.files;
 		for (let i = 0; i < uploadedFiles.length; i++) {
 			const file = uploadedFiles[i];
@@ -15,8 +28,7 @@
 				await handlePdfFile(file);
 			} else {
 				files.push(file);
-				// Perform your desired action on individual files
-				// For example: processFile(file);
+				processFile(file);
 			}
 		}
 	}
@@ -63,7 +75,15 @@
 
 <label>
 	Upload Files:
-	<input type="file" multiple on:change={handleFileUpload} />
+	<input
+		type="file"
+		multiple
+		bind:files
+		on:change={(e) => {
+			console.log("ONCHANGE");
+			handleFileUpload(e);
+		}}
+	/>
 </label>
 
 {#each files as file}

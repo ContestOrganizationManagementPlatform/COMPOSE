@@ -38,6 +38,7 @@
 		"ngrok": "^5.0.0-beta.2",
 		"node-fetch": "^3.3.2",
 		"openai": "^4.12.4",
+		"pdfjs-dist": "^4.0.379",
 		"rehype-stringify": "^9.0.3",
 		"svelte-chartjs": "^3.0.1",
 		"svelte-dnd-action": "^0.9.38",
