@@ -54,6 +54,18 @@
   )
 }
 
+#let id_label(id) = {
+  // QR code and text to the right.
+  box(
+    width: 2.625in, height: 1in, stroke: 1pt + gray, radius: 6pt, inset: 0pt, fill: white,
+  )[
+    // Two column grid with a dividing line.
+    #gridx(
+      columns: (1in, 1fr), rows: (1fr), qrcode(id, width: 0.8in, quiet-zone: 0, ecl: "l"), align: center + horizon, vlinex(), id,
+    )
+  ]
+}
+
 #let id_box(fill: none, inset: 8pt, content) = {
   let stroke = 1pt
   box(
@@ -62,7 +74,13 @@
 }
 
 #let identification_sticker_box = {
-  id_box(fill: gray.lighten(50%), "Place Identification Sticker Here")
+  // id_box(fill: gray.lighten(50%), "Place Identification Sticker Here")
+  id_box(fill: gray.lighten(50%), if is_local {
+    set text(size: 16pt)
+    id_label("001A")
+  } else {
+    "Place Identification Sticker Here"
+  })
 }
 
 #let written_identification_box = {
