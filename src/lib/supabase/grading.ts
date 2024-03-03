@@ -1,7 +1,5 @@
 import { supabase } from "../supabaseClient";
 import { archiveProblem } from "./problems";
-import { supabase } from "../supabaseClient";
-import { archiveProblem } from "./problems";
 
 async function fetchData(): Promise<any[]> {
     const { data, error } = await supabase
@@ -39,18 +37,24 @@ async function fetchData(): Promise<any[]> {
         // Add object_path to the item
         item.object_path = scanData[0]?.object_path;
 
-        const { data: problemData, error: problemError } = await supabase
+        const { data: testProblemData, error: testProblemError } = await supabase
             .from('public.test_problems')
             .select('problem_id')
             .eq('test_id', scanData[0]?.test_id)
             .eq('problem_number', item.problem_index);
+        if (testProblemData) {
+            throw testProblemError;
+        }
+        // Add problem_id to the item
+        const { data: problemData, error: problemError } = await supabase
+            .from('public.problems')
+            .select('answer_latex')
+            .eq('id', testProblemData[0]?.problem_id);
         if (problemError) {
             throw problemError;
         }
-        // Add problem_id to the item
-        item.problem_id = problemData[0]?.problem_id;
+        item.answer_latex = problemData[0]?.answer_latex;
     }
-
 
     return data;
 }
