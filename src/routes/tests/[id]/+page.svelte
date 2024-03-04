@@ -42,13 +42,13 @@
 		"Comments",
 		"Feedback",
 	];
-	let group = values.slice(0, 1);
+	let selected_values = values.slice(0, 1);
 
 	async function getTest() {
 		try {
 			test = await getTestInfo(
 				testId,
-				"*,test_coordinators(users(*)),tournaments(tournament_name),testsolves(test_id,id)"
+				"*,test_coordinators(users(*)),tournaments(tournament_name,tournament_date),testsolves(test_id,id)"
 			);
 			testCoordinators = test.test_coordinators.map((x) => x.users);
 			userIsTestCoordinator =
@@ -79,23 +79,36 @@
 		}
 	}
 
-	async function openTest() {
+	async function downloadTest(e) {
+		let original_text = e.target.innerText;
+		e.target.innerText = "Processing";
+
 		try {
 			const generateQR = async (text: string) => {
 				return await QRCode.toString(text, { type: "svg" });
 			};
+			const answer_template_body = await fetch(answerSheet).then((r) =>
+				r.text()
+			);
 
-			// When mitex supports brackets, we can remove this.
-			for (let problem of problems) {
-				problem.problem_latex = problem.problem_latex.replaceAll("\\(", "$");
-				problem.problem_latex = problem.problem_latex.replaceAll("\\)", "$");
-				problem.problem_latex = problem.problem_latex.replaceAll("\\[", "$$");
-				problem.problem_latex = problem.problem_latex.replaceAll("\\]", "$$");
-			}
-			const qr_text = await generateQR(test.id.toString());
 			let utf8Encode = new TextEncoder();
-			Typst.mapShadow("/assets/qr.svg", utf8Encode.encode(qr_text));
-			const test_metadata = JSON.stringify({ name: test.test_name });
+			let [year, month, day] = test.tournaments.tournament_date
+				.split("-")
+				.map((n) => parseInt(n));
+			const is_selected = (option) => selected_values.find(o => o == option) != undefined;
+			const test_metadata = JSON.stringify({
+				name: test.test_name,
+				id: "T" + test.id,
+				day,
+				month,
+				year,
+				team_test: false, // TODO: label tests in database as team or individual
+				display: {
+					answers: is_selected("Answers"),
+					solutions: is_selected("Solutions"),
+				}
+			});
+
 			Typst.mapShadow(
 				"/assets/test_metadata.json",
 				utf8Encode.encode(test_metadata)
@@ -108,9 +121,9 @@
 				"/answer_sheet_compiling.toml",
 				utf8Encode.encode("[config]\nlocal = false")
 			);
-
-			const answer_template_body = await fetch(answerSheet).then((r) =>
-				r.text()
+			Typst.mapShadow(
+				"/main.typ",
+				utf8Encode.encode(answer_template_body)
 			);
 
 			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
@@ -136,33 +149,38 @@
 				);
 			}
 
-			Typst.pdf({ mainContent: answer_template_body }).then((array) => {
-				const downloadURL = (data, fileName) => {
-					const a = document.createElement("a");
-					a.href = data;
-					a.download = fileName;
-					document.body.appendChild(a);
-					a.style.display = "none";
-					a.click();
-					a.remove();
-				};
+			const downloadURL = (data, fileName) => {
+				const a = document.createElement("a");
+				a.href = data;
+				a.download = fileName;
+				document.body.appendChild(a);
+				a.style.display = "none";
+				a.click();
+				a.remove();
+			};
+			const downloadBlob = (data, fileName, mimeType) => {
+				const url = window.URL.createObjectURL(
+					new Blob([data], {
+						type: mimeType,
+					})
+				);
+				downloadURL(url, fileName);
+				setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+			};
 
-				const downloadBlob = (data, fileName, mimeType) => {
-					const url = window.URL.createObjectURL(
-						new Blob([data], {
-							type: mimeType,
-						})
-					);
-					downloadURL(url, fileName);
-					setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-				};
-
+			Typst.pdf({ mainFilePath: "/main.typ" }).then((array) => {
 				downloadBlob(array, test.test_name + ".pdf", "application/pdf");
+			});
+
+			(await Typst.getCompiler()).query({mainFilePath: "/main.typ", selector: "<box_positions>", field: "value"}).then((box_positions) => {
+				downloadBlob(JSON.stringify(box_positions[0]), "box_positions.json", "application/json");
 			});
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
+
+		e.target.innerText = original_text;
 	}
 
 	getTest();
@@ -245,11 +263,11 @@
 				<p><strong>PDF Options</strong></p>
 
 				{#each values as value}
-					<Checkbox bind:group labelText={value} {value} />
+					<Checkbox bind:group={selected_values} labelText={value} {value} />
 				{/each}
 
 				<br />
-				<button on:click={openTest}>Download Test</button>
+				<button on:click={downloadTest}>Download Test</button>
 				<br /><br />
 			</div>
 		</div>
