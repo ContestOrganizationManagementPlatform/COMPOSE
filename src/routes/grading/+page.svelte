@@ -2,7 +2,8 @@
 	let test = "MMT 2024";
 	let round = "Team Round";
 
-	let names = [  //0 = Not started, 1 = In Progress, 2 = Done
+	let names = [
+		//0 = Not started, 1 = In Progress, 2 = Done
 		{ prob_id: 1, status: 2 },
 		{ prob_id: 2, status: 1 },
 		{ prob_id: 3, status: 0 },
@@ -11,12 +12,11 @@
 </script>
 
 <div>
-	<h1>Grade {test}</h1>
-	<p>Round: {round}</p>
+	<h1>Grading</h1>
 
 	<br />
 
-	<p style="font-style: italic;">Pick a problem to grade</p>
+	<p style="font-style: italic;">Pick a test to grade</p>
 
 	{#each names as item, index (item.prob_id)}
 		<div>
