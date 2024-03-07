@@ -2,6 +2,7 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/Button.svelte";
+	import ImageZoomer from "$lib/components/ImageZoomer.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 
@@ -13,6 +14,14 @@
 	let loaded = false;
 
 	let user;
+
+	const imageUrl = "https://mustangmath.com/logo.png"; // Can be URL or file path
+	const cropCoordinates = {
+		x: 220.95,
+		y: 330,
+		width: 148.1,
+		height: 39.6,
+	};
 
 	let gradeQueue = [];
 
@@ -179,6 +188,7 @@
 		on:touchend={handleTouchEnd}
 		bind:this={card}
 	>
+		<ImageZoomer {imageUrl} {cropCoordinates} />
 		<div class="picture">
 			{#if cards[currentCardIndex]}
 				<div class="box unselectable flex">
