@@ -122,8 +122,18 @@
       #grid(
         columns: (1fr, 1fr), align(center + horizon, written_identification_box), align(center + horizon, identification_sticker_box),
       )
-      #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-
+      // Add dividing line (and measure it for querying)
+      #layout(
+        size => {
+          style(
+            styles => {
+              let elem = line(start: (0%, 0%), end: (100% * size.width, 0%), stroke: 1pt)
+              // 1-indexed page counter
+              [#elem #metadata(measure(elem, styles)) #label("header_line_" + str(counter(page).at(location).first() - 1))]
+            },
+          )
+        },
+      )
     ],
   ), header-ascent: 12%, margin: (top: 30%), height: 11in, width: 8.5in,
 )
@@ -154,14 +164,23 @@
   }).join())
 }
 
-// Generate metadata for box positions. (accessible via external query)
-#locate(loc => {
-  let a = range(problem_count).map(i => {
-    let elem = query(selector(label("box_" + str(i))), loc).first()
-    (elem.value, elem.location().position(),)
-  });
-  [#metadata(a) #label("box_positions")]
-})
+// Generate metadata for dividing lines and box positions. (accessible via external query)
+#locate(
+  loc => {
+    [#metadata(
+        range(counter(page).at(loc).first()).map(
+          i => {
+            let elem = query(selector(label("header_line_" + str(i))), loc).first()
+            (elem.value, elem.location().position(),)
+          },
+        ),
+      ) #label("header_lines")]
+    [#metadata(range(problem_count).map(i => {
+        let elem = query(selector(label("box_" + str(i))), loc).first()
+        (elem.value, elem.location().position(),)
+      })) #label("box_positions")]
+  },
+)
 
 // Set page header for problems.
 #set page(header: [

@@ -95,7 +95,8 @@
 			let [year, month, day] = test.tournaments.tournament_date
 				.split("-")
 				.map((n) => parseInt(n));
-			const is_selected = (option) => selected_values.find(o => o == option) != undefined;
+			const is_selected = (option) =>
+				selected_values.find((o) => o == option) != undefined;
 			const test_metadata = JSON.stringify({
 				name: test.test_name,
 				id: "T" + test.id,
@@ -106,7 +107,7 @@
 				display: {
 					answers: is_selected("Answers"),
 					solutions: is_selected("Solutions"),
-				}
+				},
 			});
 
 			Typst.mapShadow(
@@ -121,10 +122,7 @@
 				"/answer_sheet_compiling.toml",
 				utf8Encode.encode("[config]\nlocal = false")
 			);
-			Typst.mapShadow(
-				"/main.typ",
-				utf8Encode.encode(answer_template_body)
-			);
+			Typst.mapShadow("/main.typ", utf8Encode.encode(answer_template_body));
 
 			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
 				(
@@ -172,9 +170,29 @@
 				downloadBlob(array, test.test_name + ".pdf", "application/pdf");
 			});
 
-			(await Typst.getCompiler()).query({mainFilePath: "/main.typ", selector: "<box_positions>", field: "value"}).then((box_positions) => {
-				downloadBlob(JSON.stringify(box_positions[0]), "box_positions.json", "application/json");
-			});
+			Typst.getCompiler()
+				.then(
+					async (compiler) =>
+						await Promise.all(
+							["<box_positions>", "<header_lines>"].map((selector) =>
+								compiler.query({
+									mainFilePath: "/main.typ",
+									selector,
+									field: "value",
+								})
+							)
+						)
+				)
+				.then(([box_positions, header_lines]) => {
+					downloadBlob(
+						JSON.stringify({
+							box_positions: box_positions[0],
+							header_lines: header_lines[0],
+						}),
+						"query_positions.json",
+						"application/json"
+					);
+				});
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
