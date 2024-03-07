@@ -89,7 +89,7 @@
 		},
 		{
 			key: "sub_topics",
-			value: "SubTop"
+			value: "SubTop",
 		},
 		{
 			key: "unresolved_count",
