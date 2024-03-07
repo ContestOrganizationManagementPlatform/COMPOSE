@@ -32,8 +32,13 @@
 			});
 			canvas.add(cropRect);
 
-			// Set initial zoom level
-			img.scaleToWidth(canvas.width / 2);
+			// Calculate initial zoom level to fit the cropped area to the canvas
+			const scaleX = canvas.width / cropCoordinates.width;
+			const scaleY = canvas.height / cropCoordinates.height;
+			const initialZoom = Math.min(scaleX, scaleY);
+
+			// Set initial zoom level and center the image
+			img.scale(initialZoom);
 			img.center();
 
 			// Render canvas
