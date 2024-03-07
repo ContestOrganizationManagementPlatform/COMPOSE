@@ -164,6 +164,14 @@
   }).join())
 }
 
+// Returns a proper bounding box.
+// Querying location position seems to give bottom right x, y coordinates
+// so we correct to give a box instead.
+#let calculate_bounding_box((width, height), (page, x, y)) = {
+  let top_left = (x - width, y - height)
+  (page: page, top_left: top_left, bottom_right: (x, y))
+}
+
 // Generate metadata for dividing lines and box positions. (accessible via external query)
 #locate(
   loc => {
@@ -171,13 +179,13 @@
         range(counter(page).at(loc).first()).map(
           i => {
             let elem = query(selector(label("header_line_" + str(i))), loc).first()
-            (elem.value, elem.location().position(),)
+            calculate_bounding_box(elem.value, elem.location().position())
           },
         ),
       ) #label("header_lines")]
     [#metadata(range(problem_count).map(i => {
         let elem = query(selector(label("box_" + str(i))), loc).first()
-        (elem.value, elem.location().position(),)
+        calculate_bounding_box(elem.value, elem.location().position())
       })) #label("box_positions")]
   },
 )
