@@ -1,20 +1,8 @@
 <script lang="ts">
-	let loaded = false;
+	let test = "MMT 2024";
+	let round = "Team Round";
 
-	import { getAllTournamentsUnarchived } from "$lib/supabase";
-	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError";
-
-	let tournaments = [](async () => {
-		try {
-			tournaments = await getAllTournamentsUnarchived();
-			loaded = true;
-			console.log(tournaments);
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	})();
+	let tournaments = 
 
 	let names = [
 		//0 = Not started, 1 = In Progress, 2 = Done
