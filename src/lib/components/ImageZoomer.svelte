@@ -1,5 +1,5 @@
 <script>
-	import { onMount } from "svelte";
+	import { onMount, afterUpdate } from "svelte";
 	import { fabric } from "fabric";
 
 	export let imageUrl;
@@ -12,10 +12,11 @@
 	let rectCoordinates;
 	let ogPosition;
 
-	onMount(() => {
-		console.log(inputCoordinates);
+	function initializeCanvas() {
+		if (canvas) {
+			canvas.clear(); // Clear canvas if it already exists
+		}
 		const aspectRatio = inputCoordinates.width / inputCoordinates.height;
-		console.log("ASPECT", aspectRatio);
 		const canvasContainer = document.getElementById("canvas-container");
 		canvasContainer.style.width = `${
 			canvasContainer.offsetHeight * aspectRatio
@@ -30,17 +31,15 @@
 
 		// Load image onto canvas
 		fabric.Image.fromURL(imageUrl, function (image) {
-			console.log(image.width, image.height);
 			rectCoordinates = {
 				left: (inputCoordinates.left / 612) * image.width,
 				top: (inputCoordinates.top / 792) * image.height,
 				width: (inputCoordinates.width / 612) * image.width,
 				height: (inputCoordinates.height / 792) * image.height,
 			};
-			console.log(rectCoordinates);
-			console.log(image);
 			img = image;
 			img.set({ selectable: false });
+
 			// Set initial crop rectangle
 			focusRect = new fabric.Rect({
 				left: rectCoordinates.left,
@@ -50,8 +49,9 @@
 				fill: "transparent",
 				stroke: "red",
 				strokeWidth: 2,
-				selectable: false, // Prevent selection of the rectangle
+				selectable: true, // Prevent selection of the rectangle
 			});
+
 			group = new fabric.Group([img, focusRect], {
 				selectable: true, // Allow selection
 				hasControls: false, // Hide controls
@@ -62,6 +62,12 @@
 			ogPosition = { left: group.left, top: group.top };
 			reZoom();
 		});
+	}
+
+	onMount(initializeCanvas); // Initialize canvas on mount
+
+	afterUpdate(() => {
+		initializeCanvas(); // Re-initialize canvas on input changes
 	});
 
 	function reset() {
@@ -118,17 +124,14 @@
 		<canvas id="canvas" />
 		<div class="zoom-controls">
 			<button on:click={zoomIn} class="icon-button">
-				<i class="ri-zoom-in-fill" style="font-size: 30px;" /></button
-			>
-			<button on:click={zoomOut} class="icon-button"
-				><i class="ri-zoom-out-fill ri-lg" style="font-size: 30px;" /></button
-			>
-			<button on:click={reset} class="icon-button"
-				><i
-					class="ri-find-replace-fill ri-lg"
-					style="font-size: 30px;"
-				/></button
-			>
+				<i class="ri-zoom-in-fill" style="font-size: 30px;" />
+			</button>
+			<button on:click={zoomOut} class="icon-button">
+				<i class="ri-zoom-out-fill ri-lg" style="font-size: 30px;" />
+			</button>
+			<button on:click={reset} class="icon-button">
+				<i class="ri-find-replace-fill ri-lg" style="font-size: 30px;" />
+			</button>
 		</div>
 	</div>
 </div>
@@ -139,19 +142,22 @@
 		width: 100%;
 		text-align: center;
 	}
+
 	#canvas {
 		border: 1px solid #ccc;
 		position: relative;
 	}
+
 	.zoom-controls {
 		position: absolute;
-		top: 50%; /* Position the container at the vertical center */
+		top: 50%;
 		right: 0px;
-		transform: translateY(-50%); /* Adjust to vertically center */
+		transform: translateY(-50%);
 		display: flex;
 		flex-direction: column;
-		align-items: center; /* Center items horizontally */
+		align-items: center;
 	}
+
 	.icon-button {
 		margin: 5px;
 		padding: 5px;
@@ -161,17 +167,18 @@
 		border: none;
 		cursor: pointer;
 	}
+
 	.picture {
 		background-color: var(--primary-tint);
-		max-width: 800px; /* Set maximum width */
-		max-height: 600px; /* Set maximum height */
-		width: auto; /* Ensure it takes the width of its content */
-		height: auto; /* Ensure it takes the height of its content */
+		max-width: 800px;
+		max-height: 600px;
+		width: auto;
+		height: auto;
 		padding: 10px;
 		border: 5px solid var(--primary-dark);
 		border-radius: 15px;
 		margin: auto;
-		overflow: hidden; /* Hide overflow if canvas exceeds max width or height */
+		overflow: hidden;
 	}
 
 	.icon-button i {

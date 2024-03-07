@@ -206,24 +206,55 @@
 	];
 
 	// Handle swipe actions
-	function handleAction(action: string) {
-		if (action === "correct") {
-			alert("Correct!");
-		} else if (action === "incorrect") {
-			alert("Incorrect!");
-		} else if (action === "unsure") {
-			alert("Unsure!");
-		} else if (action == "return") {
-			alert("Return prev ans");
+	function handleAction(action) {
+		// Get the reference to the body element
+		const bodyElement = document.querySelector("main");
+
+		// Define the durations for transition into flash color and back to original color (in milliseconds)
+		const flashInDuration = 100; // 0.2 seconds
+		const flashOutDuration = 1000; // 1 second
+
+		// Define the color to flash
+		let flashColor;
+		switch (action) {
+			case "correct":
+				flashColor = "var(--correct)"; // Change to the desired color for correct action
+				break;
+			case "incorrect":
+				flashColor = "var(--incorrect)"; // Change to the desired color for incorrect action
+				break;
+			case "unsure":
+				flashColor = "var(--unsure)"; // Change to the desired color for unsure action
+				break;
+			case "return":
+				flashColor = "var(--return)"; // Change to the desired color for return action
+				break;
+		}
+
+		// Change the background color of the entire page to flashColor with fast transition
+		if (flashColor) {
+			bodyElement.style.transition = `background-color ${
+				flashInDuration / 1000
+			}s ease-in-out`;
+			bodyElement.style.backgroundColor = flashColor;
+
+			// Revert the background color to original with slower transition after the specified duration
+			setTimeout(() => {
+				bodyElement.style.transition = `background-color ${
+					flashOutDuration / 1000
+				}s ease-in-out`;
+				bodyElement.style.backgroundColor = ""; // Revert to original color
+			}, flashInDuration);
 		}
 
 		// Move to the next card
-		currentCardIndex++;
-		card.style.transition = `none`; // Disable transitions
-		card.style.transform = `translate(0px, 0px)`;
-		card.style.opacity = `1.0`;
-		card.offsetHeight; // Trigger a reflow, flushing the CSS changes
-		card.style.transition = ``;
+		switch (action) {
+			case "return":
+				currentCardIndex ? currentCardIndex-- : 0;
+				break;
+			default:
+				currentCardIndex++;
+		}
 	}
 
 	let position = { x: 0, y: 0 };
@@ -308,7 +339,7 @@
 	<div class="flex">
 		<div class="sideBySide">
 			<p>{round}</p>
-			<p style="margin-left: 20px">Problem #{$page.params.problem}</p>
+			<p style="margin-left: 20px">Problem #{currentCardIndex + 1}</p>
 		</div>
 	</div>
 	<br />
