@@ -2,19 +2,40 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/Button.svelte";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError";
 
-    import { fetchNewTakerResponses } from "$lib/supabase";
+	import { getThisUser, fetchNewTakerResponses } from "$lib/supabase";
 
 	let test = "MMT 2024";
 	let round = "Team Round";
 	let answer = 1024;
-    let loaded = false;
+	let loaded = false;
 
-    let gradeQueue = [];
+	let user;
 
-    (async () => {
+	let gradeQueue = [];
+
+	async function fetchMoreProblems(num_problems = 10) {
+		const new_problems = await fetchNewTakerResponses(
+			user.id,
+			num_problems,
+			"*,scans(id)"
+		);
+		gradeQueue = gradeQueue.concat(new_problems);
+	}
+
+	$: (async () => {
+		if (gradeQueue.length <= 3) {
+			await fetchMoreProblems();
+		}
+	})();
+
+	(async () => {
 		try {
-            gradeQueue = await fetchNewTakerResponses(108);
+			user = await getThisUser();
+			console.log(user);
+			await fetchMoreProblems();
 			loaded = true;
 			console.log(gradeQueue);
 		} catch (error) {
@@ -83,12 +104,12 @@
 		deltaY = Math.sign(deltaY) * Math.pow(Math.abs(deltaY), 1.2);
 
 		if (Math.abs(deltaX / deltaY) > 0.8) {
-			deltaY = 0;	
+			deltaY = 0;
 		} else if (Math.abs(deltaY / deltaX) > 0.8) {
 			deltaX = 0;
 		}
-	
-		card.style.transform = `translate(${deltaX}px, ${deltaY}px)`
+
+		card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
 
 		const changeX = curX - startX;
 		const changeY = curY - startY;
@@ -96,39 +117,39 @@
 		if (Math.abs(changeX) >= 100 || Math.abs(changeY) >= 100) {
 			card.style.opacity = `0.2`;
 		} else {
-			card.style.opacity = `1.0`
+			card.style.opacity = `1.0`;
 		}
 	}
 
 	function handleKey(e) {
 		// Check if the pressed key is 'X'
-		if (e.key === 'x' || e.key === 'X') {
+		if (e.key === "x" || e.key === "X") {
 			handleAction("incorrect");
-		} else if (e.key === 'z' || e.key === 'Z') {
+		} else if (e.key === "z" || e.key === "Z") {
 			handleAction("return");
-		} else if (e.key === 'c' || e.key === 'C') {
+		} else if (e.key === "c" || e.key === "C") {
 			handleAction("unsure");
-		} else if (e.key === 'v' || e.key === 'V') {
+		} else if (e.key === "v" || e.key === "V") {
 			handleAction("correct");
 		}
 	}
 
 	function handleTouchEnd() {
-			const changeX = curX - startX;
-			const changeY = curY - startY;
+		const changeX = curX - startX;
+		const changeY = curY - startY;
 
-			if (changeX >= 100) {
-				handleAction("correct");
-			} else if (changeX <= -100) {
-				handleAction("incorrect");
-			} else if (changeY >= 100) {
-				handleAction("unsure");
-			} else if (changeY <= -100) {
-				handleAction("return");
-			} else {
-				card.style.transform = `translate(0px, 0px)`
-				card.style.opacity = `1.0`
-			}
+		if (changeX >= 100) {
+			handleAction("correct");
+		} else if (changeX <= -100) {
+			handleAction("incorrect");
+		} else if (changeY >= 100) {
+			handleAction("unsure");
+		} else if (changeY <= -100) {
+			handleAction("return");
+		} else {
+			card.style.transform = `translate(0px, 0px)`;
+			card.style.opacity = `1.0`;
+		}
 	}
 
 	onMount(() => {
@@ -160,7 +181,9 @@
 	>
 		<div class="picture">
 			{#if cards[currentCardIndex]}
-				<div class="box unselectable flex"><img src={cards[currentCardIndex].image} alt="Grading" /></div>
+				<div class="box unselectable flex">
+					<img src={cards[currentCardIndex].image} alt="Grading" />
+				</div>
 			{:else}
 				<p>No more problems</p>
 			{/if}

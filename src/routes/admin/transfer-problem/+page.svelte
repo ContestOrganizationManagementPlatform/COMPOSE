@@ -23,6 +23,7 @@
 			let problemData = await getAllProblems(
 				"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)"
 			);
+			console.log("PROBLEMDATA", problemData);
 			for (let problem of problemData) {
 				problems.push({
 					id: problem.id,
