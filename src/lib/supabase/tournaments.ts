@@ -83,10 +83,10 @@ export async function getTournamentInfo(
  * @param tournament_id number
  * @returns list of test info objects
  */
-export async function getTournamentTests(tournament_id: number) {
+export async function getTournamentTests(tournament_id: number, customSelect: string = "*", customEq = null) {
 	let { data, error } = await supabase
 		.from("tests")
-		.select("*")
+		.select(customSelect, customEq)
 		.eq("tournament_id", tournament_id);
 	if (error) throw error;
 	return data;
