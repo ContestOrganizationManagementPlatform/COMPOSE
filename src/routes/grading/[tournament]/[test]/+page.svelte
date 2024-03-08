@@ -23,120 +23,121 @@
 		height: 39.6,
 	};
 
-	let gradeQueue = [];
+	let gradeQueue: Array<any> = [];
+	let currentCardIndex = 0;
 
-	let testQueue = [
-		{
-			page: 1,
-			top_left: ["72.86pt", "237.6pt"],
-			bottom_right: ["220.95pt", "277.2pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "290.4pt"],
-			bottom_right: ["220.95pt", "330pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "343.2pt"],
-			bottom_right: ["220.95pt", "382.8pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "396pt"],
-			bottom_right: ["220.95pt", "435.6pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "448.8pt"],
-			bottom_right: ["220.95pt", "488.4pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "501.6pt"],
-			bottom_right: ["220.95pt", "541.2pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "554.4pt"],
-			bottom_right: ["220.95pt", "594pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "607.2pt"],
-			bottom_right: ["220.95pt", "646.8pt"],
-		},
-		{
-			page: 1,
-			top_left: ["72.86pt", "660pt"],
-			bottom_right: ["220.95pt", "699.6pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "237.6pt"],
-			bottom_right: ["380.05pt", "277.2pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "290.4pt"],
-			bottom_right: ["380.05pt", "330pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "343.2pt"],
-			bottom_right: ["380.05pt", "382.8pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "396pt"],
-			bottom_right: ["380.05pt", "435.6pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "448.8pt"],
-			bottom_right: ["380.05pt", "488.4pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "501.6pt"],
-			bottom_right: ["380.05pt", "541.2pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "554.4pt"],
-			bottom_right: ["380.05pt", "594pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "607.2pt"],
-			bottom_right: ["380.05pt", "646.8pt"],
-		},
-		{
-			page: 1,
-			top_left: ["231.95pt", "660pt"],
-			bottom_right: ["380.05pt", "699.6pt"],
-		},
-		{
-			page: 1,
-			top_left: ["391.05pt", "237.6pt"],
-			bottom_right: ["539.14pt", "277.2pt"],
-		},
-		{
-			page: 1,
-			top_left: ["391.05pt", "290.4pt"],
-			bottom_right: ["539.14pt", "330pt"],
-		},
-		{
-			page: 1,
-			top_left: ["391.05pt", "343.2pt"],
-			bottom_right: ["539.14pt", "382.8pt"],
-		},
-		{
-			page: 1,
-			top_left: ["391.05pt", "396pt"],
-			bottom_right: ["539.14pt", "435.6pt"],
-		},
-	];
+	// let testQueue = [
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "237.6pt"],
+	// 		bottom_right: ["220.95pt", "277.2pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "290.4pt"],
+	// 		bottom_right: ["220.95pt", "330pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "343.2pt"],
+	// 		bottom_right: ["220.95pt", "382.8pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "396pt"],
+	// 		bottom_right: ["220.95pt", "435.6pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "448.8pt"],
+	// 		bottom_right: ["220.95pt", "488.4pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "501.6pt"],
+	// 		bottom_right: ["220.95pt", "541.2pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "554.4pt"],
+	// 		bottom_right: ["220.95pt", "594pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "607.2pt"],
+	// 		bottom_right: ["220.95pt", "646.8pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["72.86pt", "660pt"],
+	// 		bottom_right: ["220.95pt", "699.6pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "237.6pt"],
+	// 		bottom_right: ["380.05pt", "277.2pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "290.4pt"],
+	// 		bottom_right: ["380.05pt", "330pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "343.2pt"],
+	// 		bottom_right: ["380.05pt", "382.8pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "396pt"],
+	// 		bottom_right: ["380.05pt", "435.6pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "448.8pt"],
+	// 		bottom_right: ["380.05pt", "488.4pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "501.6pt"],
+	// 		bottom_right: ["380.05pt", "541.2pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "554.4pt"],
+	// 		bottom_right: ["380.05pt", "594pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "607.2pt"],
+	// 		bottom_right: ["380.05pt", "646.8pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["231.95pt", "660pt"],
+	// 		bottom_right: ["380.05pt", "699.6pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["391.05pt", "237.6pt"],
+	// 		bottom_right: ["539.14pt", "277.2pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["391.05pt", "290.4pt"],
+	// 		bottom_right: ["539.14pt", "330pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["391.05pt", "343.2pt"],
+	// 		bottom_right: ["539.14pt", "382.8pt"],
+	// 	},
+	// 	{
+	// 		page: 1,
+	// 		top_left: ["391.05pt", "396pt"],
+	// 		bottom_right: ["539.14pt", "435.6pt"],
+	// 	},
+	// ];
 
 	function calculateDimensions(input) {
 		// Parse input object
@@ -160,17 +161,19 @@
 		};
 	}
 
-	async function fetchMoreProblems(num_problems = 10) {
+	async function fetchMoreProblems(num_problems = 4) {
 		const new_problems = await fetchNewTakerResponses(
 			user.id,
-			num_problems
+			num_problems,
 		);
 		gradeQueue = gradeQueue.concat(new_problems);
 	}
 
 	$: (async () => {
-		if (gradeQueue.length <= 3) {
+		if (gradeQueue.length - currentCardIndex <= 3) {
+			console.log("Fetching more problems...");
 			await fetchMoreProblems();
+			console.log(gradeQueue);
 		}
 	})();
 
@@ -180,7 +183,7 @@
 			console.log(user);
 			await fetchMoreProblems();
 			loaded = true;
-			console.log(gradeQueue);
+			
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -188,21 +191,20 @@
 	})();
 
 	// Track the current card index
-	let currentCardIndex = 0;
-	let cards = [
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/gradingImage.png" },
-		{ image: "/logo.png" },
-		{ image: "/gradingImage.png" },
-	];
+	// let cards = [
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/logo.png" },
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/logo.png" },
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/logo.png" },
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/gradingImage.png" },
+	// 	{ image: "/logo.png" },
+	// 	{ image: "/gradingImage.png" },
+	// ];
 
 	// Handle swipe actions
 	async function handleAction(action) {
