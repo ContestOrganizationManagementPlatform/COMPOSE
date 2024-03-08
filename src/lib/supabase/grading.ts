@@ -98,6 +98,7 @@ export async function fetchNewTakerResponses(
 }
 
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
+	console.log(`submitGrade: ${JSON.stringify(data)}`);
 	const { error } = await supabase
 		.from('grades')
 		.update({ ...data, grader_id })

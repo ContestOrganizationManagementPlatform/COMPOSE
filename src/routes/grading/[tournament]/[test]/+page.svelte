@@ -205,7 +205,7 @@
 	];
 
 	// Handle swipe actions
-	function handleAction(action) {
+	async function handleAction(action) {
 		// Get the reference to the body element
 		const bodyElement = document.querySelector("main");
 
@@ -218,12 +218,27 @@
 		switch (action) {
 			case "correct":
 				flashColor = "var(--correct)"; // Change to the desired color for correct action
+				await submitGrade(gradeQueue[currentCardIndex].id, { 
+					scan_id: gradeQueue[currentCardIndex].scan_id, 
+					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+					grade: "Correct" 
+				});
 				break;
 			case "incorrect":
 				flashColor = "var(--incorrect)"; // Change to the desired color for incorrect action
+				await submitGrade(gradeQueue[currentCardIndex].id, { 
+					scan_id: gradeQueue[currentCardIndex].scan_id, 
+					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+					grade: "Incorrect" 
+				});
 				break;
 			case "unsure":
 				flashColor = "var(--unsure)"; // Change to the desired color for unsure action
+				await submitGrade(gradeQueue[currentCardIndex].id, { 
+					scan_id: gradeQueue[currentCardIndex].scan_id, 
+					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+					grade: "Unsure" 
+				});
 				break;
 			case "return":
 				flashColor = "var(--return)"; // Change to the desired color for return action
@@ -262,12 +277,12 @@
 
 	let card;
 
-	function handleTouchStart(event) {
+	async function handleTouchStart(event) {
 		startX = event.touches[0].clientX;
 		startY = event.touches[0].clientY;
 	}
 
-	function handleTouchMove(event) {
+	async function handleTouchMove(event) {
 		event.preventDefault(); // Prevent default touch event behavior (e.g., scrolling)
 
 		curX = event.touches[0].clientX;
@@ -381,7 +396,7 @@
 		>
 		<button
 			style="background-color: var(--correct); color: var(--correct-text);"
-			on:click={() => handleAction("correct")}>✔ (V)</button
+			on:click={async () => handleAction("correct")}>✔ (V)</button
 		>
 	</div>
 	<br />
