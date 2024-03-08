@@ -5,7 +5,7 @@
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 
-	import { getThisUser, fetchNewTakerResponses } from "$lib/supabase";
+	import { getThisUser, fetchNewTakerResponses, submitGrade } from "$lib/supabase";
 
 	let test = "MMT 2024";
 	let round = "Team Round";
@@ -19,8 +19,7 @@
 	async function fetchMoreProblems(num_problems = 10) {
 		const new_problems = await fetchNewTakerResponses(
 			user.id,
-			num_problems,
-			"*,scans(id)"
+			num_problems
 		);
 		gradeQueue = gradeQueue.concat(new_problems);
 	}
@@ -62,19 +61,36 @@
 	];
 
 	// Handle swipe actions
-	function handleAction(action: string) {
+	async function handleAction(action: string) {
 		if (action === "correct") {
+			await submitGrade(gradeQueue[currentCardIndex].id, { 
+				scan_id: gradeQueue[currentCardIndex].scan_id, 
+				test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				grade: "Correct" 
+			});
 			alert("Correct!");
 		} else if (action === "incorrect") {
+			await submitGrade(gradeQueue[currentCardIndex].id, { 
+				scan_id: gradeQueue[currentCardIndex].scan_id, 
+				test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				grade: "Incorrect" 
+			});
 			alert("Incorrect!");
 		} else if (action === "unsure") {
+			await submitGrade(gradeQueue[currentCardIndex].id, { 
+				scan_id: gradeQueue[currentCardIndex].scan_id, 
+				test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				grade: "Unsure" 
+			});
 			alert("Unsure!");
 		} else if (action == "return") {
 			alert("Return prev ans");
 		}
 
 		// Move to the next card
+		console.log(`Incrementing currentCardIndex which is current ${currentCardIndex}`);
 		currentCardIndex++;
+		console.log(`Current card: ${gradeQueue[currentCardIndex]}`);
 		card.style.transition = `none`; // Disable transitions
 		card.style.transform = `translate(0px, 0px)`;
 		card.style.opacity = `1.0`;
@@ -121,39 +137,42 @@
 		}
 	}
 
-	function handleKey(e) {
+	async function handleKey(e) {
 		// Check if the pressed key is 'X'
 		if (e.key === "x" || e.key === "X") {
-			handleAction("incorrect");
+			await handleAction("incorrect");
 		} else if (e.key === "z" || e.key === "Z") {
-			handleAction("return");
+			await handleAction("return");
 		} else if (e.key === "c" || e.key === "C") {
-			handleAction("unsure");
+			await handleAction("unsure");
 		} else if (e.key === "v" || e.key === "V") {
-			handleAction("correct");
+			await handleAction("correct");
 		}
 	}
 
-	function handleTouchEnd() {
+	async function handleTouchEnd() {
 		const changeX = curX - startX;
 		const changeY = curY - startY;
 
 		if (changeX >= 100) {
-			handleAction("correct");
+			await handleAction("correct");
 		} else if (changeX <= -100) {
-			handleAction("incorrect");
+			await handleAction("incorrect");
 		} else if (changeY >= 100) {
-			handleAction("unsure");
+			await handleAction("unsure");
 		} else if (changeY <= -100) {
-			handleAction("return");
+			await handleAction("return");
 		} else {
 			card.style.transform = `translate(0px, 0px)`;
 			card.style.opacity = `1.0`;
 		}
 	}
 
-	onMount(() => {
+	onMount(async () => {
 		// Load initial card data
+		console.log(`Mounting...`);
+        // const path = './gradingImage.png'; // Replace with the path to your image
+		// imageUrl = await getImageUrl(path);
 	});
 </script>
 
@@ -180,9 +199,13 @@
 		bind:this={card}
 	>
 		<div class="picture">
-			{#if cards[currentCardIndex]}
+			{#if gradeQueue[currentCardIndex]}
 				<div class="box unselectable flex">
-					<img src={cards[currentCardIndex].image} alt="Grading" />
+					{#if gradeQueue[currentCardIndex].image}
+						<img src={gradeQueue[currentCardIndex].image} alt="Grading" />
+					{:else}
+						<p>Loading image...</p>
+					{/if}
 				</div>
 			{:else}
 				<p>No more problems</p>
@@ -193,19 +216,19 @@
 	<div class="flex">
 		<button
 			style="background-color: var(--return); color: var(--return-text);"
-			on:click={() => handleAction("return")}>↩ (Z)</button
+			on:click={async () => handleAction("return")}>↩ (Z)</button
 		>
 		<button
 			style="background-color: var(--incorrect); color: var(--incorrect-text);"
-			on:click={() => handleAction("incorrect")}>X (X)</button
+			on:click={async () => handleAction("incorrect")}>X (X)</button
 		>
 		<button
 			style="background-color: var(--unsure); color: var(--unsure-text);"
-			on:click={() => handleAction("unsure")}>? (C)</button
+			on:click={async () => handleAction("unsure")}>? (C)</button
 		>
 		<button
 			style="background-color: var(--correct); color: var(--correct-text);"
-			on:click={() => handleAction("incorrect")}>✔ (V)</button
+			on:click={async () => handleAction("correct")}>✔ (V)</button
 		>
 	</div>
 	<br />
