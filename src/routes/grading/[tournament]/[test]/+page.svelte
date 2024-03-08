@@ -345,7 +345,6 @@
 		// Load initial card data
 		console.log(`Mounting...`);
         // const path = './gradingImage.png'; // Replace with the path to your image
-		// imageUrl = await getImageUrl(path);
 	});
 </script>
 
@@ -371,10 +370,10 @@
 		on:touchend={handleTouchEnd}
 		bind:this={card}
 	>
-		{#if testQueue[currentCardIndex]}
+		{#if gradeQueue[currentCardIndex]}
 			<ImageZoomer
-				{imageUrl}
-				inputCoordinates={calculateDimensions(testQueue[currentCardIndex])}
+				imageUrl={gradeQueue[currentCardIndex].image}
+				inputCoordinates={calculateDimensions(gradeQueue[currentCardIndex])}
 			/>
 		{:else}
 			<p>No more problems</p>

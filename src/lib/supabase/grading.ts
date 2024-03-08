@@ -72,7 +72,7 @@ export async function fetchNewTakerResponses(
 
 		const { data: testProblemData, error: testProblemError } = await supabase
 			.from("test_problems")
-			.select("problem_id")
+			.select("problem_id, top_left_coords, bottom_right_coords")
 			.eq("relation_id", item.test_problem_id)
 			.single();
 		if (testProblemError) {
@@ -91,14 +91,15 @@ export async function fetchNewTakerResponses(
 		takerResponses.push({
 			...item,
 			...problemData,
-			"image": await getImageUrl(scanData.scan_path),
+			image: await getImageUrl(scanData.scan_path),
+			top_left: testProblemData.top_left_coords,
+			bottom_right: testProblemData.bottom_right_coords
 		});
 	}
 	return takerResponses;
 }
 
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
-	console.log(`submitGrade: ${JSON.stringify(data)}`);
 	const { error } = await supabase
 		.from('grades')
 		.update({ ...data, grader_id })
