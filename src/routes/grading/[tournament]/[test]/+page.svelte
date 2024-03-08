@@ -2,6 +2,7 @@
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
 	import Button from "$lib/components/Button.svelte";
+	import ImageZoomer from "$lib/components/ImageZoomer.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 
@@ -14,7 +15,150 @@
 
 	let user;
 
+	const imageUrl = "https://i.imgur.com/Cx9DTTZ.jpeg"; // Can be URL or file path
+	const cropCoordinates = {
+		x: 72.74,
+		y: 236.19,
+		width: 148.1,
+		height: 39.6,
+	};
+
 	let gradeQueue = [];
+
+	let testQueue = [
+		{
+			page: 1,
+			top_left: ["72.86pt", "237.6pt"],
+			bottom_right: ["220.95pt", "277.2pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "290.4pt"],
+			bottom_right: ["220.95pt", "330pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "343.2pt"],
+			bottom_right: ["220.95pt", "382.8pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "396pt"],
+			bottom_right: ["220.95pt", "435.6pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "448.8pt"],
+			bottom_right: ["220.95pt", "488.4pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "501.6pt"],
+			bottom_right: ["220.95pt", "541.2pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "554.4pt"],
+			bottom_right: ["220.95pt", "594pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "607.2pt"],
+			bottom_right: ["220.95pt", "646.8pt"],
+		},
+		{
+			page: 1,
+			top_left: ["72.86pt", "660pt"],
+			bottom_right: ["220.95pt", "699.6pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "237.6pt"],
+			bottom_right: ["380.05pt", "277.2pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "290.4pt"],
+			bottom_right: ["380.05pt", "330pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "343.2pt"],
+			bottom_right: ["380.05pt", "382.8pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "396pt"],
+			bottom_right: ["380.05pt", "435.6pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "448.8pt"],
+			bottom_right: ["380.05pt", "488.4pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "501.6pt"],
+			bottom_right: ["380.05pt", "541.2pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "554.4pt"],
+			bottom_right: ["380.05pt", "594pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "607.2pt"],
+			bottom_right: ["380.05pt", "646.8pt"],
+		},
+		{
+			page: 1,
+			top_left: ["231.95pt", "660pt"],
+			bottom_right: ["380.05pt", "699.6pt"],
+		},
+		{
+			page: 1,
+			top_left: ["391.05pt", "237.6pt"],
+			bottom_right: ["539.14pt", "277.2pt"],
+		},
+		{
+			page: 1,
+			top_left: ["391.05pt", "290.4pt"],
+			bottom_right: ["539.14pt", "330pt"],
+		},
+		{
+			page: 1,
+			top_left: ["391.05pt", "343.2pt"],
+			bottom_right: ["539.14pt", "382.8pt"],
+		},
+		{
+			page: 1,
+			top_left: ["391.05pt", "396pt"],
+			bottom_right: ["539.14pt", "435.6pt"],
+		},
+	];
+
+	function calculateDimensions(input) {
+		// Parse input object
+		const topLeftX = parseFloat(input.top_left[0]);
+		const topLeftY = parseFloat(input.top_left[1]);
+		const bottomRightX = parseFloat(input.bottom_right[0]);
+		const bottomRightY = parseFloat(input.bottom_right[1]);
+
+		// Calculate dimensions
+		const left = topLeftX.toFixed(2);
+		const top = topLeftY.toFixed(2);
+		const width = (bottomRightX - topLeftX).toFixed(2);
+		const height = (bottomRightY - topLeftY).toFixed(2);
+
+		// Return result
+		return {
+			left,
+			top,
+			width,
+			height,
+		};
+	}
 
 	async function fetchMoreProblems(num_problems = 10) {
 		const new_problems = await fetchNewTakerResponses(
@@ -61,41 +205,55 @@
 	];
 
 	// Handle swipe actions
-	async function handleAction(action: string) {
-		if (action === "correct") {
-			await submitGrade(gradeQueue[currentCardIndex].id, { 
-				scan_id: gradeQueue[currentCardIndex].scan_id, 
-				test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
-				grade: "Correct" 
-			});
-			alert("Correct!");
-		} else if (action === "incorrect") {
-			await submitGrade(gradeQueue[currentCardIndex].id, { 
-				scan_id: gradeQueue[currentCardIndex].scan_id, 
-				test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
-				grade: "Incorrect" 
-			});
-			alert("Incorrect!");
-		} else if (action === "unsure") {
-			await submitGrade(gradeQueue[currentCardIndex].id, { 
-				scan_id: gradeQueue[currentCardIndex].scan_id, 
-				test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
-				grade: "Unsure" 
-			});
-			alert("Unsure!");
-		} else if (action == "return") {
-			alert("Return prev ans");
+	function handleAction(action) {
+		// Get the reference to the body element
+		const bodyElement = document.querySelector("main");
+
+		// Define the durations for transition into flash color and back to original color (in milliseconds)
+		const flashInDuration = 100; // 0.2 seconds
+		const flashOutDuration = 1000; // 1 second
+
+		// Define the color to flash
+		let flashColor;
+		switch (action) {
+			case "correct":
+				flashColor = "var(--correct)"; // Change to the desired color for correct action
+				break;
+			case "incorrect":
+				flashColor = "var(--incorrect)"; // Change to the desired color for incorrect action
+				break;
+			case "unsure":
+				flashColor = "var(--unsure)"; // Change to the desired color for unsure action
+				break;
+			case "return":
+				flashColor = "var(--return)"; // Change to the desired color for return action
+				break;
+		}
+
+		// Change the background color of the entire page to flashColor with fast transition
+		if (flashColor) {
+			bodyElement.style.transition = `background-color ${
+				flashInDuration / 1000
+			}s ease-in-out`;
+			bodyElement.style.backgroundColor = flashColor;
+
+			// Revert the background color to original with slower transition after the specified duration
+			setTimeout(() => {
+				bodyElement.style.transition = `background-color ${
+					flashOutDuration / 1000
+				}s ease-in-out`;
+				bodyElement.style.backgroundColor = ""; // Revert to original color
+			}, flashInDuration);
 		}
 
 		// Move to the next card
-		console.log(`Incrementing currentCardIndex which is current ${currentCardIndex}`);
-		currentCardIndex++;
-		console.log(`Current card: ${gradeQueue[currentCardIndex]}`);
-		card.style.transition = `none`; // Disable transitions
-		card.style.transform = `translate(0px, 0px)`;
-		card.style.opacity = `1.0`;
-		card.offsetHeight; // Trigger a reflow, flushing the CSS changes
-		card.style.transition = ``;
+		switch (action) {
+			case "return":
+				currentCardIndex ? currentCardIndex-- : 0;
+				break;
+			default:
+				currentCardIndex++;
+		}
 	}
 
 	let position = { x: 0, y: 0 };
@@ -183,7 +341,7 @@
 	<div class="flex">
 		<div class="sideBySide">
 			<p>{round}</p>
-			<p style="margin-left: 20px">Problem #{$page.params.problem}</p>
+			<p style="margin-left: 20px">Problem #{currentCardIndex + 1}</p>
 		</div>
 	</div>
 	<br />
@@ -198,19 +356,14 @@
 		on:touchend={handleTouchEnd}
 		bind:this={card}
 	>
-		<div class="picture">
-			{#if gradeQueue[currentCardIndex]}
-				<div class="box unselectable flex">
-					{#if gradeQueue[currentCardIndex].image}
-						<img src={gradeQueue[currentCardIndex].image} alt="Grading" />
-					{:else}
-						<p>Loading image...</p>
-					{/if}
-				</div>
-			{:else}
-				<p>No more problems</p>
-			{/if}
-		</div>
+		{#if testQueue[currentCardIndex]}
+			<ImageZoomer
+				{imageUrl}
+				inputCoordinates={calculateDimensions(testQueue[currentCardIndex])}
+			/>
+		{:else}
+			<p>No more problems</p>
+		{/if}
 	</div>
 	<br />
 	<div class="flex">
@@ -228,7 +381,7 @@
 		>
 		<button
 			style="background-color: var(--correct); color: var(--correct-text);"
-			on:click={async () => handleAction("correct")}>✔ (V)</button
+			on:click={() => handleAction("correct")}>✔ (V)</button
 		>
 	</div>
 	<br />
@@ -254,13 +407,15 @@
 
 	.picture {
 		background-color: var(--primary-tint);
-		min-width: 300px;
-		max-width: 600px;
-		width: 80%;
+		max-width: 800px; /* Set maximum width */
+		max-height: 600px; /* Set maximum height */
+		width: auto; /* Ensure it takes the width of its content */
+		height: auto; /* Ensure it takes the height of its content */
 		padding: 10px;
 		border: 5px solid var(--primary-dark);
 		border-radius: 15px;
 		margin: auto;
+		overflow: hidden; /* Hide overflow if canvas exceeds max width or height */
 	}
 
 	img {
