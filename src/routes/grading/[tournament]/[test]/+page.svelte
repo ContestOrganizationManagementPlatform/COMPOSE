@@ -19,14 +19,6 @@
 
 	let user;
 
-	const imageUrl = "https://i.imgur.com/Cx9DTTZ.jpeg"; // Can be URL or file path
-	const cropCoordinates = {
-		x: 72.74,
-		y: 236.19,
-		width: 148.1,
-		height: 39.6,
-	};
-
 	let gradeQueue: Array<any> = [];
 	let currentCardIndex = 0;
 
@@ -167,7 +159,9 @@
 
 	async function fetchMoreProblems(num_problems = 4) {
 		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
-		gradeQueue = gradeQueue.concat(new_problems);
+		if (new_problems.length > 0) {
+			gradeQueue = gradeQueue.concat(new_problems);
+		}
 	}
 
 	$: (async () => {
@@ -354,14 +348,7 @@
 
 <div>
 	<h1>Grade {test}</h1>
-	<div class="flex">
-		<div class="sideBySide">
-			<p>{round}</p>
-			<p style="margin-left: 20px">Problem #{currentCardIndex + 1}</p>
-		</div>
-	</div>
-	<br />
-	<h2>{answer}</h2>
+
 	<br />
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
@@ -373,34 +360,44 @@
 		bind:this={card}
 	>
 		{#if gradeQueue[currentCardIndex]}
+			<div class="flex">
+				<div class="sideBySide">
+					<p>{round}</p>
+					<p style="margin-left: 20px">Problem #{currentCardIndex + 1}</p>
+				</div>
+			</div>
+			<br />
+			<h2>{gradeQueue[currentCardIndex].answer_latex}</h2>
 			<ImageZoomer
 				imageUrl={gradeQueue[currentCardIndex].image}
 				inputCoordinates={calculateDimensions(gradeQueue[currentCardIndex])}
 			/>
+			<br />
+			<div class="flex">
+				<button
+					style="background-color: #999999; color: #282828;"
+					on:click={async () => handleAction("return")}>↩ (Z)</button
+				>
+				<button
+					style="background-color: #ff9999; color: #AD2828;"
+					on:click={async () => handleAction("incorrect")}>X (X)</button
+				>
+				<button
+					style="background-color: #FFFB99; color: #7C7215;"
+					on:click={async () => handleAction("unsure")}>? (C)</button
+				>
+				<button
+					style="background-color: #9BFF99; color: #157C20;"
+					on:click={async () => handleAction("correct")}>✔ (V)</button
+				>
+			</div>
+			<br />
 		{:else}
-			<p>No more problems</p>
+			<p>No more problems - check back later!</p>
 		{/if}
+		Number of problems remaining in queue: {gradeQueue.length -
+			currentCardIndex}
 	</div>
-	<br />
-	<div class="flex">
-		<button
-			style="background-color: #999999; color: #282828;"
-			on:click={async () => handleAction("return")}>↩ (Z)</button
-		>
-		<button
-			style="background-color: #ff9999; color: #AD2828;"
-			on:click={async () => handleAction("incorrect")}>X (X)</button
-		>
-		<button
-			style="background-color: #FFFB99; color: #7C7215;"
-			on:click={async () => handleAction("unsure")}>? (C)</button
-		>
-		<button
-			style="background-color: #9BFF99; color: #157C20;"
-			on:click={async () => handleAction("correct")}>✔ (V)</button
-		>
-	</div>
-	<br />
 </div>
 
 <style>
