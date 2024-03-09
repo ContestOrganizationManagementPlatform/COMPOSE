@@ -10,6 +10,7 @@
 		getThisUser,
 		fetchNewTakerResponses,
 		submitGrade,
+		undoGrade,
 	} from "$lib/supabase";
 
 	let test = "MMT 2024";
@@ -239,6 +240,7 @@
 				break;
 			case "return":
 				flashColor = "#999999"; // Change to the desired color for return action
+				await undoGrade(gradeQueue[currentCardIndex-1 >= 0 ? currentCardIndex-1 : 0].grade_id);
 				break;
 		}
 
