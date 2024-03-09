@@ -12,7 +12,6 @@
 		getThisUser,
 		getThisUserRole,
 	} from "$lib/supabase";
-	import QRCode from "qrcode";
 	import compilerPath from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
 	import rendererPath from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
 	import { $typst as Typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
@@ -84,9 +83,6 @@
 		e.target.innerText = "Processing";
 
 		try {
-			const generateQR = async (text: string) => {
-				return await QRCode.toString(text, { type: "svg" });
-			};
 			const answer_template_body = await fetch(answerSheet).then((r) =>
 				r.text()
 			);
