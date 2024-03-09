@@ -21,7 +21,7 @@
 	let user;
 
 	let gradeQueue: Array<any> = [];
-	let currentCardIndex = 0;
+	let currentIndex = 0;
 
 	async function fetchMoreProblems(num_problems = 4) {
 		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
@@ -32,7 +32,7 @@
 	}
 
 	$: (async () => {
-		if (gradeQueue.length - currentCardIndex < 3) {
+		if (gradeQueue.length - currentIndex < 3) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
 			console.log(gradeQueue);
@@ -217,31 +217,31 @@
 		switch (action) {
 			case "correct":
 				flashColor = "#9BFF99"; // Change to the desired color for correct action
-				await submitGrade(gradeQueue[currentCardIndex].id, {
-					scan_id: gradeQueue[currentCardIndex].scan_id,
-					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				await submitGrade(gradeQueue[currentIndex].id, {
+					scan_id: gradeQueue[currentIndex].scan_id,
+					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Correct",
 				});
 				break;
 			case "incorrect":
 				flashColor = "#ff9999"; // Change to the desired color for incorrect action
-				await submitGrade(gradeQueue[currentCardIndex].id, {
-					scan_id: gradeQueue[currentCardIndex].scan_id,
-					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				await submitGrade(gradeQueue[currentIndex].id, {
+					scan_id: gradeQueue[currentIndex].scan_id,
+					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Incorrect",
 				});
 				break;
 			case "unsure":
 				flashColor = "#FFFB99"; // Change to the desired color for unsure action
-				await submitGrade(gradeQueue[currentCardIndex].id, {
-					scan_id: gradeQueue[currentCardIndex].scan_id,
-					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				await submitGrade(gradeQueue[currentIndex].id, {
+					scan_id: gradeQueue[currentIndex].scan_id,
+					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Unsure",
 				});
 				break;
 			case "return":
 				flashColor = "#999999"; // Change to the desired color for return action
-				await undoGrade(gradeQueue[currentCardIndex-1 >= 0 ? currentCardIndex-1 : 0].grade_id);
+				await undoGrade(gradeQueue[currentIndex-1 >= 0 ? currentIndex-1 : 0].grade_id);
 				break;
 		}
 
@@ -264,10 +264,10 @@
 		// Move to the next card
 		switch (action) {
 			case "return":
-				currentCardIndex ? currentCardIndex-- : 0;
+				currentIndex ? currentIndex-- : 0;
 				break;
 			default:
-				currentCardIndex++;
+				currentIndex++;
 		}
 	}
 
@@ -363,18 +363,18 @@
 		on:touchend={handleTouchEnd}
 		bind:this={card}
 	>
-		{#if gradeQueue[currentCardIndex]}
+		{#if gradeQueue[currentIndex]}
 			<div class="flex">
 				<div class="sideBySide">
 					<p>{round}</p>
-					<p style="margin-left: 20px">Problem #{currentCardIndex + 1}</p>
+					<p style="margin-left: 20px">Problem #{gradeQueue[currentIndex].problem_number}</p>
 				</div>
 			</div>
 			<br />
-			<h2>{gradeQueue[currentCardIndex].answer_latex}</h2>
+			<h2>{gradeQueue[currentIndex].answer_latex}</h2>
 			<ImageZoomer
-				imageUrl={gradeQueue[currentCardIndex].image}
-				inputCoordinates={calculateDimensions(gradeQueue[currentCardIndex])}
+				imageUrl={gradeQueue[currentIndex].image}
+				inputCoordinates={calculateDimensions(gradeQueue[currentIndex])}
 			/>
 			<br />
 			<div class="flex">
@@ -400,7 +400,7 @@
 			<p>No more problems - check back later!</p>
 		{/if}
 		Number of problems remaining in queue: {gradeQueue.length -
-			currentCardIndex}
+			currentIndex}
 	</div>
 </div>
 

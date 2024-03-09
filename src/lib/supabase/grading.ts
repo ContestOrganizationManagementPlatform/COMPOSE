@@ -110,7 +110,7 @@ export async function fetchNewTakerResponses(
 
 		const { data: testProblemData, error: testProblemError } = await supabase
 			.from("test_problems")
-			.select("problem_id, problem_index, top_left, bottom_right")
+			.select("problem_id, problem_number, top_left, bottom_right")
 			.eq("relation_id", item.test_problem_id)
 			.single();
 		if (testProblemError) {
