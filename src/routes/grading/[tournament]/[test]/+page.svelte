@@ -219,7 +219,7 @@
 		let flashColor;
 		switch (action) {
 			case "correct":
-				flashColor = "var(--correct)"; // Change to the desired color for correct action
+				flashColor = "#9BFF99"; // Change to the desired color for correct action
 				await submitGrade(gradeQueue[currentCardIndex].id, {
 					scan_id: gradeQueue[currentCardIndex].scan_id,
 					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
@@ -227,7 +227,7 @@
 				});
 				break;
 			case "incorrect":
-				flashColor = "var(--incorrect)"; // Change to the desired color for incorrect action
+				flashColor = "#ff9999"; // Change to the desired color for incorrect action
 				await submitGrade(gradeQueue[currentCardIndex].id, {
 					scan_id: gradeQueue[currentCardIndex].scan_id,
 					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
@@ -235,7 +235,7 @@
 				});
 				break;
 			case "unsure":
-				flashColor = "var(--unsure)"; // Change to the desired color for unsure action
+				flashColor = "#FFFB99"; // Change to the desired color for unsure action
 				await submitGrade(gradeQueue[currentCardIndex].id, {
 					scan_id: gradeQueue[currentCardIndex].scan_id,
 					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
@@ -243,7 +243,7 @@
 				});
 				break;
 			case "return":
-				flashColor = "var(--return)"; // Change to the desired color for return action
+				flashColor = "#999999"; // Change to the desired color for return action
 				break;
 		}
 
@@ -384,19 +384,19 @@
 	<br />
 	<div class="flex">
 		<button
-			style="background-color: var(--return); color: var(--return-text);"
+			style="background-color: #999999; color: #282828;"
 			on:click={async () => handleAction("return")}>↩ (Z)</button
 		>
 		<button
-			style="background-color: var(--incorrect); color: var(--incorrect-text);"
+			style="background-color: #ff9999; color: #AD2828;"
 			on:click={async () => handleAction("incorrect")}>X (X)</button
 		>
 		<button
-			style="background-color: var(--unsure); color: var(--unsure-text);"
+			style="background-color: #FFFB99; color: #7C7215;"
 			on:click={async () => handleAction("unsure")}>? (C)</button
 		>
 		<button
-			style="background-color: var(--correct); color: var(--correct-text);"
+			style="background-color: #9BFF99; color: #157C20;"
 			on:click={async () => handleAction("correct")}>✔ (V)</button
 		>
 	</div>
