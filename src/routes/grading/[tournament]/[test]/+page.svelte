@@ -19,14 +19,6 @@
 
 	let user;
 
-	const imageUrl = "https://i.imgur.com/Cx9DTTZ.jpeg"; // Can be URL or file path
-	const cropCoordinates = {
-		x: 72.74,
-		y: 236.19,
-		width: 148.1,
-		height: 39.6,
-	};
-
 	let gradeQueue: Array<any> = [];
 	let currentCardIndex = 0;
 
@@ -168,7 +160,9 @@
 
 	async function fetchMoreProblems(num_problems = 4) {
 		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
-		gradeQueue = gradeQueue.concat(new_problems);
+		if (new_problems.length > 0) {
+			gradeQueue = gradeQueue.concat(new_problems);
+		}
 	}
 
 	$: (async () => {
