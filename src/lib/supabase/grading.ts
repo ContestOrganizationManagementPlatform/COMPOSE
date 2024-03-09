@@ -5,32 +5,25 @@ export async function fetchNewTakerResponses(
 	grader_id: number,
 	batch_size: number = 10
 ): Promise<any[]> {
-	const { data: gradeTrackingData, error: gradeTrackingError } = await supabase
+	const { data: gradesData, error: gradesError } = await supabase
+		.from("grades")
+		.select("scan_id, test_problem_id")
+		.eq("grader_id", grader_id)
+		.not('grade', 'is', null);
+	if (gradesError) {
+		throw gradesError;
+	}
+	
+	const self_removal_query = `scan_id.not.in.(${gradesData.map(row=>row.scan_id).join(',')}), test_problem_id.not.in.(${gradesData.map(row=>row.test_problem_id).join(',')})`;
+	const { data: trData, error: gradeTrackingError } = await supabase
 		.from("grade_tracking")
 		.select("scan_id, test_problem_id")
 		.lt("claimed_count", 2)
+		.or(self_removal_query)
 		.limit(batch_size);
 	if (gradeTrackingError) {
 		throw gradeTrackingError;
 	}
-
-	const { data: gradesData, error: gradesError } = await supabase
-		.from("grades")
-		.select("scan_id, test_problem_id, grade")
-		.eq("grader_id", grader_id);
-	if (gradesError) {
-		throw gradesError;
-	}
-
-	const trData = gradeTrackingData.filter(
-		(trackingItem) =>
-			!gradesData.some(
-				(gradeItem) =>
-					gradeItem.scan_id === trackingItem.scan_id &&
-					gradeItem.test_problem_id === trackingItem.test_problem_id &&
-					gradeItem.grade !== null
-			)
-	);
 
 	if (trData.length < batch_size) {
 		const { data: widerGradeTrackingData, error: widerGradeTrackingError } =
@@ -39,22 +32,14 @@ export async function fetchNewTakerResponses(
 				.select("scan_id, test_problem_id")
 				.lt("graded_count", 2)
 				.gte("claimed_count", 2)
+				.or(self_removal_query)
 				.limit(batch_size - trData.length);
 		if (widerGradeTrackingError) {
 			throw widerGradeTrackingError;
 		}
-
 		trData.push(
-			...widerGradeTrackingData.filter(
-				(trackingItem) =>
-					!gradesData.some(
-						(gradeItem) =>
-							gradeItem.scan_id === trackingItem.scan_id &&
-							gradeItem.test_problem_id === trackingItem.test_problem_id &&
-							gradeItem.grade !== null
-					)
-			)
-		);
+			...widerGradeTrackingData
+		)
 	}
 
 	// Process the trTrackingData as needed
@@ -68,7 +53,6 @@ export async function fetchNewTakerResponses(
 		})),
 		{ onConflict: "grader_id, scan_id, test_problem_id" }
 	);
-
 	if (newGradeError) {
 		throw newGradeError;
 	}
@@ -76,16 +60,22 @@ export async function fetchNewTakerResponses(
 	for (const item of trData) {
 		const { data: scanData, error: scanError } = await supabase
 			.from("scans")
-			.select("scan_path")
+			.select("test_id, scan_path")
 			.eq("id", item.scan_id)
 			.single();
 		if (scanError) {
 			throw scanError;
 		}
 
+		const { data: testData, error: testError } = await supabase
+			.from("tests")
+			.select("test_id, test_name")
+			.eq("id", scanData.test_id)
+			.single();
+
 		const { data: testProblemData, error: testProblemError } = await supabase
 			.from("test_problems")
-			.select("problem_id, top_left_coords, bottom_right_coords")
+			.select("problem_id, problem_index, top_left_coords, bottom_right_coords")
 			.eq("relation_id", item.test_problem_id)
 			.single();
 		if (testProblemError) {
@@ -103,10 +93,10 @@ export async function fetchNewTakerResponses(
 
 		takerResponses.push({
 			...item,
+			...testData,
 			...problemData,
+			...testProblemData,
 			image: await getImageUrl(scanData.scan_path),
-			top_left: testProblemData.top_left_coords,
-			bottom_right: testProblemData.bottom_right_coords,
 		});
 	}
 	return takerResponses;
