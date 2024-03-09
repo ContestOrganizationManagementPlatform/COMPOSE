@@ -1,16 +1,16 @@
 <script lang="ts">
 	let loaded = false;
-    import { page } from "$app/stores";
+	import { page } from "$app/stores";
 	import { getTournamentTests } from "$lib/supabase";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-    const tournament_id = Number($page.params.tournament)
-    console.log(tournament_id)
+	const tournament_id = Number($page.params.tournament);
+	console.log(tournament_id);
 	let tests = [];
-	
+
 	(async () => {
 		try {
-			tests = await getTournamentTests(tournament_id,"*",{"archived":false});
+			tests = await getTournamentTests(tournament_id, "*", { archived: false });
 			loaded = true;
 			console.log(tests);
 		} catch (error) {
@@ -18,7 +18,6 @@
 			toast.error(error.message);
 		}
 	})();
-
 </script>
 
 <div>

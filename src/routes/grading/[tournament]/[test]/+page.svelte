@@ -183,7 +183,6 @@
 			console.log(user);
 			await fetchMoreProblems();
 			loaded = true;
-			
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
