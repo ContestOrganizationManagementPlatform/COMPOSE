@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { getAllProblems, editProblem, getAllUsers } from "$lib/supabase";
+	import { getProblems, editProblem, getAllUsers } from "$lib/supabase";
 	import {
 		Select,
 		SelectItem,
@@ -18,12 +18,12 @@
 	let curUser = 0;
 	let show = false;
 
-	async function getProblems() {
+	async function getProblemData() {
 		try {
-			let problemData = await getAllProblems(
-				"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)"
-			);
-			console.log("PROBLEMDATA", problemData);
+			let problemData = await getProblems({
+				customSelect:
+					"id,problem_latex,answer_latex,solution_latex,comment_latex,author_id,users(full_name)",
+			});
 			for (let problem of problemData) {
 				problems.push({
 					id: problem.id,
@@ -72,7 +72,7 @@
 		}
 	}
 
-	getProblems();
+	getProblemData();
 </script>
 
 <br />

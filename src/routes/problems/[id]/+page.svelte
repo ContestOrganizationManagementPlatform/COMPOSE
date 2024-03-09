@@ -65,16 +65,17 @@
 		try {
 			await archiveProblem(problem.id);
 
-			const authorName = await getAuthorName(user.id);
-			await fetch("/api/discord-update", {
-				method: "POST",
-				body: JSON.stringify({
-					id: problem.id,
-					update: "deleted",
-					updater: authorName,
-				}),
-			});
-
+			/**
+			    const authorName = await getAuthorName(user.id);
+				await fetch("/api/discord-update", {
+					method: "POST",
+					body: JSON.stringify({
+						id: problem.id,
+						update: "deleted",
+						updater: authorName,
+					}),
+				});
+			*/
 			window.location.replace("/problems");
 		} catch (error) {
 			handleError(error);

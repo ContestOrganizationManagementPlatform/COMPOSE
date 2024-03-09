@@ -3,59 +3,72 @@ import { supabase } from "../supabaseClient";
 
 export async function fetchNewTakerResponses(
 	grader_id: number,
-	batch_size: number = 10,
+	batch_size: number = 10
 ): Promise<any[]> {
 	const { data: gradeTrackingData, error: gradeTrackingError } = await supabase
-		.from('grade_tracking')
-		.select('scan_id, test_problem_id')
-		.lt('claimed_count', 2)
+		.from("grade_tracking")
+		.select("scan_id, test_problem_id")
+		.lt("claimed_count", 2)
 		.limit(batch_size);
 	if (gradeTrackingError) {
 		throw gradeTrackingError;
 	}
 
 	const { data: gradesData, error: gradesError } = await supabase
-		.from('grades')
-		.select('scan_id, test_problem_id, grade')
-		.eq('grader_id', grader_id)
+		.from("grades")
+		.select("scan_id, test_problem_id, grade")
+		.eq("grader_id", grader_id);
 	if (gradesError) {
 		throw gradesError;
 	}
 
-	const trData = gradeTrackingData.filter(trackingItem =>
-		!gradesData.some(gradeItem =>
-			gradeItem.scan_id === trackingItem.scan_id && gradeItem.test_problem_id === trackingItem.test_problem_id && gradeItem.grade !== null
-		)
+	const trData = gradeTrackingData.filter(
+		(trackingItem) =>
+			!gradesData.some(
+				(gradeItem) =>
+					gradeItem.scan_id === trackingItem.scan_id &&
+					gradeItem.test_problem_id === trackingItem.test_problem_id &&
+					gradeItem.grade !== null
+			)
 	);
 
 	if (trData.length < batch_size) {
-		const { data: widerGradeTrackingData, error: widerGradeTrackingError } = await supabase
-			.from('grade_tracking')
-			.select('scan_id, test_problem_id')
-			.lt('graded_count', 2)
-			.gte("claimed_count", 2)
-			.limit(batch_size - trData.length);
+		const { data: widerGradeTrackingData, error: widerGradeTrackingError } =
+			await supabase
+				.from("grade_tracking")
+				.select("scan_id, test_problem_id")
+				.lt("graded_count", 2)
+				.gte("claimed_count", 2)
+				.limit(batch_size - trData.length);
 		if (widerGradeTrackingError) {
 			throw widerGradeTrackingError;
 		}
 
-		trData.push(...widerGradeTrackingData.filter(trackingItem =>
-			!gradesData.some(gradeItem =>
-				gradeItem.scan_id === trackingItem.scan_id && gradeItem.test_problem_id === trackingItem.test_problem_id && gradeItem.grade !== null
+		trData.push(
+			...widerGradeTrackingData.filter(
+				(trackingItem) =>
+					!gradesData.some(
+						(gradeItem) =>
+							gradeItem.scan_id === trackingItem.scan_id &&
+							gradeItem.test_problem_id === trackingItem.test_problem_id &&
+							gradeItem.grade !== null
+					)
 			)
-		));
+		);
 	}
 
 	// Process the trTrackingData as needed
 
 	const takerResponses: any[] = [];
-	const { error: newGradeError } = await supabase
-		.from('grades')
-		.upsert(
-			trData.map(item => ({ grader_id, scan_id: item.scan_id, test_problem_id: item.test_problem_id })),
-			{ onConflict: "grader_id, scan_id, test_problem_id" }
-		);
-  
+	const { error: newGradeError } = await supabase.from("grades").upsert(
+		trData.map((item) => ({
+			grader_id,
+			scan_id: item.scan_id,
+			test_problem_id: item.test_problem_id,
+		})),
+		{ onConflict: "grader_id, scan_id, test_problem_id" }
+	);
+
 	if (newGradeError) {
 		throw newGradeError;
 	}
@@ -93,7 +106,7 @@ export async function fetchNewTakerResponses(
 			...problemData,
 			image: await getImageUrl(scanData.scan_path),
 			top_left: testProblemData.top_left_coords,
-			bottom_right: testProblemData.bottom_right_coords
+			bottom_right: testProblemData.bottom_right_coords,
 		});
 	}
 	return takerResponses;
@@ -101,17 +114,20 @@ export async function fetchNewTakerResponses(
 
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
 	const { error } = await supabase
-		.from('grades')
+		.from("grades")
 		.update({ ...data, grader_id })
-		.eq('scan_id', data.scan_id)
-		.eq('test_problem_id', data.test_problem_id);
+		.eq("scan_id", data.scan_id)
+		.eq("test_problem_id", data.test_problem_id);
 	if (error) {
 		throw error;
 	}
 }
 
 // TypeScript function to get the URL of an image stored in a Supabase bucket
-async function getImageUrl(path: string, bucket: string = "scans"): Promise<string | null> {
-    const { data } = await supabase.storage.from(bucket).getPublicUrl(path);
-    return data?.publicUrl || null;
+async function getImageUrl(
+	path: string,
+	bucket: string = "scans"
+): Promise<string | null> {
+	const { data } = await supabase.storage.from(bucket).getPublicUrl(path);
+	return data?.publicUrl || null;
 }

@@ -15,6 +15,15 @@ export interface ProblemRequest {
 	image_name?: string;
 }
 
+export interface ProblemSelectRequest {
+	customSelect?: string | null;
+	customOrder?: string | null;
+	normal?: boolean;
+	archived?: boolean;
+	after?: Date | null;
+	before?: Date | null;
+}
+
 export interface ProblemEditRequest {
 	problem_latex?: string;
 	answer_latex?: string;
@@ -25,6 +34,7 @@ export interface ProblemEditRequest {
 	nickname?: string;
 	sub_topics?: string;
 	image_name?: string;
+	discord_id?: string;
 }
 
 /**
@@ -69,11 +79,36 @@ async function getFrontID(problem_id: number) {
  * @param archived optional, boolean
  * @returns problem list
  */
-export async function getAllProblems(
-	customSelect: string = "*",
-	normal: boolean = true,
-	archived: boolean = false
-) {
+export async function getProblems(options: ProblemSelectRequest = {}) {
+	let {
+		customSelect = "*",
+		customOrder = null,
+		normal = true,
+		archived = false,
+		after = null,
+		before = null,
+	} = options;
+
+	console.log("OPTIONS", options);
+
+	console.log(customSelect, customOrder, normal, archived, after, before);
+	let selectQuery = supabase.from("full_problems").select(customSelect);
+	if (customOrder) {
+		selectQuery = selectQuery.order(customOrder);
+	}
+	if (normal) {
+		selectQuery = selectQuery.eq("archived", archived);
+	}
+	if (after) {
+		selectQuery = selectQuery.gte("created_at", after.toISOString());
+	}
+	if (before) {
+		selectQuery = selectQuery.lte("created_at", before.toISOString());
+	}
+
+	let { data, error } = await selectQuery;
+	if (error) throw error;
+	return data;
 	if (normal && archived) {
 		let { data, error } = await supabase
 			.from("full_problems")
@@ -94,52 +129,6 @@ export async function getAllProblems(
 			.from("full_problems")
 			.select(customSelect)
 			.eq("archived", true);
-		if (error) throw error;
-		return data;
-	}
-	if (!normal && !archived) {
-		return [];
-	}
-}
-
-/**
- * Orders the problems as specified.
- *
- * @param customOrder
- * @param customSelect
- * @param normal
- * @param archived
- * @returns ordered list of problems
- */
-export async function getAllProblemsOrder(
-	customOrder: string,
-	customSelect: string = "*",
-	normal: boolean = true,
-	archived: boolean = false
-) {
-	if (normal && archived) {
-		let { data, error } = await supabase
-			.from("full_problems")
-			.select(customSelect)
-			.order(customOrder);
-		if (error) throw error;
-		return data;
-	}
-	if (normal && !archived) {
-		let { data, error } = await supabase
-			.from("full_problems")
-			.select(customSelect)
-			.eq("archived", false)
-			.order(customOrder);
-		if (error) throw error;
-		return data;
-	}
-	if (!normal && archived) {
-		let { data, error } = await supabase
-			.from("full_problems")
-			.select(customSelect)
-			.eq("archived", true)
-			.order(customOrder);
 		if (error) throw error;
 		return data;
 	}
@@ -216,7 +205,7 @@ export async function createProblem(problem: ProblemRequest) {
 		body: JSON.stringify({
 			// channel_id: scheme.discord.notifs_channel,
 			message: {
-				content: "",
+				content: problem.problem_latex,
 				embeds: [embed],
 				components: [
 					{
@@ -225,10 +214,15 @@ export async function createProblem(problem: ProblemRequest) {
 					},
 				],
 			},
-			name: embed.title
+			name: embed.title,
 		}),
 	});
 	console.log("THREAD RESPONSE", threadResponse);
+	const threadData = await threadResponse.json();
+	console.log("THREAD DATA 2", threadData);
+	if (threadData.id) {
+		await editProblem({ discord_id: threadData.id }, problem.id);
+	}
 	console.log("AUTHORID", problem.author_id);
 	const response = await fetch("/api/update-metadata", {
 		method: "POST",
@@ -296,6 +290,11 @@ export async function archiveProblem(problem_id: number) {
 		.update({ archived: true })
 		.eq("id", problem_id);
 	if (error) throw error;
+	const { data, error2 } = await supabase
+		.from("test_problems")
+		.delete()
+		.eq("problem_id", problem_id);
+	if (error2) throw error2;
 }
 
 /**
