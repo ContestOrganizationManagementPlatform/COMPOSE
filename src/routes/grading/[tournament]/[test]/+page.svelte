@@ -145,6 +145,7 @@
 
 	function calculateDimensions(input) {
 		// Parse input object
+		console.log(`Input: ${JSON.stringify(input)}`);
 		const topLeftX = parseFloat(input.top_left[0]);
 		const topLeftY = parseFloat(input.top_left[1]);
 		const bottomRightX = parseFloat(input.bottom_right[0]);
