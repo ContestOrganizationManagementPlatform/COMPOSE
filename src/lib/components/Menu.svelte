@@ -87,12 +87,14 @@
 					</Link>
 					<br />
 				{/if}
-				<Link
-					href="/testsolve"
-					class={path == "testsolve" ? "active link" : "link"}
-				>
-					<p class="linkPara">View Testsolves</p>
-				</Link>
+				{#if userRole >= 10}
+					<Link
+						href="/testsolve"
+						class={path == "testsolve" ? "active link" : "link"}
+					>
+						<p class="linkPara">View Testsolves</p>
+					</Link>
+				{/if}
 				{#if userRole >= 30}
 					<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
 						<p class="linkPara">View Tests</p>
@@ -129,8 +131,8 @@
 					</Link>
 					<br />
 					<Link
-						href="/manage-testsolves"
-						class={path == "manage-testsolves" ? "active link" : "link"}
+						href="/admin/testsolves"
+						class={path == "/admin/testsolves" ? "active link" : "link"}
 					>
 						<p class="linkPara">Admin: Testsolves</p>
 					</Link>
@@ -149,11 +151,11 @@
 						<p class="linkPara">Admin: Tournaments</p>
 					</Link>
 				{/if}
-			{:else}
-				<br />
-				<p>You need to be verified to see other links.</p>
+				{#if userRole < 10}
+					<br />
+					<p>You need to be verified to see other links.</p>
+				{/if}
 			{/if}
-
 			<br />
 			<div class="fixedHr" />
 			<Link on:click={handleSignout} class="link">

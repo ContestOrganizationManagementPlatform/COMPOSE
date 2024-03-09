@@ -28,6 +28,7 @@ export interface TestFeedbackQuestionRequest {
 export async function getAllTests(customSelect = "*") {
 	let { data, error } = await supabase.from("tests").select(customSelect);
 	if (error) throw error;
+	console.log("TESTDATA", data);
 	return data;
 }
 
@@ -98,7 +99,8 @@ export async function getTestCoordinators(
 		.select(customSelect)
 		.eq("test_id", test_id);
 	if (error) throw error;
-	return data[0];
+	console.log(data);
+	return data;
 }
 
 /**
@@ -114,10 +116,7 @@ export async function checkIfTestCoordinator(
 	coordinator_id: number,
 	customSelect: string = "coordinator_id"
 ) {
-	let {
-		error: error,
-		count,
-	} = await supabase
+	let { error: error, count } = await supabase
 		.from("test_coordinators")
 		.select(customSelect, { count: "exact", head: true })
 		.eq("coordinator_id", coordinator_id)
@@ -281,7 +280,7 @@ export async function addTestFeedbackQuestion(
  *
  * @param question_id number
  */
-export async function removeTestFeedbackQuestion(question_id: number) {
+export async function removeTestFeedbackQuestion(feedback_question: number) {
 	const { error } = await supabase
 		.from("test_feedback_questions")
 		.delete()
@@ -296,6 +295,7 @@ export async function removeTestFeedbackQuestion(question_id: number) {
  * @returns object in database, including id
  */
 export async function getFeedbackQuestions(test_id: number) {
+	console.log("getting Feedback Questions", test_id);
 	const { data, error } = await supabase
 		.from("test_feedback_questions")
 		.select("*")

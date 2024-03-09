@@ -97,9 +97,6 @@
 				{#if "front_id" in problem}
 					<p><span class="header">ID: </span>{problem.front_id}</p>
 				{/if}
-				{#if "nickname" in problem}
-					<p><span class="header">Nickname: </span>{problem.nickname}</p>
-				{/if}
 				{#if "topic" in problem}
 					<p>
 						<span class="header">Topic: </span>{problem.topics ??
@@ -117,7 +114,7 @@
 	{/if}
 
 	{#if showMetadata}
-		<h2>Information</h2>
+		<h2>Problem Data</h2>
 	{/if}
 	<div class="flex">
 		<div

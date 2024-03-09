@@ -1,17 +1,18 @@
 <script lang="ts">
 	let loaded = false;
-
-	import { getAllTournamentsUnarchived } from "$lib/supabase";
+	import { page } from "$app/stores";
+	import { getTournamentTests } from "$lib/supabase";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-
-	let tournaments = [];
+	const tournament_id = Number($page.params.tournament);
+	console.log(tournament_id);
+	let tests = [];
 
 	(async () => {
 		try {
-			tournaments = await getAllTournamentsUnarchived();
+			tests = await getTournamentTests(tournament_id, "*");
 			loaded = true;
-			console.log(tournaments);
+			console.log(tests);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
