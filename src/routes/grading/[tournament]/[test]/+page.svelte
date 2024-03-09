@@ -23,6 +23,34 @@
 	let gradeQueue: Array<any> = [];
 	let currentCardIndex = 0;
 
+	async function fetchMoreProblems(num_problems = 4) {
+		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
+		//console.log(new_problems);
+		if (new_problems.length > 0) {
+			gradeQueue = gradeQueue.concat(new_problems);
+		}
+	}
+
+	$: (async () => {
+		if (gradeQueue.length - currentCardIndex < 3) {
+			console.log("Fetching more problems...");
+			await fetchMoreProblems();
+			console.log(gradeQueue);
+		}
+	})();
+
+	(async () => {
+		try {
+			user = await getThisUser();
+			console.log(user);
+			await fetchMoreProblems();
+			loaded = true;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	})();
+
 	// let testQueue = [
 	// 	{
 	// 		page: 1,
@@ -158,33 +186,6 @@
 			height,
 		};
 	}
-
-	async function fetchMoreProblems(num_problems = 4) {
-		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
-		if (new_problems.length > 0) {
-			gradeQueue = gradeQueue.concat(new_problems);
-		}
-	}
-
-	$: (async () => {
-		if (gradeQueue.length - currentCardIndex <= 3) {
-			console.log("Fetching more problems...");
-			await fetchMoreProblems();
-			console.log(gradeQueue);
-		}
-	})();
-
-	(async () => {
-		try {
-			user = await getThisUser();
-			console.log(user);
-			await fetchMoreProblems();
-			loaded = true;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	})();
 
 	// Track the current card index
 	// let cards = [
