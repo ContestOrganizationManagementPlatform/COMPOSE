@@ -62,7 +62,7 @@
 			<Link href="/" class={path == "" ? "active link" : "link"}>
 				<p class="linkPara">Home</p>
 			</Link>
-			<br />
+			<div class="fixedHr" />
 			{#if userRole}
 				{#if userRole >= 20}
 					<Link
@@ -93,58 +93,67 @@
 				>
 					<p class="linkPara">View Testsolves</p>
 				</Link>
-				<br />
+				{#if userRole >= 30}
+					<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
+						<p class="linkPara">View Tests</p>
+					</Link>
+				{/if}
+				{#if userRole >= 10}
+					<div class="fixedHr" />
+					<Link
+						href="/grading"
+						class={path == "grading" ? "active link" : "link"}
+					>
+						<p class="linkPara">Grade Tests</p>
+					</Link>
+				{/if}
+				{#if isAdmin}
+					<br />
+					<div class="fixedHr" />
+					<Link href="/admin" class={path == "admin" ? "active link" : "link"}>
+						<p class="linkPara">Admin: Home</p>
+					</Link>
+					<br />
+					<Link
+						href="/admin/users"
+						class={path == "admin/users" ? "active link" : "link"}
+					>
+						<p class="linkPara">Admin: Users</p>
+					</Link>
+					<br />
+					<Link
+						href="/admin/tests"
+						class={path == "admin/tests" ? "active link" : "link"}
+					>
+						<p class="linkPara">Admin: Tests</p>
+					</Link>
+					<br />
+					<Link
+						href="/manage-testsolves"
+						class={path == "manage-testsolves" ? "active link" : "link"}
+					>
+						<p class="linkPara">Admin: Testsolves</p>
+					</Link>
+					<br />
+					<Link
+						href="/admin/transfer-problem"
+						class={path == "admin/transfer-problem" ? "active link" : "link"}
+					>
+						<p class="linkPara">Admin: Transfer Problem</p>
+					</Link>
+					<br />
+					<Link
+						href="/admin/tournaments"
+						class={path == "admin/tournaments" ? "active link" : "link"}
+					>
+						<p class="linkPara">Admin: Tournaments</p>
+					</Link>
+				{/if}
 			{:else}
 				<br />
 				<p>You need to be verified to see other links.</p>
 			{/if}
-			{#if userRole >= 30}
-				<Link href="/tests" class={path == "tests" ? "active link" : "link"}>
-					<p class="linkPara">View Tests</p>
-				</Link>
-			{/if}
-			{#if isAdmin}
-				<br />
-				<div class="fixedHr" />
-				<Link href="/admin" class={path == "admin" ? "active link" : "link"}>
-					<p class="linkPara">Admin: Home</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/users"
-					class={path == "admin/users" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: Users</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/tests"
-					class={path == "admin/tests" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: Tests</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/testsolves"
-					class={path == "/admin/testsolves" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: Testsolves</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/transfer-problem"
-					class={path == "admin/transfer-problem" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: Transfer Problem</p>
-				</Link>
-				<br />
-				<Link
-					href="/admin/tournaments"
-					class={path == "admin/tournaments" ? "active link" : "link"}
-				>
-					<p class="linkPara">Admin: Tournaments</p>
-				</Link>
-			{/if}
+
 			<br />
 			<div class="fixedHr" />
 			<Link on:click={handleSignout} class="link">
