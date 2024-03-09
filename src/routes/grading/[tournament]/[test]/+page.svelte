@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
+	import { displayLatex } from "$lib/latexStuff";
 	import Button from "$lib/components/Button.svelte";
 	import ImageZoomer from "$lib/components/ImageZoomer.svelte";
 	import toast from "svelte-french-toast";
@@ -10,10 +11,9 @@
 		getThisUser,
 		fetchNewTakerResponses,
 		submitGrade,
-		undoGrade,
 	} from "$lib/supabase";
 
-	let test = "MMT 2024";
+	let tournament = "MMT 2024";
 	let round = "Team Round";
 	let answer = 1024;
 	let loaded = false;
@@ -28,6 +28,7 @@
 		//console.log(new_problems);
 		if (new_problems.length > 0) {
 			gradeQueue = gradeQueue.concat(new_problems);
+			console.log(gradeQueue);
 		}
 	}
 
@@ -35,7 +36,6 @@
 		if (gradeQueue.length - currentIndex < 3) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
-			console.log(gradeQueue);
 		}
 	})();
 
@@ -166,7 +166,6 @@
 
 	function calculateDimensions(input) {
 		// Parse input object
-		console.log(`Input: ${JSON.stringify(input)}`);
 		const topLeftX = parseFloat(input.top_left[0]);
 		const topLeftY = parseFloat(input.top_left[1]);
 		const bottomRightX = parseFloat(input.bottom_right[0]);
@@ -241,7 +240,9 @@
 				break;
 			case "return":
 				flashColor = "#999999"; // Change to the desired color for return action
-				await undoGrade(gradeQueue[currentIndex-1 >= 0 ? currentIndex-1 : 0].grade_id);
+				await undoGrade(
+					gradeQueue[currentIndex - 1 >= 0 ? currentIndex - 1 : 0].grade_id
+				);
 				break;
 		}
 
@@ -351,27 +352,25 @@
 <svelte:window on:keydown={handleKey} />
 
 <div>
-	<h1>Grade {test}</h1>
+	<h1>Grading {tournament}</h1>
 
 	<br />
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
-	<div
-		class="swipe-card"
-		on:touchstart={handleTouchStart}
-		on:touchmove={handleTouchMove}
-		on:touchend={handleTouchEnd}
-		bind:this={card}
-	>
+	<div class="swipe-card" bind:this={card}>
 		{#if gradeQueue[currentIndex]}
 			<div class="flex">
 				<div class="sideBySide">
-					<p>{round}</p>
-					<p style="margin-left: 20px">Problem #{gradeQueue[currentIndex].problem_number}</p>
+					<p>{gradeQueue[currentIndex].test_name}</p>
+					<p style="margin-left: 20px">
+						Problem #{gradeQueue[currentIndex].problem_number + 1}
+					</p>
 				</div>
 			</div>
 			<br />
-			<h2>{gradeQueue[currentIndex].answer_latex}</h2>
+			<h2>
+				{gradeQueue[currentIndex].answer_latex}
+			</h2>
 			<ImageZoomer
 				imageUrl={gradeQueue[currentIndex].image}
 				inputCoordinates={calculateDimensions(gradeQueue[currentIndex])}
@@ -399,8 +398,7 @@
 		{:else}
 			<p>No more problems - check back later!</p>
 		{/if}
-		Number of problems remaining in queue: {gradeQueue.length -
-			currentIndex}
+		Number of problems remaining in queue: {gradeQueue.length - currentIndex}
 	</div>
 </div>
 
