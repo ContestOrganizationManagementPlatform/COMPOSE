@@ -10,7 +10,7 @@
 
 	(async () => {
 		try {
-			tests = await getTournamentTests(tournament_id, "*", { archived: false });
+			tests = await getTournamentTests(tournament_id, "*");
 			loaded = true;
 			console.log(tests);
 		} catch (error) {

@@ -85,12 +85,11 @@ export async function getTournamentInfo(
  */
 export async function getTournamentTests(
 	tournament_id: number,
-	customSelect: string = "*",
-	customEq = null
+	customSelect: string = "*" // optional
 ) {
 	let { data, error } = await supabase
 		.from("tests")
-		.select(customSelect, customEq)
+		.select(customSelect)
 		.eq("tournament_id", tournament_id);
 	if (error) throw error;
 	return data;
