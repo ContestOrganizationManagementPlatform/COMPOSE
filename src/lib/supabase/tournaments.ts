@@ -43,6 +43,21 @@ export async function getAllTournamentsOrder(
 }
 
 /**
+ * Fetches the tournament info of all tournaments from the database
+ *
+ * @param customSelect optional, string
+ * @returns List of all tournaments from database
+ */
+export async function getAllTournamentsUnarchived(customSelect = "*") {
+	let { data, error } = await supabase
+		.from("tournaments")
+		.select(customSelect)
+		.eq("archived", false);
+	if (error) throw error;
+	return data;
+}
+
+/**
  * Returns tournament info object given tournament id
  *
  * @param tournament_id number
