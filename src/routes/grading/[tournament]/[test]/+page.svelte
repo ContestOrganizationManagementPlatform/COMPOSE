@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
+	import { Modal } from "carbon-components-svelte";
+	//import { Modal } from 'flowbite-svelte';
 	import { displayLatex } from "$lib/latexStuff";
 	import Button from "$lib/components/Button.svelte";
 	import ImageZoomer from "$lib/components/ImageZoomer.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import {LightenDarkenColor} from "$lib/utils/Colors.svelte";
+	import { LightenDarkenColor } from "$lib/utils/Colors.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 
 	import {
@@ -17,14 +19,14 @@
 	} from "$lib/supabase";
 
 	let tournament = "MMT 2024";
-	let round = "Team Round";
-	let answer = 1024;
 	let loaded = false;
+	let open = false;
 
 	let user;
 
 	let gradeQueue: Array<any> = [];
 	let currentIndex = 0;
+	let newIndex;
 
 	async function fetchMoreProblems(num_problems = 4) {
 		loaded = false;
@@ -80,6 +82,9 @@
 
 	// Handle swipe actions
 	async function handleAction(action) {
+		if (open) {
+			return;
+		}
 		// Get the reference to the body element
 		const bodyElement = document.querySelector("main");
 
@@ -97,12 +102,17 @@
 					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Correct",
 				});
-				toast.success('Correct', {
-					style: 'border: 1px solid '+LightenDarkenColor("#9BFF99",-80)+'; padding: 16px; color:'+LightenDarkenColor("#9BFF99",-80)+';',
+				toast.success("Correct", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#9BFF99", -80) +
+						"; padding: 16px; color:" +
+						LightenDarkenColor("#9BFF99", -80) +
+						";",
 					iconTheme: {
-						primary: LightenDarkenColor("#9BFF99",-80),
-						secondary: '#FFFAEE'
-					}
+						primary: LightenDarkenColor("#9BFF99", -80),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 			case "incorrect":
@@ -112,12 +122,17 @@
 					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Incorrect",
 				});
-				toast.error('Incorrect', {
-					style: 'border: 1px solid '+LightenDarkenColor("#ff9999",-80)+'; padding: 16px; color: '+LightenDarkenColor("#ff9999",-80)+';',
+				toast.error("Incorrect", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#ff9999", -80) +
+						"; padding: 16px; color: " +
+						LightenDarkenColor("#ff9999", -80) +
+						";",
 					iconTheme: {
-						primary: LightenDarkenColor("#ff9999",-80),
-						secondary: '#FFFAEE'
-					}
+						primary: LightenDarkenColor("#ff9999", -80),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 			case "unsure":
@@ -127,13 +142,18 @@
 					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Unsure",
 				});
-				toast.success('Unsure', {
-					style: 'border: 1px solid '+LightenDarkenColor("#fffb99",-160)+'; padding: 16px; color: '+LightenDarkenColor("#fffb99",-160)+';',
+				toast.success("Unsure", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#fffb99", -160) +
+						"; padding: 16px; color: " +
+						LightenDarkenColor("#fffb99", -160) +
+						";",
 					icon: "?",
 					iconTheme: {
-						primary: LightenDarkenColor("#fffb99",-160),
-						secondary: '#FFFAEE'
-					}
+						primary: LightenDarkenColor("#fffb99", -160),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 			case "return":
@@ -141,13 +161,18 @@
 				await undoGrade(
 					gradeQueue[currentIndex - 1 >= 0 ? currentIndex - 1 : 0].grade_id
 				);
-				toast.success('Undo', {
-					style: 'border: 1px solid '+LightenDarkenColor("#999999",-80)+'; padding: 16px; color: '+LightenDarkenColor("#999999",-80)+';',
-					icon: '↩',
+				toast.success("Undo", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#999999", -80) +
+						"; padding: 16px; color: " +
+						LightenDarkenColor("#999999", -80) +
+						";",
+					icon: "↩",
 					iconTheme: {
-						primary: LightenDarkenColor("#999999",-80),
-						secondary: '#FFFAEE'
-					}
+						primary: LightenDarkenColor("#999999", -80),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 		}
@@ -171,11 +196,21 @@
 		// Move to the next card
 		switch (action) {
 			case "return":
-				currentIndex ? currentIndex-- : 0;
+				currentIndex ? (newIndex = currentIndex - 1) : (newIndex = 0);
 				break;
 			default:
-				currentIndex++;
+				newIndex = currentIndex + 1;
 		}
+		const oldScan = gradeQueue[currentIndex];
+		const newScan = gradeQueue[newIndex];
+		if (
+			oldScan.test_id != newScan.test_id ||
+			oldScan.problem_number != newScan.problem_number
+		) {
+			currentIndex = newIndex;
+			open = true;
+		}
+		currentIndex = newIndex;
 	}
 
 	let card;
@@ -208,10 +243,9 @@
 	<br />
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
-	{#if !gradeQueue[currentIndex] && !loaded  }
+	{#if !gradeQueue[currentIndex] && !loaded}
 		<Loading />
-	
-	{:else}
+	{:else if !open}
 		<div class="card" bind:this={card}>
 			{#if gradeQueue[currentIndex]}
 				<div class="flex">
@@ -256,6 +290,23 @@
 			Number of problems remaining in queue: {gradeQueue.length - currentIndex}
 		</div>
 	{/if}
+
+	<Modal
+		bind:open
+		modalHeading={"Switching Problems: New Answer " +
+			(gradeQueue[currentIndex] ? gradeQueue[currentIndex].answer_latex : "")}
+		primaryButtonText="Confirm"
+		secondaryButtons={[]}
+		on:open
+		on:close
+		on:submit={() => {
+			open = false;
+		}}
+	>
+		Switching Problems: New Answer {gradeQueue[currentIndex]
+			? gradeQueue[currentIndex].answer_latex
+			: ""}
+	</Modal>
 </div>
 
 <style>
