@@ -1,147 +1,62 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
+	import { Modal } from "carbon-components-svelte";
+	//import { Modal } from "flowbite-svelte";
+	import { displayLatex } from "$lib/latexStuff";
 	import Button from "$lib/components/Button.svelte";
 	import ImageZoomer from "$lib/components/ImageZoomer.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import { LightenDarkenColor } from "$lib/utils/Colors.svelte";
+	import Loading from "$lib/components/Loading.svelte";
 
 	import {
 		getThisUser,
 		fetchNewTakerResponses,
 		submitGrade,
+		undoGrade,
 	} from "$lib/supabase";
 
-	let test = "MMT 2024";
-	let round = "Team Round";
-	let answer = 1024;
+	let tournament = "MMT 2024";
 	let loaded = false;
+	let open = false;
 
 	let user;
 
-	const imageUrl = "https://i.imgur.com/Cx9DTTZ.jpeg"; // Can be URL or file path
-	const cropCoordinates = {
-		x: 72.74,
-		y: 236.19,
-		width: 148.1,
-		height: 39.6,
-	};
-
 	let gradeQueue: Array<any> = [];
-	let currentCardIndex = 0;
+	let currentIndex = 0;
+	let newIndex;
 
-	// let testQueue = [
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "237.6pt"],
-	// 		bottom_right: ["220.95pt", "277.2pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "290.4pt"],
-	// 		bottom_right: ["220.95pt", "330pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "343.2pt"],
-	// 		bottom_right: ["220.95pt", "382.8pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "396pt"],
-	// 		bottom_right: ["220.95pt", "435.6pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "448.8pt"],
-	// 		bottom_right: ["220.95pt", "488.4pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "501.6pt"],
-	// 		bottom_right: ["220.95pt", "541.2pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "554.4pt"],
-	// 		bottom_right: ["220.95pt", "594pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "607.2pt"],
-	// 		bottom_right: ["220.95pt", "646.8pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["72.86pt", "660pt"],
-	// 		bottom_right: ["220.95pt", "699.6pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "237.6pt"],
-	// 		bottom_right: ["380.05pt", "277.2pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "290.4pt"],
-	// 		bottom_right: ["380.05pt", "330pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "343.2pt"],
-	// 		bottom_right: ["380.05pt", "382.8pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "396pt"],
-	// 		bottom_right: ["380.05pt", "435.6pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "448.8pt"],
-	// 		bottom_right: ["380.05pt", "488.4pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "501.6pt"],
-	// 		bottom_right: ["380.05pt", "541.2pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "554.4pt"],
-	// 		bottom_right: ["380.05pt", "594pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "607.2pt"],
-	// 		bottom_right: ["380.05pt", "646.8pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["231.95pt", "660pt"],
-	// 		bottom_right: ["380.05pt", "699.6pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["391.05pt", "237.6pt"],
-	// 		bottom_right: ["539.14pt", "277.2pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["391.05pt", "290.4pt"],
-	// 		bottom_right: ["539.14pt", "330pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["391.05pt", "343.2pt"],
-	// 		bottom_right: ["539.14pt", "382.8pt"],
-	// 	},
-	// 	{
-	// 		page: 1,
-	// 		top_left: ["391.05pt", "396pt"],
-	// 		bottom_right: ["539.14pt", "435.6pt"],
-	// 	},
-	// ];
+	async function fetchMoreProblems(num_problems = 4) {
+		loaded = false;
+		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
+		//console.log(new_problems);
+		if (new_problems.length > 0) {
+			gradeQueue = gradeQueue.concat(new_problems);
+			console.log(gradeQueue);
+		}
+		loaded = true;
+	}
+
+	$: (async () => {
+		if (gradeQueue.length - currentIndex < 1) {
+			console.log("Fetching more problems...");
+			await fetchMoreProblems();
+		}
+	})();
+
+	(async () => {
+		try {
+			user = await getThisUser();
+			console.log(user);
+			await fetchMoreProblems();
+			loaded = true;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	})();
 
 	function calculateDimensions(input) {
 		// Parse input object
@@ -165,49 +80,11 @@
 		};
 	}
 
-	async function fetchMoreProblems(num_problems = 4) {
-		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
-		gradeQueue = gradeQueue.concat(new_problems);
-	}
-
-	$: (async () => {
-		if (gradeQueue.length - currentCardIndex <= 3) {
-			console.log("Fetching more problems...");
-			await fetchMoreProblems();
-			console.log(gradeQueue);
-		}
-	})();
-
-	(async () => {
-		try {
-			user = await getThisUser();
-			console.log(user);
-			await fetchMoreProblems();
-			loaded = true;
-		} catch (error) {
-			handleError(error);
-			toast.error(error.message);
-		}
-	})();
-
-	// Track the current card index
-	// let cards = [
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/logo.png" },
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/logo.png" },
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/logo.png" },
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/gradingImage.png" },
-	// 	{ image: "/logo.png" },
-	// 	{ image: "/gradingImage.png" },
-	// ];
-
 	// Handle swipe actions
 	async function handleAction(action) {
+		if (open) {
+			return;
+		}
 		// Get the reference to the body element
 		const bodyElement = document.querySelector("main");
 
@@ -220,30 +97,83 @@
 		switch (action) {
 			case "correct":
 				flashColor = "#9BFF99"; // Change to the desired color for correct action
-				await submitGrade(gradeQueue[currentCardIndex].id, {
-					scan_id: gradeQueue[currentCardIndex].scan_id,
-					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				await submitGrade(gradeQueue[currentIndex].id, {
+					scan_id: gradeQueue[currentIndex].scan_id,
+					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Correct",
+				});
+				toast.success("Correct", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#9BFF99", -80) +
+						"; padding: 16px; color:" +
+						LightenDarkenColor("#9BFF99", -80) +
+						";",
+					iconTheme: {
+						primary: LightenDarkenColor("#9BFF99", -80),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 			case "incorrect":
 				flashColor = "#ff9999"; // Change to the desired color for incorrect action
-				await submitGrade(gradeQueue[currentCardIndex].id, {
-					scan_id: gradeQueue[currentCardIndex].scan_id,
-					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				await submitGrade(gradeQueue[currentIndex].id, {
+					scan_id: gradeQueue[currentIndex].scan_id,
+					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Incorrect",
+				});
+				toast.error("Incorrect", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#ff9999", -80) +
+						"; padding: 16px; color: " +
+						LightenDarkenColor("#ff9999", -80) +
+						";",
+					iconTheme: {
+						primary: LightenDarkenColor("#ff9999", -80),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 			case "unsure":
 				flashColor = "#FFFB99"; // Change to the desired color for unsure action
-				await submitGrade(gradeQueue[currentCardIndex].id, {
-					scan_id: gradeQueue[currentCardIndex].scan_id,
-					test_problem_id: gradeQueue[currentCardIndex].test_problem_id,
+				await submitGrade(gradeQueue[currentIndex].id, {
+					scan_id: gradeQueue[currentIndex].scan_id,
+					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Unsure",
+				});
+				toast.success("Unsure", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#fffb99", -160) +
+						"; padding: 16px; color: " +
+						LightenDarkenColor("#fffb99", -160) +
+						";",
+					icon: "?",
+					iconTheme: {
+						primary: LightenDarkenColor("#fffb99", -160),
+						secondary: "#FFFAEE",
+					},
 				});
 				break;
 			case "return":
 				flashColor = "#999999"; // Change to the desired color for return action
+				await undoGrade(
+					gradeQueue[currentIndex - 1 >= 0 ? currentIndex - 1 : 0].grade_id
+				);
+				toast.success("Undo", {
+					style:
+						"border: 1px solid " +
+						LightenDarkenColor("#999999", -80) +
+						"; padding: 16px; color: " +
+						LightenDarkenColor("#999999", -80) +
+						";",
+					icon: "↩",
+					iconTheme: {
+						primary: LightenDarkenColor("#999999", -80),
+						secondary: "#FFFAEE",
+					},
+				});
 				break;
 		}
 
@@ -266,51 +196,24 @@
 		// Move to the next card
 		switch (action) {
 			case "return":
-				currentCardIndex ? currentCardIndex-- : 0;
+				currentIndex ? (newIndex = currentIndex - 1) : (newIndex = 0);
 				break;
 			default:
-				currentCardIndex++;
+				newIndex = currentIndex + 1;
 		}
+		const oldScan = gradeQueue[currentIndex];
+		const newScan = gradeQueue[newIndex];
+		if (
+			oldScan.test_id != newScan.test_id ||
+			oldScan.problem_number != newScan.problem_number
+		) {
+			currentIndex = newIndex;
+			open = true;
+		}
+		currentIndex = newIndex;
 	}
-
-	let position = { x: 0, y: 0 };
-	let startX, startY, curX, curY;
-	let isDragging = false;
 
 	let card;
-
-	async function handleTouchStart(event) {
-		startX = event.touches[0].clientX;
-		startY = event.touches[0].clientY;
-	}
-
-	async function handleTouchMove(event) {
-		event.preventDefault(); // Prevent default touch event behavior (e.g., scrolling)
-
-		curX = event.touches[0].clientX;
-		curY = event.touches[0].clientY;
-		let deltaX = curX - startX;
-		let deltaY = curY - startY;
-		deltaX = Math.sign(deltaX) * Math.pow(Math.abs(deltaX), 1.2);
-		deltaY = Math.sign(deltaY) * Math.pow(Math.abs(deltaY), 1.2);
-
-		if (Math.abs(deltaX / deltaY) > 0.8) {
-			deltaY = 0;
-		} else if (Math.abs(deltaY / deltaX) > 0.8) {
-			deltaX = 0;
-		}
-
-		card.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
-
-		const changeX = curX - startX;
-		const changeY = curY - startY;
-
-		if (Math.abs(changeX) >= 100 || Math.abs(changeY) >= 100) {
-			card.style.opacity = `0.2`;
-		} else {
-			card.style.opacity = `1.0`;
-		}
-	}
 
 	async function handleKey(e) {
 		// Check if the pressed key is 'X'
@@ -325,24 +228,6 @@
 		}
 	}
 
-	async function handleTouchEnd() {
-		const changeX = curX - startX;
-		const changeY = curY - startY;
-
-		if (changeX >= 100) {
-			await handleAction("correct");
-		} else if (changeX <= -100) {
-			await handleAction("incorrect");
-		} else if (changeY >= 100) {
-			await handleAction("unsure");
-		} else if (changeY <= -100) {
-			await handleAction("return");
-		} else {
-			card.style.transform = `translate(0px, 0px)`;
-			card.style.opacity = `1.0`;
-		}
-	}
-
 	onMount(async () => {
 		// Load initial card data
 		console.log(`Mounting...`);
@@ -353,54 +238,74 @@
 <svelte:window on:keydown={handleKey} />
 
 <div>
-	<h1>Grade {test}</h1>
-	<div class="flex">
-		<div class="sideBySide">
-			<p>{round}</p>
-			<p style="margin-left: 20px">Problem #{currentCardIndex + 1}</p>
-		</div>
-	</div>
-	<br />
-	<h2>{answer}</h2>
+	<h1>Grading {tournament}</h1>
+
 	<br />
 	<Button title="Go Back" href="/grading" />
 	<br /><br />
-	<div
-		class="swipe-card"
-		on:touchstart={handleTouchStart}
-		on:touchmove={handleTouchMove}
-		on:touchend={handleTouchEnd}
-		bind:this={card}
+	{#if !gradeQueue[currentIndex] && !loaded}
+		<Loading />
+	{:else}
+		<div class="card" bind:this={card}>
+			{#if gradeQueue[currentIndex]}
+				<div class="flex">
+					<div class="sideBySide">
+						<p>{gradeQueue[currentIndex].test_name}</p>
+						<p style="margin-left: 20px">
+							Problem #{gradeQueue[currentIndex].problem_number + 1}
+						</p>
+					</div>
+				</div>
+				<br />
+				<h2>
+					{gradeQueue[currentIndex].answer_latex}
+				</h2>
+				<ImageZoomer
+					imageUrl={gradeQueue[currentIndex].image}
+					inputCoordinates={calculateDimensions(gradeQueue[currentIndex])}
+				/>
+				<br />
+				<div class="flex">
+					<button
+						style="background-color: #999999; color: #282828;"
+						on:click={async () => handleAction("return")}>↩ (Z)</button
+					>
+					<button
+						style="background-color: #ff9999; color: #AD2828;"
+						on:click={async () => handleAction("incorrect")}>X (X)</button
+					>
+					<button
+						style="background-color: #FFFB99; color: #7C7215;"
+						on:click={async () => handleAction("unsure")}>? (C)</button
+					>
+					<button
+						style="background-color: #9BFF99; color: #157C20;"
+						on:click={async () => handleAction("correct")}>✔ (V)</button
+					>
+				</div>
+				<br />
+			{:else}
+				<p>No more problems - check back later!</p>
+			{/if}
+			Number of problems remaining in queue: {gradeQueue.length - currentIndex}
+		</div>
+	{/if}
+
+	<Modal
+		bind:open
+		modalHeading={"Switching Problems: New Answer"}
+		primaryButtonText="Confirm"
+		secondaryButtons={[]}
+		on:open
+		on:close
+		on:submit={() => {
+			open = false;
+		}}
 	>
-		{#if gradeQueue[currentCardIndex]}
-			<ImageZoomer
-				imageUrl={gradeQueue[currentCardIndex].image}
-				inputCoordinates={calculateDimensions(gradeQueue[currentCardIndex])}
-			/>
-		{:else}
-			<p>No more problems</p>
-		{/if}
-	</div>
-	<br />
-	<div class="flex">
-		<button
-			style="background-color: #999999; color: #282828;"
-			on:click={async () => handleAction("return")}>↩ (Z)</button
-		>
-		<button
-			style="background-color: #ff9999; color: #AD2828;"
-			on:click={async () => handleAction("incorrect")}>X (X)</button
-		>
-		<button
-			style="background-color: #FFFB99; color: #7C7215;"
-			on:click={async () => handleAction("unsure")}>? (C)</button
-		>
-		<button
-			style="background-color: #9BFF99; color: #157C20;"
-			on:click={async () => handleAction("correct")}>✔ (V)</button
-		>
-	</div>
-	<br />
+		New Answer: {gradeQueue[currentIndex]
+			? gradeQueue[currentIndex].answer_latex
+			: ""}
+	</Modal>
 </div>
 
 <style>
@@ -412,30 +317,12 @@
 		display: flex;
 	}
 
-	.swipe-card {
+	.card {
 		width: fit-content;
 		position: relative;
 		border-radius: 8px;
-		transition: transform 0.2s ease-out, opacity 0.3s;
 		margin-left: auto;
 		margin-right: auto;
-	}
-
-	.picture {
-		background-color: var(--primary-tint);
-		max-width: 800px; /* Set maximum width */
-		max-height: 600px; /* Set maximum height */
-		width: auto; /* Ensure it takes the width of its content */
-		height: auto; /* Ensure it takes the height of its content */
-		padding: 10px;
-		border: 5px solid var(--primary-dark);
-		border-radius: 15px;
-		margin: auto;
-		overflow: hidden; /* Hide overflow if canvas exceeds max width or height */
-	}
-
-	img {
-		width: 100%;
 	}
 
 	button {

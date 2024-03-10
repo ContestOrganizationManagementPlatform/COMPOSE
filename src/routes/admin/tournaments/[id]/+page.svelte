@@ -1,7 +1,7 @@
 <script>
 	import { page } from "$app/stores";
 	import Button from "$lib/components/Button.svelte";
-	import Modal from "$lib/components/Modal.svelte";
+	import ModalButton from "$lib/components/ModalButton.svelte";
 	import Loading from "../../../../lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import JSZip from "jszip";
@@ -225,7 +225,7 @@
 			</div>
 		{/each}
 	{/if}
-	<br /><Modal
+	<br /><ModalButton
 		runHeader="Archive Tournament"
 		onSubmit={async () => {
 			await archiveTournament(tournamentId);
