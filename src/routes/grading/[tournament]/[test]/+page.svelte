@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { page } from "$app/stores";
 	import { onMount } from "svelte";
-	import { Modal } from "carbon-components-svelte";
-	//import { Modal } from 'flowbite-svelte';
+	//import { Modal } from "carbon-components-svelte";
+	import { Modal } from "flowbite-svelte";
 	import { displayLatex } from "$lib/latexStuff";
 	import Button from "$lib/components/Button.svelte";
 	import ImageZoomer from "$lib/components/ImageZoomer.svelte";
@@ -293,12 +293,7 @@
 
 	<Modal
 		bind:open
-		modalHeading={"Switching Problems: New Answer " +
-			(gradeQueue[currentIndex] ? gradeQueue[currentIndex].answer_latex : "")}
-		primaryButtonText="Confirm"
-		secondaryButtons={[]}
-		on:open
-		on:close
+		title="Switching Problems"
 		on:submit={() => {
 			open = false;
 		}}
