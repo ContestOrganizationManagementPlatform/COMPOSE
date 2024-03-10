@@ -1,5 +1,7 @@
 import { supabase } from "../supabaseClient";
 
+
+
 /**
  * Fetches image from path
  *
@@ -47,12 +49,14 @@ export async function deleteImages(filePaths: string[]) {
  * @param file
  * @param upsert optional, boolean
  */
-export async function uploadImage(filePath: string, file: any, upsert = true) {
+export async function uploadImage(file: any) {
+	console.log(file);
+
 	let { error } = await supabase.storage
-		.from("problem-images")
-		.upload(filePath, file, {
-			upsert: upsert,
-		});
+		.from("scans")
+		.upload('test_1/test-file.jpg', file, {
+			upsert: true,
+		  });
 	if (error) throw error;
 }
 
