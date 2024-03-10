@@ -224,6 +224,7 @@
 			{/if}
 		</div>
 		<br /><br />
+		<!--
 		<div class="answerChart">
 			<h2>Submitted Answers</h2>
 
@@ -239,6 +240,7 @@
 				{/if}
 			{/if}
 		</div>
+		-->
 	</div>
 </div>
 <div class="flex">
