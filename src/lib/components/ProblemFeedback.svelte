@@ -1,5 +1,4 @@
 <script>
-	import PieChart from "./PieChart.svelte";
 	import Rating from "$lib/components/Rating.svelte";
 	import { Checkbox } from "carbon-components-svelte";
 	import {
