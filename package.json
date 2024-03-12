@@ -41,6 +41,7 @@
 		"jszip": "^3.10.1",
 		"node-fetch": "^3.3.2",
 		"openai": "^4.12.4",
+		"qr-scanner": "^1.4.2",
 		"qrcode": "^1.5.3",
 		"rehype-stringify": "^9.0.3",
 		"svelte-drawer-component": "^1.2.2",
