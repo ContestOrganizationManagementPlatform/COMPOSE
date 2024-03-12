@@ -53,19 +53,20 @@ export async function uploadImage(
 	page_number: string,
 	front_id: string,
 ) {
-	let { data, error } = await supabase.storage
+	let { data, error: upload_error } = await supabase.storage
 		.from("scans")
 		.upload(`test_${test_id}/${front_id}/page_${page_number}.png`, file, {
 			upsert: true,
 		});
-	// // TODO: update database schema, test uploading
-	// let { error } = await supabase.from("scans").upsert(
-	// 	{ test_id, taker_id: front_id, page_number, scan_path: data.path },
-	// 	{
-	// 		onConflict: "test_id,taker_id,page_number",
-	// 	},
-	// );
-	if (error) throw error;
+	if (upload_error) throw upload_error;
+
+	let { error: upsert_error } = await supabase.from("scans").upsert(
+		{ test_id, taker_id: front_id, page_number, scan_path: data.path },
+		{
+			onConflict: "test_id,taker_id,page_number",
+		},
+	);
+	if (upsert_error) throw upsert_error;
 }
 
 /**
