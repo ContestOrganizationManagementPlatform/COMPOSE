@@ -185,8 +185,7 @@
 
 		// Render a single pdf page onto a canvas with pdf.js
 		const convert_page_to_png = async (page, canvasdiv) => {
-			const scale = 2.0;
-			const viewport = page.getViewport({ scale: scale });
+			const viewport = page.getViewport({ scale: PDF_SCALE });
 
 			const canvas = document.createElement("canvas");
 			canvasdiv.appendChild(canvas);
