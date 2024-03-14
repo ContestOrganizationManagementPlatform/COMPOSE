@@ -1,8 +1,12 @@
 <script>
+	import { DataTable } from "carbon-components-svelte";
 	import JSZip from "jszip";
 	import { uploadImage } from "$lib/supabase";
 	import { onMount } from "svelte";
 	import QrScanner from "qr-scanner";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError";
+	import Button from "$lib/components/Button.svelte";
 
 	// When rendering to canvas, the scaling we use.
 	const PDF_SCALE = 2.0;
@@ -14,10 +18,16 @@
 	const QR_SEARCH_PADDING = 50;
 
 	let files = [];
+	let pngs_to_upload = new Map();
 
 	$: if (files) {
 		(async () => {
-			await handleFileUpload();
+			try {
+				await handleFileUpload();
+			} catch (error) {
+				handleError(error);
+				toast.error(error.message);
+			}
 		})();
 	}
 
@@ -62,13 +72,13 @@
 			}
 		}
 
-		let pngs = (
-			await Promise.all(
-				filesToProcess.map(
-					async (file) => await convertToPngs(await file.arrayBuffer())
-				)
-			)
-		).flat(1);
+		console.log(filesToProcess);
+		const file_pngs = await Promise.all(
+			filesToProcess.map(async (file) => [
+				file.name,
+				await convertToPngs(await file.arrayBuffer()),
+			])
+		);
 		const expand_box = (bounding_box) => {
 			const b = bounding_box;
 			return {
@@ -95,26 +105,50 @@
 			return [test_id_page, front_id, png];
 		};
 
-		for (const png of pngs) {
-			// Try to get either the top right or the bottom left qr boxes.
-			const [test_id_page, front_id, matched_png] = await Promise.any([
-				scan_boxes(png[0], TEST_ID_PAGE_BOX, FRONT_ID_BOX),
-				scan_boxes(png[1], TEST_ID_PAGE_BOX, FRONT_ID_BOX),
-			]);
+		for (const [file_name, pngs] of file_pngs) {
+			for (const png of pngs) {
+				// Try to get either the top right or the bottom left qr boxes.
+				let test_id_page, front_id, matched_png;
+				try {
+					[test_id_page, front_id, matched_png] = await Promise.any([
+						scan_boxes(png[0], TEST_ID_PAGE_BOX, FRONT_ID_BOX),
+						scan_boxes(png[1], TEST_ID_PAGE_BOX, FRONT_ID_BOX),
+					]);
+				} catch {
+					// Skip if no QR codes are found.
+					continue;
+				}
 
-			// Assert that the test id matches a certain pattern.
-			if (!test_id_page.match(/T\d+P\d+/)) {
-				throw "Expected test and page id in T\\d+P\\d+ format.";
+				// Assert that the test id matches a certain pattern.
+				if (!test_id_page.match(/T\d+P\d+/)) {
+					throw "Expected test and page id in T\\d+P\\d+ format.";
+				}
+				const [start, end] = test_id_page.split("P");
+				const test_id = start.substr(1);
+				// Convert from 1 indexed to 0 indexed.
+				const page = parseInt(end) - 1;
+				const identifier = test_id + page + front_id;
+
+				// Handle already loaded conflicts.
+				if (pngs_to_upload.has(identifier)) {
+					pngs_to_upload = pngs_to_upload;
+					throw new Error(
+						`Found duplicated identifier: T${test_id}P${page} ${front_id} in ${file_name}. \
+						Conflicts with ${pngs_to_upload.get(identifier).file_name}`
+					);
+				}
+				pngs_to_upload.set(identifier, {
+					file_name,
+					matched_png,
+					blob_url: URL.createObjectURL(matched_png),
+					test_id,
+					page: page.toString(),
+					front_id,
+				});
 			}
-			const [start, end] = test_id_page.split("P");
-			const test_id = start.substr(1);
-			// Convert from 1 indexed to 0 indexed.
-			const page = parseInt(end) - 1;
-
-			console.log(test_id_page, front_id);
-			uploadImage(matched_png, test_id, page.toString(), front_id);
-			// TODO: mark scan_path in scans table
 		}
+		// Trigger svelte to run listeners.
+		pngs_to_upload = pngs_to_upload;
 	}
 
 	async function unzipFile(zipFile) {
@@ -149,6 +183,7 @@
 	function convertToPngs(file) {
 		const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(file) });
 
+		// Render a single pdf page onto a canvas with pdf.js
 		const convert_page_to_png = async (page, canvasdiv) => {
 			const scale = 2.0;
 			const viewport = page.getViewport({ scale: scale });
@@ -212,6 +247,19 @@
 			}
 		);
 	}
+
+	async function upload_scans() {
+		try {
+			for (const [_, png] of pngs_to_upload.entries()) {
+				await uploadImage(png.matched_png, png.test_id, png.page, png.front_id);
+			}
+			pngs_to_upload.clear();
+			pngs_to_upload = pngs_to_upload;
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	}
 </script>
 
 <head>
@@ -221,13 +269,60 @@
 	></script>
 </head>
 
+<h2>Upload Scans</h2>
+
+<br />
+
 <label>
-	Upload Files:
 	<input type="file" multiple bind:files accept=".pdf,.zip" />
 </label>
+
+<br />
+<br />
+
+<Button title="Upload Scans" action={upload_scans} />
+
+<br />
+<br />
+
+<DataTable
+	sortable
+	size="compact"
+	expandable
+	headers={[
+		{ key: "file_name", value: "File Name" },
+		{ key: "test_id", value: "Test ID" },
+		{ key: "page", value: "Page Index" },
+		{ key: "front_id", value: "Taker ID" },
+	]}
+	rows={[
+		...pngs_to_upload.entries().map(([k, v]) => {
+			return { id: k, ...v };
+		}),
+	]}
+>
+	<svelte:fragment slot="cell" let:cell>
+		<div>
+			<div style="overflow: hidden;">
+				{cell.value == null || cell.value == "" ? "None" : cell.value}
+			</div>
+		</div>
+	</svelte:fragment>
+	<svelte:fragment slot="expanded-row" let:row>
+		<div class="flex">
+			<div
+				style="border: 2px solid black;width: 50%;margin: 10px;padding: 10px;"
+			>
+				<img src={row.blob_url} class="scan-preview" />
+			</div>
+		</div>
+	</svelte:fragment>
+</DataTable>
 
 <div id="canvas" style="display: none;" />
 
 <style>
-	/* Your CSS styles here */
+	img.scan-preview {
+		width: 100%;
+	}
 </style>
