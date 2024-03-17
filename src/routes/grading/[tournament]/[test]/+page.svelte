@@ -28,7 +28,7 @@
 	let currentIndex = 0;
 	let newIndex;
 
-	async function fetchMoreProblems(num_problems = 4) {
+	async function fetchMoreProblems(num_problems = 5) {
 		loaded = false;
 		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
 		//console.log(new_problems);
@@ -40,7 +40,7 @@
 	}
 
 	$: (async () => {
-		if (gradeQueue.length - currentIndex < 1) {
+		if (gradeQueue.length - currentIndex < 3) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
 		}
