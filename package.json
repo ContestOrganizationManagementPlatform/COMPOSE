@@ -45,8 +45,9 @@
 		"svelte-katex": "^0.1.2",
 		"svelte-motion": "^0.12.0",
 		"svelte-preprocess": "^5.0.0",
-		"tailwind-merge": "^2.2.0",
 		"svelte-swipeable": "^1.0.9",
+		"svelte-table": "^0.6.3",
+		"tailwind-merge": "^2.2.0",
 		"tweetnacl": "^1.0.3",
 		"unified": "^10.1.2",
 		"uuid": "^9.0.1"
