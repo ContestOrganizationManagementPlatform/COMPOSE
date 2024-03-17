@@ -15,7 +15,6 @@
 				{
 					id: 1,
 					test_name: "Team Round",
-					num_scans: 68, //E.g. number of scans to be graded
 					num_scan_problems: 680, //E.g. total number of individual answers to be graded
 					graded_scan_problems: 455, //E.g. number of individual answers already graded
 					conflict_scan_problems: 122, //E.g. number of individual answers with conflicting grades
@@ -23,7 +22,6 @@
 				{
 					id: 2,
 					test_name: "General Round",
-					num_scans: 20, //E.g. number of scans to be graded
 					num_scan_problems: 500, //E.g. total number of individual answers to be graded
 					graded_scan_problems: 100, //E.g. number of individual answers already graded
 					conflict_scan_problems: 20, //E.g. number of individual answers with conflicting grades
@@ -31,7 +29,6 @@
 				{
 					id: 3,
 					test_name: "Not Uploaded Round",
-					num_scans: 0, //E.g. number of scans to be graded
 					num_scan_problems: 0, //E.g. total number of individual answers to be graded
 					graded_scan_problems: 0, //E.g. number of individual answers already graded
 					conflict_scan_problems: 0, //E.g. number of individual answers with conflicting grades
@@ -97,7 +94,17 @@
 						test.num_scan_problems
 					)}%);"
 				>
-					<h4>{test.test_name}</h4>
+					<h4>
+						{test.test_name} [{calculateProgress(
+							test.graded_scan_problems,
+							test.num_scan_problems
+						)
+							? calculateProgress(
+									test.graded_scan_problems,
+									test.num_scan_problems
+							  ).toFixed(0)
+							: 0}%]
+					</h4>
 				</a>
 			</div>
 		{/each}
