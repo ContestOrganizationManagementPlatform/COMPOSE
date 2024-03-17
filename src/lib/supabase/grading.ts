@@ -23,6 +23,7 @@ export async function fetchNewTakerResponses(
 	batch_size: number | null = null,
 	test_id: number | null = null,
 ): Promise<any[]> {
+	// TODO: Francis knows what to do
 	const { data: gradesData, error: gradesError } = await supabase
 		.from("grades")
 		.select("scan_id, test_problem_id")
@@ -37,9 +38,7 @@ export async function fetchNewTakerResponses(
 		.from("grade_tracking")
 		.select("scan_id, test_id, test_problem_id")
 		.lt("claimed_count", 2)
-	if (test_id) {
-		query = query.eq("test_id", test_id)
-	}
+
 	const { data: gradeTrackingData, error: gradeTrackingError } = await query.or(self_removal_query).limit(batch_size);
 	if (gradeTrackingError) {
 		throw gradeTrackingError;
