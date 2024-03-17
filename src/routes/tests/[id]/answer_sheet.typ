@@ -154,7 +154,8 @@
 
 // Generate boxes and measure them.
 #{
-  columns(3, gutter: 11pt, range(problem_count).map(i => {
+  let answer_box_column_count = 3
+  columns(answer_box_column_count, gutter: 11pt, range(problem_count).map(i => {
     layout(size => {
       style(styles => {
         let elem = answer_box(i, size)

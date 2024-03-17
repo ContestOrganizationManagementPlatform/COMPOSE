@@ -2,7 +2,7 @@
 	import { getUser, updateUserRole, getThisUser } from "$lib/supabase";
 	import { page } from "$app/stores";
 	import { Select, SelectItem, FormGroup } from "carbon-components-svelte";
-	import Modal from "$lib/components/Modal.svelte";
+	import ModalButton from "$lib/components/ModalButton.svelte";
 	import Loading from "$lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
@@ -74,7 +74,7 @@
 				<SelectItem value="40" text="Administrator (40)" />
 			</Select>
 			<br />
-			<Modal
+			<ModalButton
 				runHeader="Update Role"
 				onSubmit={async () => {
 					await addRoleToUser(user.role);

@@ -47,13 +47,26 @@ export async function deleteImages(filePaths: string[]) {
  * @param file
  * @param upsert optional, boolean
  */
-export async function uploadImage(filePath: string, file: any, upsert = true) {
-	let { error } = await supabase.storage
-		.from("problem-images")
-		.upload(filePath, file, {
-			upsert: upsert,
+export async function uploadImage(
+	file: any,
+	test_id: string,
+	page_number: string,
+	front_id: string,
+) {
+	let { data, error: upload_error } = await supabase.storage
+		.from("scans")
+		.upload(`test_${test_id}/${front_id}/page_${page_number}.png`, file, {
+			upsert: true,
 		});
-	if (error) throw error;
+	if (upload_error) throw upload_error;
+
+	let { error: upsert_error } = await supabase.from("scans").upsert(
+		{ test_id, taker_id: front_id, page_number, scan_path: data.path },
+		{
+			onConflict: "test_id,taker_id,page_number",
+		},
+	);
+	if (upsert_error) throw upsert_error;
 }
 
 /**
@@ -67,6 +80,6 @@ export async function getImageURL(filePath: string) {
 		.from("problem-images")
 		.getPublicUrl(filePath);
 	if (error) throw error;
-	
+
 	return data.publicURL;
 }

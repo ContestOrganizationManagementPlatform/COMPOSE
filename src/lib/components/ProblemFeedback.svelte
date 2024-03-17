@@ -1,5 +1,4 @@
 <script>
-	import PieChart from "./PieChart.svelte";
 	import Rating from "$lib/components/Rating.svelte";
 	import { Checkbox } from "carbon-components-svelte";
 	import {
@@ -224,6 +223,7 @@
 			{/if}
 		</div>
 		<br /><br />
+		<!--
 		<div class="answerChart">
 			<h2>Submitted Answers</h2>
 
@@ -239,6 +239,7 @@
 				{/if}
 			{/if}
 		</div>
+		-->
 	</div>
 </div>
 <div class="flex">
