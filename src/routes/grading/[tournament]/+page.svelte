@@ -30,10 +30,10 @@
 
 	<p style="font-style: italic;">Pick a tournament to grade</p>
 
-	{#each tournaments as tournament, index (tournament.id)}
+	{#each tests as test, index (test.id)}
 		<div>
-			<a class="problemContainer" href="/grading/{tournament.id}">
-				{tournament.tournament_name}
+			<a class="problemContainer" href="/grading/{tournament_id}/{test.id}/">
+				{test.test_name}
 			</a>
 		</div>
 	{/each}

@@ -19,19 +19,23 @@
 	} from "$lib/supabase";
 
 	let tournament = "MMT 2024";
+	const test_id = Number($page.params.test);
 	let loaded = false;
-	let open = false;
+	let switchingProblems = false;
 
-	let user;
+	let user = null;
 
-	let gradeQueue: Array<any> = [];
+	let gradeQueue = [];
 	let currentIndex = 0;
-	let newIndex;
 
 	async function fetchMoreProblems(num_problems = 4) {
 		loaded = false;
-		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
-		//console.log(new_problems);
+		const new_problems = await fetchNewTakerResponses(
+			user.id,
+			num_problems,
+			test_id,
+			gradeQueue.at(currentIndex)?.problem_id,
+		);
 		if (new_problems.length > 0) {
 			gradeQueue = gradeQueue.concat(new_problems);
 			console.log(gradeQueue);
@@ -40,7 +44,7 @@
 	}
 
 	$: (async () => {
-		if (gradeQueue.length - currentIndex < 1) {
+		if (gradeQueue.length - currentIndex < 1 && user != null) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
 		}
@@ -50,7 +54,6 @@
 		try {
 			user = await getThisUser();
 			console.log(user);
-			await fetchMoreProblems();
 			loaded = true;
 		} catch (error) {
 			handleError(error);
@@ -82,7 +85,7 @@
 
 	// Handle swipe actions
 	async function handleAction(action) {
-		if (open) {
+		if (switchingProblems || gradeQueue.length <= currentIndex - 1) {
 			return;
 		}
 		// Get the reference to the body element
@@ -97,7 +100,7 @@
 		switch (action) {
 			case "correct":
 				flashColor = "#9BFF99"; // Change to the desired color for correct action
-				await submitGrade(gradeQueue[currentIndex].id, {
+				await submitGrade(user.id, {
 					scan_id: gradeQueue[currentIndex].scan_id,
 					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Correct",
@@ -117,7 +120,7 @@
 				break;
 			case "incorrect":
 				flashColor = "#ff9999"; // Change to the desired color for incorrect action
-				await submitGrade(gradeQueue[currentIndex].id, {
+				await submitGrade(user.id, {
 					scan_id: gradeQueue[currentIndex].scan_id,
 					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Incorrect",
@@ -137,7 +140,7 @@
 				break;
 			case "unsure":
 				flashColor = "#FFFB99"; // Change to the desired color for unsure action
-				await submitGrade(gradeQueue[currentIndex].id, {
+				await submitGrade(user.id, {
 					scan_id: gradeQueue[currentIndex].scan_id,
 					test_problem_id: gradeQueue[currentIndex].test_problem_id,
 					grade: "Unsure",
@@ -194,23 +197,23 @@
 		}
 
 		// Move to the next card
-		switch (action) {
-			case "return":
-				currentIndex ? (newIndex = currentIndex - 1) : (newIndex = 0);
-				break;
-			default:
-				newIndex = currentIndex + 1;
+		if (action == "return") {
+			if (currentIndex > 0) {
+				currentIndex -= 1;
+			}
+		} else {
+			currentIndex += 1;
+			const oldScan = gradeQueue.at(currentIndex - 1);
+			const newScan = gradeQueue.at(currentIndex);
+			if (
+				oldScan &&
+				newScan &&
+				(oldScan.test_id != newScan.test_id ||
+					oldScan.problem_number != newScan.problem_number)
+			) {
+				switchingProblems = true;
+			}
 		}
-		const oldScan = gradeQueue[currentIndex];
-		const newScan = gradeQueue[newIndex];
-		if (
-			oldScan.test_id != newScan.test_id ||
-			oldScan.problem_number != newScan.problem_number
-		) {
-			currentIndex = newIndex;
-			open = true;
-		}
-		currentIndex = newIndex;
 	}
 
 	let card;
@@ -292,14 +295,14 @@
 	{/if}
 
 	<Modal
-		bind:open
-		modalHeading={"Switching Problems: New Answer"}
+		bind:open={switchingProblems}
+		modalHeading={`Switching to Problem ${gradeQueue.at(currentIndex)?.problem_number + 1}`}
 		primaryButtonText="Confirm"
 		secondaryButtons={[]}
 		on:open
 		on:close
 		on:submit={() => {
-			open = false;
+			switchingProblems = false;
 		}}
 	>
 		New Answer: {gradeQueue[currentIndex]
