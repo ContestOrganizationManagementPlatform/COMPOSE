@@ -1,7 +1,5 @@
 import { supabase } from "../supabaseClient";
 
-
-
 /**
  * Fetches image from path
  *
