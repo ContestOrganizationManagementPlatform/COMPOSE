@@ -82,7 +82,7 @@
 			<div>
 				<a
 					class="problemContainer"
-					href="/grading/{test.id}"
+					href="/grading/{tournament_id}/{test.id}/"
 					style="background: linear-gradient(to right, var(--primary-light) {calculateProgress(
 						test.graded_scan_problems,
 						test.num_scan_problems

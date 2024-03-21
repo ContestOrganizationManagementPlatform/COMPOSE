@@ -18,20 +18,35 @@
 		undoGrade,
 	} from "$lib/supabase";
 
+	/**
+	 * Possible grades / actions for the grader to submit.
+	 * @enum {{name: string, color: string}}
+	 */
+	const Grade = Object.freeze({
+		CORRECT: { name: "Correct", color: "#9BFF99" },
+		INCORRECT: { name: "Incorrect", color: "#FF9999" },
+		UNSURE: { name: "Unsure", color: "#FFFB99" },
+		UNDO: { name: "Undo", color: "#999999" },
+	});
+
 	let tournament = "MMT 2024";
+	const test_id = Number($page.params.test);
 	let loaded = false;
-	let open = false;
+	let switchingProblems = false;
 
-	let user;
+	let user = null;
 
-	let gradeQueue: Array<any> = [];
+	let gradeQueue = [];
 	let currentIndex = 0;
-	let newIndex;
 
 	async function fetchMoreProblems(num_problems = 5) {
 		loaded = false;
-		const new_problems = await fetchNewTakerResponses(user.id, num_problems);
-		//console.log(new_problems);
+		const new_problems = await fetchNewTakerResponses(
+			user.id,
+			num_problems,
+			test_id,
+			gradeQueue.at(currentIndex)?.problem_id,
+		);
 		if (new_problems.length > 0) {
 			gradeQueue = gradeQueue.concat(new_problems);
 			console.log(gradeQueue);
@@ -40,7 +55,9 @@
 	}
 
 	$: (async () => {
+		// TODO: @tweoss. Check if this is valid (handleAction might assume index is just 1 less)
 		if (gradeQueue.length - currentIndex < 3) {
+			// if (gradeQueue.length - currentIndex < 1 && user != null) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
 		}
@@ -50,7 +67,6 @@
 		try {
 			user = await getThisUser();
 			console.log(user);
-			await fetchMoreProblems();
 			loaded = true;
 		} catch (error) {
 			handleError(error);
@@ -82,9 +98,10 @@
 
 	// Handle swipe actions
 	async function handleAction(action) {
-		if (open) {
+		if (switchingProblems || gradeQueue.length <= currentIndex - 1) {
 			return;
 		}
+
 		// Get the reference to the body element
 		const bodyElement = document.querySelector("main");
 
@@ -92,125 +109,55 @@
 		const flashInDuration = 100; // 0.2 seconds
 		const flashOutDuration = 1000; // 1 second
 
-		// Define the color to flash
-		let flashColor;
-		switch (action) {
-			case "correct":
-				flashColor = "#9BFF99"; // Change to the desired color for correct action
-				await submitGrade(gradeQueue[currentIndex].id, {
-					scan_id: gradeQueue[currentIndex].scan_id,
-					test_problem_id: gradeQueue[currentIndex].test_problem_id,
-					grade: "Correct",
-				});
-				toast.success("Correct", {
-					style:
-						"border: 1px solid " +
-						LightenDarkenColor("#9BFF99", -80) +
-						"; padding: 16px; color:" +
-						LightenDarkenColor("#9BFF99", -80) +
-						";",
-					iconTheme: {
-						primary: LightenDarkenColor("#9BFF99", -80),
-						secondary: "#FFFAEE",
-					},
-				});
-				break;
-			case "incorrect":
-				flashColor = "#ff9999"; // Change to the desired color for incorrect action
-				await submitGrade(gradeQueue[currentIndex].id, {
-					scan_id: gradeQueue[currentIndex].scan_id,
-					test_problem_id: gradeQueue[currentIndex].test_problem_id,
-					grade: "Incorrect",
-				});
-				toast.error("Incorrect", {
-					style:
-						"border: 1px solid " +
-						LightenDarkenColor("#ff9999", -80) +
-						"; padding: 16px; color: " +
-						LightenDarkenColor("#ff9999", -80) +
-						";",
-					iconTheme: {
-						primary: LightenDarkenColor("#ff9999", -80),
-						secondary: "#FFFAEE",
-					},
-				});
-				break;
-			case "unsure":
-				flashColor = "#FFFB99"; // Change to the desired color for unsure action
-				await submitGrade(gradeQueue[currentIndex].id, {
-					scan_id: gradeQueue[currentIndex].scan_id,
-					test_problem_id: gradeQueue[currentIndex].test_problem_id,
-					grade: "Unsure",
-				});
-				toast.success("Unsure", {
-					style:
-						"border: 1px solid " +
-						LightenDarkenColor("#fffb99", -160) +
-						"; padding: 16px; color: " +
-						LightenDarkenColor("#fffb99", -160) +
-						";",
-					icon: "?",
-					iconTheme: {
-						primary: LightenDarkenColor("#fffb99", -160),
-						secondary: "#FFFAEE",
-					},
-				});
-				break;
-			case "return":
-				flashColor = "#999999"; // Change to the desired color for return action
-				await undoGrade(
-					gradeQueue[currentIndex - 1 >= 0 ? currentIndex - 1 : 0].grade_id
-				);
-				toast.success("Undo", {
-					style:
-						"border: 1px solid " +
-						LightenDarkenColor("#999999", -80) +
-						"; padding: 16px; color: " +
-						LightenDarkenColor("#999999", -80) +
-						";",
-					icon: "↩",
-					iconTheme: {
-						primary: LightenDarkenColor("#999999", -80),
-						secondary: "#FFFAEE",
-					},
-				});
-				break;
+		if (
+			[Grade.CORRECT, Grade.INCORRECT, Grade.UNSURE].find((a) => a == action) !=
+			null
+		) {
+			await submitGrade(user.id, {
+				scan_id: gradeQueue[currentIndex].scan_id,
+				test_problem_id: gradeQueue[currentIndex].test_problem_id,
+				grade: action.name,
+			});
 		}
 
-		// Change the background color of the entire page to flashColor with fast transition
-		if (flashColor) {
+		if (action == Grade.UNDO) {
+			await undoGrade(
+				gradeQueue[currentIndex - 1 >= 0 ? currentIndex - 1 : 0].grade_id
+			);
+		}
+
+		// Change the background color of the entire page to the color with fast transition
+		bodyElement.style.transition = `background-color ${
+			flashInDuration / 1000
+		}s ease-in-out`;
+		bodyElement.style.backgroundColor = action.color;
+
+		// Revert the background color to original with slower transition after the specified duration
+		setTimeout(() => {
 			bodyElement.style.transition = `background-color ${
-				flashInDuration / 1000
+				flashOutDuration / 1000
 			}s ease-in-out`;
-			bodyElement.style.backgroundColor = flashColor;
-
-			// Revert the background color to original with slower transition after the specified duration
-			setTimeout(() => {
-				bodyElement.style.transition = `background-color ${
-					flashOutDuration / 1000
-				}s ease-in-out`;
-				bodyElement.style.backgroundColor = ""; // Revert to original color
-			}, flashInDuration);
-		}
+			bodyElement.style.backgroundColor = ""; // Revert to original color
+		}, flashInDuration);
 
 		// Move to the next card
-		switch (action) {
-			case "return":
-				currentIndex ? (newIndex = currentIndex - 1) : (newIndex = 0);
-				break;
-			default:
-				newIndex = currentIndex + 1;
+		if (action == Grade.UNDO) {
+			if (currentIndex > 0) {
+				currentIndex -= 1;
+			}
+		} else {
+			currentIndex += 1;
+			const oldScan = gradeQueue.at(currentIndex - 1);
+			const newScan = gradeQueue.at(currentIndex);
+			if (
+				oldScan &&
+				newScan &&
+				(oldScan.test_id != newScan.test_id ||
+					oldScan.problem_number != newScan.problem_number)
+			) {
+				switchingProblems = true;
+			}
 		}
-		const oldScan = gradeQueue[currentIndex];
-		const newScan = gradeQueue[newIndex];
-		if (
-			oldScan.test_id != newScan.test_id ||
-			oldScan.problem_number != newScan.problem_number
-		) {
-			currentIndex = newIndex;
-			open = true;
-		}
-		currentIndex = newIndex;
 	}
 
 	let card;
@@ -218,20 +165,19 @@
 	async function handleKey(e) {
 		// Check if the pressed key is 'X'
 		if (e.key === "x" || e.key === "X") {
-			await handleAction("incorrect");
+			await handleAction(Grade.INCORRECT);
 		} else if (e.key === "z" || e.key === "Z") {
-			await handleAction("return");
+			await handleAction(Grade.UNDO);
 		} else if (e.key === "c" || e.key === "C") {
-			await handleAction("unsure");
+			await handleAction(Grade.UNSURE);
 		} else if (e.key === "v" || e.key === "V") {
-			await handleAction("correct");
+			await handleAction(Grade.CORRECT);
 		}
 	}
 
 	onMount(async () => {
 		// Load initial card data
 		console.log(`Mounting...`);
-		// const path = './gradingImage.png'; // Replace with the path to your image
 	});
 </script>
 
@@ -268,19 +214,19 @@
 				<div class="flex">
 					<button
 						style="background-color: #999999; color: #282828;"
-						on:click={async () => handleAction("return")}>↩ (Z)</button
+						on:click={async () => handleAction(Grade.UNDO)}>↩ (Z)</button
 					>
 					<button
 						style="background-color: #ff9999; color: #AD2828;"
-						on:click={async () => handleAction("incorrect")}>X (X)</button
+						on:click={async () => handleAction(Grade.INCORRECT)}>X (X)</button
 					>
 					<button
 						style="background-color: #FFFB99; color: #7C7215;"
-						on:click={async () => handleAction("unsure")}>? (C)</button
+						on:click={async () => handleAction(Grade.UNSURE)}>? (C)</button
 					>
 					<button
 						style="background-color: #9BFF99; color: #157C20;"
-						on:click={async () => handleAction("correct")}>✔ (V)</button
+						on:click={async () => handleAction(Grade.CORRECT)}>✔ (V)</button
 					>
 				</div>
 				<br />
@@ -292,14 +238,16 @@
 	{/if}
 
 	<Modal
-		bind:open
-		modalHeading={"Switching Problems: New Answer"}
+		bind:open={switchingProblems}
+		modalHeading={`Switching to Problem ${
+			gradeQueue.at(currentIndex)?.problem_number + 1
+		}`}
 		primaryButtonText="Confirm"
 		secondaryButtons={[]}
 		on:open
 		on:close
 		on:submit={() => {
-			open = false;
+			switchingProblems = false;
 		}}
 	>
 		New Answer: {gradeQueue[currentIndex]
