@@ -2,7 +2,7 @@
 #import "@preview/codetastic:0.2.2": qrcode
 #import "@preview/tablex:0.0.8": gridx, hlinex, vlinex
 
-#let is_local = toml("./answer_sheet_compiling.toml").config.local
+#let is_local = toml("/answer_sheet_compiling.toml").config.local
 #let (problems, test_metadata) = if is_local {
   (
     (
@@ -74,7 +74,6 @@
 }
 
 #let identification_sticker_box = {
-  // id_box(fill: gray.lighten(50%), "Place Identification Sticker Here")
   id_box(fill: gray.lighten(50%), if is_local {
     set text(size: 16pt)
     id_label("001A")
@@ -135,7 +134,17 @@
         },
       )
     ],
-  ), header-ascent: 12%, margin: (top: 30%), height: 11in, width: 8.5in,
+  ), footer: {
+    // A marker at the bottom left for alignment.
+    // Uses 1-1-3 ratios of black-white-black.
+    let center_y = -30pt
+    let scale = 2
+    for (radius, fill) in ((7pt * scale, black), (5pt * scale, white), (3pt * scale, black)) {
+      place(
+        bottom + left, dx: -radius, dy: center_y + radius, circle(radius: radius, fill: fill),
+      )
+    }
+  }, header-ascent: 12%, margin: (top: 30%, bottom: 10%), height: 11in, width: 8.5in,
 )
 
 #let answer_box(i, layout) = {
@@ -204,7 +213,7 @@
     align(right)[#smallcaps("April 8, 2023")],
   )
   #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-], margin: auto)
+], footer: none, margin: auto)
 
 // Typeset problems.
 #let macros = (

@@ -48,6 +48,10 @@
 			gradeQueue.at(currentIndex)?.problem_id,
 		);
 		if (new_problems.length > 0) {
+			for (let problem of new_problems) {
+				const display = await displayLatex(problem.answer_latex, []);
+				problem.answer_display = display.out;
+			}
 			gradeQueue = gradeQueue.concat(new_problems);
 			console.log(gradeQueue);
 		}
@@ -56,7 +60,7 @@
 
 	$: (async () => {
 		// TODO: @tweoss. Check if this is valid (handleAction might assume index is just 1 less)
-		if (gradeQueue.length - currentIndex < 3) {
+		if (gradeQueue.length - currentIndex < 3 && user != null) {
 			// if (gradeQueue.length - currentIndex < 1 && user != null) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
@@ -74,12 +78,15 @@
 		}
 	})();
 
-	function calculateDimensions(input) {
+	function calculateDimensions(problem_data) {
+		const bounding_boxes = JSON.parse(problem_data.bounding_boxes);
+		const bounding_box = bounding_boxes.box_positions[problem_data.problem_number];
+
 		// Parse input object
-		const topLeftX = parseFloat(input.top_left[0]);
-		const topLeftY = parseFloat(input.top_left[1]);
-		const bottomRightX = parseFloat(input.bottom_right[0]);
-		const bottomRightY = parseFloat(input.bottom_right[1]);
+		const topLeftX = parseFloat(bounding_box.top_left[0]);
+		const topLeftY = parseFloat(bounding_box.top_left[1]);
+		const bottomRightX = parseFloat(bounding_box.bottom_right[0]);
+		const bottomRightY = parseFloat(bounding_box.bottom_right[1]);
 
 		// Calculate dimensions
 		const left = topLeftX.toFixed(2);
@@ -204,7 +211,7 @@
 				</div>
 				<br />
 				<h2>
-					{gradeQueue[currentIndex].answer_latex}
+					{@html gradeQueue[currentIndex].answer_display}
 				</h2>
 				<ImageZoomer
 					imageUrl={gradeQueue[currentIndex].image}
@@ -242,7 +249,7 @@
 		modalHeading={`Switching to Problem ${
 			gradeQueue.at(currentIndex)?.problem_number + 1
 		}`}
-		primaryButtonText="Confirm"
+		primaryButtonText="Confirm (space, enter)"
 		secondaryButtons={[]}
 		on:open
 		on:close
@@ -250,9 +257,9 @@
 			switchingProblems = false;
 		}}
 	>
-		New Answer: {gradeQueue[currentIndex]
-			? gradeQueue[currentIndex].answer_latex
-			: ""}
+		New Answer: {@html gradeQueue[currentIndex]
+			?  gradeQueue[currentIndex].answer_display
+			: "<div></div>"}
 	</Modal>
 </div>
 

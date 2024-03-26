@@ -6,6 +6,7 @@
 	import QrScanner from "qr-scanner";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import { downloadBlob } from "$lib/utils/download";
 	import Button from "$lib/components/Button.svelte";
 
 	// When rendering to canvas, the scaling we use.
@@ -14,6 +15,8 @@
 	const TEST_ID_PAGE_BOX = { left: 465, top: 14, width: 70, height: 70 };
 	// Location in pts of the sticker qr code (test taker ID)
 	const FRONT_ID_BOX = { left: 335, top: 130, width: 57.6, height: 57.6 };
+	// Location in pts of bottom left alignment dot.
+	const ALIGNMENT_DOT_BOX = { left: 59, top: 748, width: 28, height: 28 };
 	// How many pts to expand the bounding boxes when looking to recognize the qr codes.
 	const QR_SEARCH_PADDING = 50;
 
@@ -99,9 +102,40 @@
 					.catch((e) => reject(e || "No QR code found"))
 			);
 		};
-		const scan_boxes = async (png, test_id_page_box, front_id_box) => {
-			const { data: test_id_page } = await scan_box(png, test_id_page_box);
+		const scan_boxes = async (
+			png,
+			test_id_page_box,
+			front_id_box,
+			alignment_dot_box
+		) => {
+			// Calls to scan box will throw if no QR code detected, so we
+			// assume if the function continues that there exist QR codes
+			// in this orientation.
+			const { data: test_id_page, cornerPoints } = await scan_box(
+				png,
+				test_id_page_box
+			);
 			const { data: front_id } = await scan_box(png, front_id_box);
+
+			console.log(cornerPoints);
+			const dot_location = await detect_alignment_dot(
+				png,
+				expand_box(alignment_dot_box)
+			);
+			try {
+				png = await apply_transform(
+					png,
+					test_id_page_box,
+					alignment_dot_box,
+					cornerPoints,
+					dot_location
+				);
+			} catch (e) {
+				toast.error(e.message);
+				console.error(e);
+			}
+			console.log(dot_location);
+			// TODO: return also the dot's location.
 			return [test_id_page, front_id, png];
 		};
 
@@ -111,8 +145,18 @@
 				let test_id_page, front_id, matched_png;
 				try {
 					[test_id_page, front_id, matched_png] = await Promise.any([
-						scan_boxes(png[0], TEST_ID_PAGE_BOX, FRONT_ID_BOX),
-						scan_boxes(png[1], TEST_ID_PAGE_BOX, FRONT_ID_BOX),
+						scan_boxes(
+							png[0],
+							TEST_ID_PAGE_BOX,
+							FRONT_ID_BOX,
+							ALIGNMENT_DOT_BOX
+						),
+						scan_boxes(
+							png[1],
+							TEST_ID_PAGE_BOX,
+							FRONT_ID_BOX,
+							ALIGNMENT_DOT_BOX
+						),
 					]);
 				} catch {
 					// Skip if no QR codes are found.
@@ -259,6 +303,161 @@
 			toast.error(error.message);
 		}
 	}
+
+	const sum = (values) => values.reduce((a, b) => a + b, 0);
+
+	async function detect_alignment_dot(png, box) {
+		const canvasdiv = document.getElementById("canvas");
+		const canvas = document.createElement("canvas");
+		const context = canvas.getContext("2d");
+		canvasdiv.appendChild(canvas);
+		const image_bitmap = await createImageBitmap(png);
+		canvas.width = image_bitmap.width;
+		canvas.height = image_bitmap.height;
+		context.drawImage(image_bitmap, 0, 0);
+		// console.log(canvas.width, canvas.height, box);
+		box.width = Math.min(canvas.width - box.x, box.width);
+		box.height = Math.min(canvas.height - box.y, box.height);
+		const image_data_o = context.getImageData(
+			box.x,
+			box.y,
+			box.width,
+			box.height
+		);
+		const image_data = image_data_o.data;
+		const take_while = (start, end, step, predicate) => {
+			// uint8 array. RGBA => 4 entries per color.
+			let index = start * 4;
+			while (index < end * 4 && predicate(image_data.slice(index, index + 4))) {
+				index += step * 4;
+			}
+			return [index / 4, (index / 4 - start) / step];
+		};
+		const black = ([r, g, b, _a]) => r + g + b < 3 * 80;
+		const white = (colors) => !black(colors);
+		const get_lengths = (start, end, step, predicates) => {
+			let [index, output] = [start, []];
+			for (const p of predicates) {
+				const [new_index, steps] = take_while(index, end, step, p);
+				output.push(steps);
+				index = new_index;
+			}
+			return output;
+		};
+		const norm = (values) => Math.sqrt(sum(values.map((v) => Math.pow(v, 2))));
+		const normalize = (values) => values.map((v) => v / norm(values));
+
+		// Calculate dot product against expected ratio.
+		const calculate_dot = (lengths, ratios) => {
+			lengths = lengths.slice(1, -1);
+			if (norm(lengths) == 0) {
+				return Number.NEGATIVE_INFINITY;
+			}
+			lengths = normalize(lengths);
+			return sum(lengths.map((l, i) => l * ratios[i]));
+		};
+
+		// Pattern is lots of white, then 1 black, 1 white, 3 black, 1 white, 1
+		// black, then lots of white. Explicitly, WW...WWBWBBBWBWW..WW.
+		const predicates = [white, black, white, black, white, black, white];
+		const ratios = normalize([1, 1, 3, 1, 1]);
+		let [best_rows, best_cols] = [[], []];
+		for (let row = 0; row < box.height; row++) {
+			const lengths = get_lengths(
+				row * box.width,
+				(row + 1) * box.width,
+				1,
+				predicates
+			);
+			const dot = calculate_dot(lengths, ratios);
+			if (dot > 0.9) {
+				best_rows.push(row);
+			}
+		}
+		for (let col = 0; col < box.width; col++) {
+			const lengths = get_lengths(
+				col,
+				col + (box.height - 1) * box.width,
+				box.width,
+				predicates
+			);
+			const dot = calculate_dot(lengths, ratios);
+			if (dot > 0.9) {
+				best_cols.push(col);
+			}
+		}
+
+		const best_col = sum(best_cols) / best_cols.length;
+		const best_row = sum(best_rows) / best_rows.length;
+
+		canvas.remove();
+		return [best_col + box.x, best_row + box.y];
+	}
+
+	async function apply_transform(
+		png,
+		test_id_page_box,
+		alignment_dot_box,
+		corner_points,
+		dot_location
+	) {
+		const canvasdiv = document.getElementById("canvas");
+		const canvas = document.createElement("canvas");
+		canvasdiv.appendChild(canvas);
+		const image_bitmap = await createImageBitmap(png);
+		canvas.width = image_bitmap.width;
+		canvas.height = image_bitmap.height;
+		const context = canvas.getContext("2d");
+		const expected = {
+			qr_x: (test_id_page_box.left + test_id_page_box.width / 2) * PDF_SCALE,
+			qr_y: (test_id_page_box.top + test_id_page_box.height / 2) * PDF_SCALE,
+			dot_x: (alignment_dot_box.left + alignment_dot_box.width / 2) * PDF_SCALE,
+			dot_y: (alignment_dot_box.top + alignment_dot_box.height / 2) * PDF_SCALE,
+		};
+		const expected_vec = {
+			x: expected.qr_x - expected.dot_x,
+			y: expected.qr_y - expected.dot_y,
+		};
+		const scanned = {
+			qr_x: sum(corner_points.map((v) => v.x)) / 4,
+			qr_y: sum(corner_points.map((v) => v.y)) / 4,
+			dot_x: dot_location[0],
+			dot_y: dot_location[1],
+		};
+		console.log(expected, scanned);
+		const scanned_vec = {
+			x: scanned.qr_x - scanned.dot_x,
+			y: scanned.qr_y - scanned.dot_y,
+		};
+
+		// The transforms are right multiplied (reversing order)
+		// Order:
+		// - Move alignment dot to origin.
+		// - Rotate and scale to match vector of dot to qr.
+		// - Translate the aligment dot back.
+
+		const scale =
+			Math.hypot(expected_vec.x, expected_vec.y) /
+			Math.hypot(scanned_vec.x, scanned_vec.y);
+
+		const t = new DOMMatrix()
+			.translate(expected.dot_x, expected.dot_y)
+			.rotate(
+					(Math.atan2(expected_vec.y, expected_vec.x) -
+					Math.atan2(scanned_vec.y, scanned_vec.x)) * 180 / Math.PI
+			)
+			.scale(scale, scale)
+			.translate(-scanned.dot_x, -scanned.dot_y);
+
+		context.setTransform(t);
+
+		context.drawImage(image_bitmap, 0, 0);
+		const output =  await new Promise((resolve) => {
+			canvas.toBlob(resolve);
+		});
+		canvas.remove();
+		return output;
+	}
 </script>
 
 <head>
@@ -318,7 +517,7 @@
 	</svelte:fragment>
 </DataTable>
 
-<div id="canvas" style="display: none;" />
+<div id="canvas" />
 
 <style>
 	img.scan-preview {

@@ -124,7 +124,7 @@ export async function fetchNewTakerResponses(
 
 			const { data: testData, error: testError } = await supabase
 				.from("tests")
-				.select("test_name")
+				.select("test_name, bounding_boxes")
 				.eq("id", item.test_id)
 				.single();
 			if (testError) {
@@ -133,7 +133,7 @@ export async function fetchNewTakerResponses(
 
 			const { data: testProblemData, error: testProblemError } = await supabase
 				.from("test_problems")
-				.select("problem_id, problem_number, top_left, bottom_right")
+				.select("problem_id, problem_number")
 				.eq("relation_id", item.test_problem_id)
 				.single();
 			if (testProblemError) {
@@ -166,9 +166,10 @@ export async function fetchNewTakerResponses(
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
 	const { error } = await supabase
 		.from("grades")
-		.update({ ...data, grader_id })
-		.eq("scan_id", data.scan_id)
-		.eq("test_problem_id", data.test_problem_id);
+		.upsert(
+			{ ...data, grader_id },
+			{ onConflict: "grader_id,scan_id,test_problem_id" },
+		);
 	if (error) {
 		throw error;
 	}
