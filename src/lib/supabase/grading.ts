@@ -166,9 +166,10 @@ export async function fetchNewTakerResponses(
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
 	const { error } = await supabase
 		.from("grades")
-		.update({ ...data, grader_id })
-		.eq("scan_id", data.scan_id)
-		.eq("test_problem_id", data.test_problem_id);
+		.upsert(
+			{ ...data, grader_id },
+			{ onConflict: "grader_id,scan_id,test_problem_id" },
+		);
 	if (error) {
 		throw error;
 	}
