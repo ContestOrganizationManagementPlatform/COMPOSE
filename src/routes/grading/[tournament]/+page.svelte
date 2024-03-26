@@ -10,30 +10,23 @@
 
 	(async () => {
 		try {
-			tests = await getTournamentTests(tournament_id, "*");
-			tests = [
-				{
-					id: 1,
-					test_name: "Team Round",
-					num_scan_problems: 680, //E.g. total number of individual answers to be graded
-					graded_scan_problems: 455, //E.g. number of individual answers already graded
-					conflict_scan_problems: 122, //E.g. number of individual answers with conflicting grades
-				},
-				{
-					id: 2,
-					test_name: "General Round",
-					num_scan_problems: 500, //E.g. total number of individual answers to be graded
-					graded_scan_problems: 100, //E.g. number of individual answers already graded
-					conflict_scan_problems: 20, //E.g. number of individual answers with conflicting grades
-				},
-				{
-					id: 3,
-					test_name: "Not Uploaded Round",
-					num_scan_problems: 0, //E.g. total number of individual answers to be graded
-					graded_scan_problems: 0, //E.g. number of individual answers already graded
-					conflict_scan_problems: 0, //E.g. number of individual answers with conflicting grades
-				},
-			];
+			tests = (await getTournamentTests(
+				tournament_id,
+				"*,grade_tracking(test_id, *)"
+			)).map((t) => {
+				return {
+					// total number of individual answers to be graded
+					num_scan_problems: t.grade_tracking.length,
+					// number of individual answers already fully graded
+					graded_scan_problems: t.grade_tracking.filter(
+						(s) => s.graded_count >= 2
+					).length,
+					// number of individual answers with conflicting grades
+					conflict_scan_problems: t.grade_tracking.filter((s) => s.has_conflict)
+						.length,
+					...t,
+				};
+			});
 			tests.sort((a, b) => {
 				if (a.num_scans === 0 && b.num_scans === 0) {
 					return 0;
@@ -63,6 +56,19 @@
 		}
 	})();
 
+	function calculateGradientBars(conflict, graded, total, colors) {
+		// How much length out of a 100 should be dedicated to transitioning.
+		const transition_duration = 4;
+		const d = transition_duration;
+		if (total == 0) {
+			return `${colors[2]} 100`
+		}
+		const [g, c, t] = [(graded - conflict) / total, graded / total, 1].map(v => v * 100);
+		let a = `${colors[0]} ${g}%, ${colors[1]} ${Math.min(g + d, c)}%, 
+		${colors[1]} ${c}%, ${colors[2]} ${Math.min(c + d, t)}%, ${colors[2]} ${t}%`;
+		return a;
+	}
+
 	function calculateProgress(graded, total) {
 		return (graded / total) * 100;
 	}
@@ -83,19 +89,13 @@
 				<a
 					class="problemContainer"
 					href="/grading/{tournament_id}/{test.id}/"
-					style="background: linear-gradient(to right, var(--primary-light) {calculateProgress(
-						test.graded_scan_problems,
-						test.num_scan_problems
-					)}%, var(--primary-tint) {calculateProgress(
-						test.graded_scan_problems + test.conflict_scan_problems,
-						test.num_scan_problems
-					)}%, #ffffff {calculateProgress(
-						test.graded_scan_problems + test.conflict_scan_problems,
-						test.num_scan_problems
-					)}%);"
+					style="background: linear-gradient(to right, 
+					{calculateGradientBars(test.conflict_scan_problems, test.graded_scan_problems, test.num_scan_problems, ["var(--primary-light)", "var(--primary-tint)", "#ffffff"])}
+					);
+					"
 				>
 					<h4>
-						{test.test_name} [{calculateProgress(
+						{test.test_name} [{test.graded_scan_problems}/{test.num_scan_problems} = {calculateProgress(
 							test.graded_scan_problems,
 							test.num_scan_problems
 						)
