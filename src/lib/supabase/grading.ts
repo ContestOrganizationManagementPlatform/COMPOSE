@@ -33,6 +33,7 @@ export async function fetchNewTakerResponses(
 	batch_size: number | null = null,
 	test_id: number | null = null,
 	test_problem_id: number | null = null,
+	only_conflicted: boolean,
 ): Promise<any[]> {
 	// If test_problem_id is not specified, order all other problems by num_graders.
 	let test_problem_id_list = [];
@@ -82,6 +83,18 @@ export async function fetchNewTakerResponses(
 			)
 			.limit(batch_size - output.length);
 
+		// Override the query to be just conflicted items.
+		// We thus do not care if this admin has graded a problem or not
+		// (they will override anyway).
+		if (only_conflicted) {
+			query = supabase
+				.from("grade_tracking")
+				.select("scan_id, test_id, test_problem_id")
+				.eq("test_problem_id", test_problem_id)
+				.eq("has_conflict", true)
+				.limit(batch_size - output.length);
+		}
+
 		const { data: gradeTrackingData, error: gradeTrackingError } = await query;
 		if (gradeTrackingError) {
 			throw gradeTrackingError;
@@ -111,6 +124,15 @@ export async function fetchNewTakerResponses(
 				.single();
 			if (gradeError) {
 				throw gradeError;
+			}
+
+			const { data: otherGradeData, error: otherGradeError } = await supabase
+				.from("grades")
+				.select("grade")
+				.eq("scan_id", item.scan_id)
+				.eq("test_problem_id", item.test_problem_id);
+			if (otherGradeError) {
+				throw otherGradeError;
 			}
 
 			const { data: scanData, error: scanError } = await supabase
@@ -154,6 +176,7 @@ export async function fetchNewTakerResponses(
 				...testData,
 				...problemData,
 				...testProblemData,
+				grades: otherGradeData,
 				grade_id: gradeData.id,
 				image: await getImageUrl(scanData.scan_path),
 			});
