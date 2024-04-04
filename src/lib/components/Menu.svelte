@@ -108,12 +108,20 @@
 					>
 						<p class="linkPara">Grade Tests</p>
 					</Link>
-					<Link
-						href="/admin/grading/upload"
-						class={path == "/admin/grading/upload" ? "active link" : "link"}
-					>
-						<p class="linkPara">Admin: Scans Upload</p>
-					</Link>
+					{#if isAdmin}
+						<Link
+							href="/admin/grading/resolve"
+							class={path == "/admin/grading/resolve" ? "active link" : "link"}
+						>
+							<p class="linkPara">Admin: Resolve Conflicts</p>
+						</Link>
+						<Link
+							href="/admin/grading/upload"
+							class={path == "/admin/grading/upload" ? "active link" : "link"}
+						>
+							<p class="linkPara">Admin: Scans Upload</p>
+						</Link>
+					{/if}
 				{/if}
 				{#if isAdmin}
 					<br />

@@ -8,6 +8,7 @@
 	const testId = parseInt($page.params.test);
 	const showGrades = queryParams.get("showGrades") === "true";
 	const onlyConflicted = queryParams.get("onlyConflicted") === "true";
+	const confirmationRequired = queryParams.get("confirmationRequired") === "true";
 </script>
 
 <Grading
@@ -15,4 +16,5 @@
 	testId={testId}
 	showGrades={showGrades}
 	onlyConflicted={onlyConflicted}
+	confirmationRequired={confirmationRequired}
 />
