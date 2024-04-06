@@ -293,9 +293,7 @@
 
 	async function upload_scans() {
 		try {
-			for (const [_, png] of pngs_to_upload.entries()) {
-				await uploadScan(png.matched_png, png.test_id, png.page, png.front_id);
-			}
+			await Promise.all(pngs_to_upload.entries().map(([_, png]) => uploadScan(png.matched_png, png.test_id, png.page, png.front_id)));
 			pngs_to_upload.clear();
 			pngs_to_upload = pngs_to_upload;
 		} catch (error) {
