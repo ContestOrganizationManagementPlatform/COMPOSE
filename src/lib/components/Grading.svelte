@@ -18,6 +18,7 @@
 
 	export let showGrades = false;
 	export let onlyConflicted = false;
+	export let disableUnsure = false;
 	export let tournamentId: number;
 	export let testId: number;
 
@@ -240,13 +241,15 @@
 						style="background-color: #999999; color: #282828;"
 						on:click={async () => handleAction(Grade.UNDO)}>↩ (Z)</button
 					>
+					{#if !disableUnsure}
+						<button
+							style="background-color: #FFFB99; color: #7C7215;"
+							on:click={async () => handleAction(Grade.UNSURE)}>? (C)</button
+						>
+					{/if}
 					<button
 						style="background-color: #ff9999; color: #AD2828;"
 						on:click={async () => handleAction(Grade.INCORRECT)}>X (X)</button
-					>
-					<button
-						style="background-color: #FFFB99; color: #7C7215;"
-						on:click={async () => handleAction(Grade.UNSURE)}>? (C)</button
 					>
 					<button
 						style="background-color: #9BFF99; color: #157C20;"
@@ -255,12 +258,11 @@
 				</div>
 				{#if showGrades}
 					<div class="flex">
-						<button disabled style="background-color: #999999; color: #282828;"/>
-						<button disabled style="background-color: #ff9999; color: #AD2828;">
-							{count_occurences(gradeQueue[currentIndex].grades, Grade.INCORRECT.name)}
-						</button>
 						<button disabled style="background-color: #FFFB99; color: #7C7215;">
 							{count_occurences(gradeQueue[currentIndex].grades, Grade.UNSURE.name)}
+						</button>
+						<button disabled style="background-color: #ff9999; color: #AD2828;">
+							{count_occurences(gradeQueue[currentIndex].grades, Grade.INCORRECT.name)}
 						</button>
 						<button disabled style="background-color: #9BFF99; color: #157C20;">
 							{count_occurences(gradeQueue[currentIndex].grades, Grade.CORRECT.name)}

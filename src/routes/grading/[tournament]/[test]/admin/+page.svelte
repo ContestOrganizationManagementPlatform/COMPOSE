@@ -8,4 +8,5 @@
 	testId={parseInt($page.params.test)}
 	showGrades
 	onlyConflicted
+	disableUnsure
 />

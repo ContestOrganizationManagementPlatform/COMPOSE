@@ -58,7 +58,7 @@
 
 	function calculateGradientBars(conflict, graded, total, colors) {
 		// How much length out of a 100 should be dedicated to transitioning.
-		const transition_duration = 4;
+		const transition_duration = 2;
 		const d = transition_duration;
 		if (total == 0) {
 			return `${colors[2]} 100`
@@ -95,7 +95,7 @@
 					"
 				>
 					<h4>
-						{test.test_name} [{test.graded_scan_problems}/{test.num_scan_problems} = {calculateProgress(
+						{test.test_name} [{test.graded_scan_problems - test.conflict_scan_problems} done + {test.conflict_scan_problems} conflict / {test.num_scan_problems} scans = {calculateProgress(
 							test.graded_scan_problems,
 							test.num_scan_problems
 						)
