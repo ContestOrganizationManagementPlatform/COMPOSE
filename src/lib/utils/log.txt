@@ -1,0 +1,20 @@
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"","ViewImageURL":"","FinishedGrading":"129","score":"3","Rank":"","Problem1":"84","Problem2":"78","Problem3":"52","Problem4":"62","Problem5":"12","Problem6":"30","Problem7":"13","Problem8":"8","Problem9":"9","Problem10":"4","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"","ViewImageURL":"","FinishedGrading":"","score":"","Rank":"","Problem1":"","Problem2":"","Problem3":"","Problem4":"","Problem5":"","Problem6":"","Problem7":"","Problem8":"","Problem9":"","Problem10":"","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"","ViewImageURL":"","FinishedGrading":"","score":"","Rank":"","Problem1":"","Problem2":"","Problem3":"","Problem4":"","Problem5":"","Problem6":"","Problem7":"","Problem8":"","Problem9":"","Problem10":"","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"Number of participants: 129","ViewImageURL":"","FinishedGrading":"","score":"","Rank":"","Problem1":"","Problem2":"","Problem3":"","Problem4":"","Problem5":"","Problem6":"","Problem7":"","Problem8":"","Problem9":"","Problem10":"","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"Max: 8","ViewImageURL":"","FinishedGrading":"","score":"","Rank":"","Problem1":"","Problem2":"","Problem3":"","Problem4":"","Problem5":"","Problem6":"","Problem7":"","Problem8":"","Problem9":"","Problem10":"","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"Median: 3","ViewImageURL":"","FinishedGrading":"","score":"","Rank":"","Problem1":"","Problem2":"","Problem3":"","Problem4":"","Problem5":"","Problem6":"","Problem7":"","Problem8":"","Problem9":"","Problem10":"","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"Least solved problem: #10 with 4 solves","ViewImageURL":"","FinishedGrading":"","score":"","Rank":"","Problem1":"","Problem2":"","Problem3":"","Problem4":"","Problem5":"","Problem6":"","Problem7":"","Problem8":"","Problem9":"","Problem10":"","":""}
+
+readCsvString - Invalid Data: {"id":"","name":"","ViewScanURL":"","ViewImageURL":"","FinishedGrading":"56","score":"3","Rank":"","Problem1":"51","Problem2":"45","Problem3":"13","Problem4":"10","Problem5":"26","Problem6":"9","Problem7":"2","Problem8":"8","Problem9":"0","Problem10":"2","":""}
+
+readCsvString - Invalid Data: {"id":"00-1","fullName":"","name":"","":""}
+
+readCsvString - Invalid Roster Data: {"id":"","studentName":"","teamID":"","studentID":"","name":"","email":"","grade":"","organization":"","team":"","Notes":"","[Custom] Gender":"","[Custom] Date of Birth":"","[Custom] Parent/Guardian Full Name":"","[Custom] Parent/Guardian Email Address":"","[Custom] Parent/Guardian Phone":"","[Custom] US State":"","[Custom] School":"","[Custom] Adult Shirt Size":"","[Custom] Discord Username":"","[Custom] Which individual tests would you like to take?":"","[Custom] Are you fully vaccinated against COVID-19 or will be by 3/25/2023??":"","[Custom] How did you hear about SMT?":"","\"[Custom] By signing up":""," I acknowledge that SMT may send me emails about future relevant events and opportunities. I also affirm that I am a high school student.\"":"","[Custom] Individual Room":""}
+
