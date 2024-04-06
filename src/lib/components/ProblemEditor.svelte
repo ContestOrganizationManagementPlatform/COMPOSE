@@ -21,6 +21,7 @@
 
 	export let originalProblem = null;
 	export let originalImages = [];
+	export let onDirty = () => {};
 
 	// function that has the payload as argument, runs when submit button is pressed.
 	// if not passed in, submit button is not shown
@@ -205,12 +206,14 @@
 						style="margin-right: 20px;"
 						placeholder="Sub-Topic (optional)"
 						class="textInput"
+						on:input={onDirty}
 					/>
 					<TextInput
 						bind:value={difficulty}
 						type="number"
 						placeholder="Difficulty (optional)"
 						class="textInput"
+						on:input={onDirty}
 					/>
 				</FormGroup>
 				<div style="position: relative;">
@@ -221,6 +224,7 @@
 						bind:ref={fieldrefs.problem}
 						on:input={updateFields}
 						required={true}
+						on:input={onDirty}
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
 						{#if show}
@@ -253,7 +257,7 @@
 						labelText="Answer"
 						bind:value={fields.answer}
 						bind:ref={fieldrefs.answer}
-						on:input={updateFields}
+						on:input={() => {updateFields(); onDirty();}}
 						required={true}
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
@@ -287,7 +291,7 @@
 						labelText="Solution"
 						bind:value={fields.solution}
 						bind:ref={fieldrefs.solution}
-						on:input={updateFields}
+						on:input={() => {updateFields(); onDirty();}}
 						required={true}
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">
@@ -321,7 +325,7 @@
 						labelText="Comments"
 						bind:value={fields.comment}
 						bind:ref={fieldrefs.comment}
-						on:input={updateFields}
+						on:input={() => {updateFields(); onDirty();}}
 						required={true}
 					/>
 					<div style="position: absolute; top: 5px; right: 5px;">

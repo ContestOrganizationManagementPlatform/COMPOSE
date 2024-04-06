@@ -21,6 +21,7 @@
 	let problem;
 	let images = [];
 	let loaded = false;
+	let dirty = false;
 
 	async function fetchTopic(problem_id) {
 		try {
@@ -52,6 +53,12 @@
 
 	fetchProblem();
 
+	window.onbeforeunload = function(){
+		if (dirty) {
+		  return 'Changes may not be saved.';
+		}
+	};
+
 	async function submitProblem(payload) {
 		try {
 			const { topics, problem_files, ...payloadNoTopics } = payload;
@@ -72,6 +79,17 @@
 				await uploadImage(`pb${problem.id}/problem/${file.name}`, file);
 			}
 
+			fetchProblem();
+
+			dirty = false;
+			toast.success("Successfully updated problem.");
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+
+		try {
+			// Update discord webhook.
 			const authorName = await getAuthorName(await getThisUser().id);
 			await fetch("/api/discord-update", {
 				method: "POST",
@@ -81,13 +99,9 @@
 					updater: authorName,
 				}),
 			});
-
-			fetchProblem();
-
-			toast.success("Successfully updated problem.");
 		} catch (error) {
 			handleError(error);
-			toast.error(error.message);
+			toast.error("Error updating discord webhook: " + error.message);
 		}
 	}
 </script>
@@ -104,6 +118,7 @@
 		originalProblem={problem}
 		originalImages={images}
 		onSubmit={submitProblem}
+		onDirty={() => dirty = true}
 	/>
 {:else}
 	<p>Loading problem...</p>
