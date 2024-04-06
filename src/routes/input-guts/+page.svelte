@@ -7,10 +7,11 @@
 	import { num_rounds } from "$lib/supabase/guts.ts";
 	import { questions_per_round } from "$lib/supabase/guts.ts";
 
-	let test = "MMT 2024";
+	let test = "SMT 2024";
 	let round = "Team Round";
 	let curr_team = "...";
 	let answer_data = {};
+	let curr_team_answer_data = {};
 	let teams = [];
 	console.log("Defining the onMount now.")
 
@@ -20,9 +21,10 @@
 		for (let j = 1; j < questions_per_round + 1; j++) {
 			answer_data["..."][i][j] = { value: "", correct: false };
 		}
+		answer_data["..."][i]["complete"] = false;
 	}
 	answer_data["..."]["score"] = 0;
-	answer_data["..."]["rounds_complete"] = new Set([0]);
+	curr_team_answer_data = JSON.parse(JSON.stringify(answer_data["..."]));
 
 	onMount(async () => {
 		console.log("HEEEE");
@@ -30,16 +32,28 @@
 		await fillInTeams();
 		answer_data = await getAnswerData();
 		console.log(answer_data);
-		console.log(answer_data["Arpit"][1][1])
 		console.log(teams);
 	});
 
 	async function selected(event) {
 		answer_data = await getAnswerData();
-		curr_team = event.target.value;		
-		console.log(curr_team)
-		console.log({curr_team});
-		console.log(answer_data[curr_team]);
+		curr_team = event.target.value;	
+		curr_team = curr_team.replace(/-/g, ' ');	
+		curr_team_answer_data = JSON.parse(JSON.stringify(answer_data[curr_team]));
+	}
+
+	async function clear_helper(curr_team, round) {
+		answer_data[curr_team][round] = curr_team_answer_data[round];
+		await clear(curr_team, round);
+		answer_data = {...answer_data}
+		curr_team_answer_data = {...curr_team_answer_data}
+	}
+
+	async function submit_helper(curr_team, round) {
+		if (curr_team != "...") {
+			answer_data[curr_team][round] = curr_team_answer_data[round];
+			await submit(curr_team, round);
+		}
 	}
 
 </script>
@@ -61,13 +75,13 @@
 		{#each Array(questions_per_round) as __, question}
 			<div class="set">
 			Response:
-			<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={answer_data[curr_team][round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
+			<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
 			Correct:
-			<input type="checkbox" bind:checked={answer_data[curr_team][round + 1][question + 1]["correct"]}>
+			<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["correct"]}>
 			</div>
 		{/each}
-		<button on:click={() => submit(curr_team, round + 1)}>Submit</button>
-		<button on:click={() => clear(curr_team, round + 1)}>Clear Data</button>
+		<button on:click={() => submit_helper(curr_team, round + 1)}>Submit</button>
+		<button on:click={() => clear_helper(curr_team, round + 1)}>Clear Data</button>
 		</div>
 		<br>
 	{/each}

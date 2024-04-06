@@ -1,5 +1,4 @@
 import { supabase } from "../supabaseClient";
-import * as fs from 'fs';
 
 export let num_rounds = 9;
 export let max_round_display = 8;
@@ -8,7 +7,6 @@ export let questions_per_round = 3;
 let team_lookup = {};
 let points = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 let answer_data = {};
-
 
 export async function getTeams() {
     const { data, error } = await supabase.from("teams").select("name");
@@ -19,17 +17,23 @@ export async function getTeams() {
     return teams;
 }
 
-export async function fillInTeams() {
-    let {data, error} = await supabase.storage.from("guts").download("guts_info.json");
-    console.log("HELLO!")
-    if (error) {
-        throw error;
-    }
-    const json_data = await new Response(data).json();
-    const {team_lookup: team_lookup_new, answer_data: answer_data_new} = json_data;
-    team_lookup = team_lookup_new
-    answer_data = answer_data_new
+async function downloadJSON() {
+    try {
+        const { data, error } = await supabase.storage.from("guts").download("guts_info.json");
+        if (error) throw error;
 
+        const text = await data.text();
+        const json_data = JSON.parse(text);
+        const { team_lookup: team_lookup_new, answer_data: answer_data_new } = json_data;
+        team_lookup = team_lookup_new;
+        answer_data = answer_data_new;
+    } catch (error) {
+        console.error("Failed to download or parse JSON:", error);
+    }
+}
+
+export async function fillInTeams() {
+    await downloadJSON();
     if (Object.values(answer_data).length == 0) {
         answer_data["..."] = {};
         for (let i = 1; i < num_rounds + 1; i++) {
@@ -39,10 +43,10 @@ export async function fillInTeams() {
             }
         }
         answer_data["..."]["score"] = 0;
-        answer_data["..."]["rounds_complete"] = new Set([0]);
 
         let teams = await getTeams();
         for (let team of teams) {
+            addResult(team)
             answer_data[team] = {};
 			for (let i = 1; i < num_rounds + 1; i++) {
 				answer_data[team][i] = {};
@@ -51,7 +55,6 @@ export async function fillInTeams() {
 				}
 			}
 			answer_data[team]["score"] = 0;
-			answer_data[team]["rounds_complete"] = new Set([0]);
         }
     }
     modifyAndUploadJson();
@@ -60,42 +63,60 @@ export async function fillInTeams() {
 async function modifyAndUploadJson(): Promise<void> {
     const updatedJsonData: any = { team_lookup, answer_data };
     const updatedJsonString = JSON.stringify(updatedJsonData, null, 2);
-    fs.writeFileSync("tmp.json", updatedJsonString, { encoding: 'utf-8' });
+    
+    const blob = new Blob([updatedJsonString], { type: 'application/json' });
 
     // Download the file
-    const fileContent = fs.readFileSync("tmp.json");
-    const { data, error } = await supabase.storage.from("guts").upload("guts_info.json", fileContent, {
-      contentType: 'application/json',
+    const { data, error } = await supabase.storage.from("guts").upload("guts_info.json", blob, {
+        contentType: 'application/json',
+        upsert: true,
     });
-    if (error) { throw error; }
+
+    if (error) throw error;
 }
 
 export async function getAnswerData() {
     return answer_data;
 }
 
+
 export async function getStatus() {
-    let status: any[] = Object.values(team_lookup);
-    console.log("HIIIIE")
+    await downloadJSON();
     console.log(team_lookup)
+    let status: any[] = Object.values(team_lookup);
     status.sort((a, b) => b.showing_score - a.showing_score);
+    console.log(status)
     return status;
 }
 
-export function addResult(team_name, latest_round = 0, score = 0, showing_score = 0) {
+export function addResult(team_name, round = 0, score = 0, showing_score = 0, add = false) {
 	let newTeam = {
 		team_name: team_name,
-		curr_round: latest_round,
 		score: score,
         showing_score: showing_score,
 	};
+    if (round == 0) {
+        for(let j = 0; j < num_rounds; j ++) {
+            newTeam[j + 1] = "#FFFFFF";
+        }
+    }
+    else {
+        for(let j = 0; j < num_rounds; j ++) {
+            newTeam[j + 1] = team_lookup[team_name][j+1];
+        }
+        if (add) {
+            newTeam[round] = "#000000";
+        } else {
+            newTeam[round] = "#FFFFFF";
+        }
+    }
 	team_lookup[team_name] = newTeam;
     modifyAndUploadJson();
 };
 
-function calculate_score(team) {
+function calculate_score(team, max_round) {
     let score = 0;
-    for(let i = 0; i < num_rounds; i ++) {
+    for(let i = 0; i < max_round; i ++) {
         for(let j = 0; j < questions_per_round; j ++) { 
             if (answer_data[team][i + 1][j + 1]["correct"]) {
                 score += points[i];
@@ -107,29 +128,22 @@ function calculate_score(team) {
 
 export function clear(curr_team, round) {
     if (curr_team in answer_data) {
-        answer_data[curr_team]["rounds_complete"].delete(round);
         for(let j = 0; j < questions_per_round; j ++) { 
             answer_data[curr_team][round][j + 1] = {"value": "", "correct": false};
         }
-        
-        let arrayFromSet = [...answer_data[curr_team]["rounds_complete"]];
-        let largestElement = Math.max.apply(null, arrayFromSet);
-        let score = calculate_score(curr_team)
+        let score = calculate_score(curr_team, num_rounds)
+        let show_score = calculate_score(curr_team, max_round_display)
         answer_data[curr_team]["score"] = score;
-
-        addResult(curr_team, largestElement, score, 10);
-        console.log(answer_data[curr_team]);
+        addResult(curr_team, round, score, show_score, false);
     }
 }
 
 export function submit(curr_team, round) {
+    console.log(curr_team, answer_data)
     if (curr_team in answer_data) {
-        answer_data[curr_team]["rounds_complete"].add(round);
-        let arrayFromSet = [...answer_data[curr_team]["rounds_complete"]];
-        let largestElement = parseInt(Math.max.apply(null, arrayFromSet), 10);
-        let score = calculate_score(curr_team)
+        let score = calculate_score(curr_team, num_rounds)
+        let show_score = calculate_score(curr_team, max_round_display)
         answer_data[curr_team]["score"] = score;
-        addResult(curr_team, largestElement, score, 10);
-        console.log(answer_data[curr_team]);
+        addResult(curr_team, round, score, show_score, true);
     }
 }

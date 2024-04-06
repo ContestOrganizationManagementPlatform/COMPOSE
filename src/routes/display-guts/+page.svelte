@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { num_rounds } from "$lib/supabase/guts.ts";
 	import { getStatus } from "$lib/supabase/guts.ts";
 	import { fillInTeams } from "$lib/supabase/guts.ts";
 	import { max_round_display } from "$lib/supabase/guts.ts";
-	let test = "MMT 2024";
+	let test = "SMT 2024";
 	let round = "Guts Round: Score Display";
 	let max_per_side = 10;
 	let screen_width = screen.width;
@@ -17,7 +18,8 @@
 		status = await getStatus()
 		num_teams = await status.length;
 		num_screens = Math.ceil(num_teams/max_per_side);
-		fillInTeams()
+		fillInTeams();
+		updateTable();
 	});
 
 	function calculateIndices(extra) {
@@ -27,11 +29,12 @@
 	}
 
 	async function updateTable() {
+		console.log("status!")
 		status = await getStatus()
+		console.log(status)
 		if (curr_screen + 1 >= num_screens) curr_screen = 0;
 		else curr_screen += 2;
-		console.log(curr_screen)
-		console.log(status)
+
     };
 
 	setInterval(function() {
@@ -62,8 +65,14 @@
 				<tr class="gutsTr">
 					<td class="gutsInfo">{max_per_side * curr_screen + i % max_per_side + 1}</td>
 					<td class="gutsResult teamName">{status[i].team_name}</td>
-					<td class="gutsResult progress">{status[i].curr_round}</td>
-					<td class="gutsResult">{status[i].score}</td>
+					<td class="gutsResult">
+						<div class ="round">
+							{#each Array(num_rounds) as __, round}
+								<div class="color-box" style="background-color: {status[i][round + 1]};"></div>
+							{/each}
+						</div>
+					</td>
+					<td class="gutsResult">{status[i].showing_score}</td>
 				</tr>
 			{/each}
 		</tbody>
@@ -82,7 +91,13 @@
 				<tr class="gutsTr">
 					<td class="gutsInfo">{max_per_side * (curr_screen + 1) + i % max_per_side + 1}</td>
 					<td class="gutsResult teamName">{status[i].team_name}</td>
-					<td class="gutsResult progress">{status[i].curr_round}</td>
+					<td class="gutsResult">
+						<div class ="round">
+							{#each Array(num_rounds) as __, round}
+								<div class="color-box" style="background-color: {status[i][round + 1]};"></div>
+							{/each}
+						</div>
+					</td>
 					<td class="gutsResult">{status[i].score}</td>
 				</tr>
 			{/each}
@@ -93,6 +108,13 @@
 
 
 <style>
+	.color-box {
+		width: 20px;
+		height: 20px;
+		border: 1px solid #000;
+		margin: 3px;
+  	}
+
     #leftTable {
         float: left;
 		background-color: #aaccee;
@@ -119,6 +141,12 @@
 
     .teamName {
         width: 1000px;
+    }
+
+	.round {
+		display: flex;
+		align-items: center;
+		border: none;
     }
 
     .gutsInfo {
