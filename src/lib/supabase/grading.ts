@@ -8,6 +8,28 @@ async function getImageUrl(
 	return data?.publicUrl || null;
 }
 
+export async function uploadScan(
+	file: any,
+	test_id: string,
+	page_number: string,
+	front_id: string,
+) {
+	let { data, error: upload_error } = await supabase.storage
+		.from("scans")
+		.upload(`test_${test_id}/${front_id}/page_${page_number}.png`, file, {
+			upsert: true,
+		});
+	if (upload_error) throw upload_error;
+
+	let { error: upsert_error } = await supabase.from("scans").upsert(
+		{ test_id, taker_id: front_id, page_number, scan_path: data.path },
+		{
+			onConflict: "test_id,taker_id,page_number",
+		},
+	);
+	if (upsert_error) throw upsert_error;
+}
+
 export async function getTestTrackingData(grader_id: number): Promise<any[]> {
 	const { data: testTrackingData, error: testTrackingError } = await supabase
 		.from("test_tracking")

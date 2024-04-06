@@ -5,7 +5,7 @@
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { downloadBlob } from "$lib/utils/download"
+	import { downloadBlob } from "$lib/utils/download";
 	import {
 		getImages,
 		getTestInfo,
@@ -128,9 +128,13 @@
 			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
 				(
 					await Promise.all(
-						problems.map((p) =>
-							ImageBucket.downloadLatexImages(p.problem_latex)
-						)
+						problems
+							.flatMap((p) => [
+								p.solution_latex,
+								p.problem_latex,
+								p.answer_latex,
+							])
+							.map((latex: string) => ImageBucket.downloadLatexImages(latex))
 					)
 				).reduce((a, e) => {
 					a.errorList = a.errorList.concat(e.errorList);
@@ -165,18 +169,13 @@
 						)
 				)
 				.then(([box_positions, header_lines]) => {
-					upsertTestAnswerBoxes(test.id, JSON.stringify({
+					upsertTestAnswerBoxes(
+						test.id,
+						JSON.stringify({
 							box_positions: box_positions[0],
 							header_lines: header_lines[0],
-						}));
-					// downloadBlob(
-					// 	JSON.stringify({
-					// 		box_positions: box_positions[0],
-					// 		header_lines: header_lines[0],
-					// 	}),
-					// 	"query_positions.json",
-					// 	"application/json"
-					// );
+						})
+					);
 				});
 		} catch (error) {
 			handleError(error);

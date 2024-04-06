@@ -1,7 +1,7 @@
 <script>
 	import { DataTable } from "carbon-components-svelte";
 	import JSZip from "jszip";
-	import { uploadImage } from "$lib/supabase";
+	import { uploadScan } from "$lib/supabase";
 	import { onMount } from "svelte";
 	import QrScanner from "qr-scanner";
 	import toast from "svelte-french-toast";
@@ -294,7 +294,7 @@
 	async function upload_scans() {
 		try {
 			for (const [_, png] of pngs_to_upload.entries()) {
-				await uploadImage(png.matched_png, png.test_id, png.page, png.front_id);
+				await uploadScan(png.matched_png, png.test_id, png.page, png.front_id);
 			}
 			pngs_to_upload.clear();
 			pngs_to_upload = pngs_to_upload;
