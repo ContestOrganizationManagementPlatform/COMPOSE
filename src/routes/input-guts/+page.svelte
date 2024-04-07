@@ -6,6 +6,7 @@
 	import { getAnswerData } from "$lib/supabase/guts.ts";
 	import { num_rounds } from "$lib/supabase/guts.ts";
 	import { questions_per_round } from "$lib/supabase/guts.ts";
+	import toast from "svelte-french-toast";
 
 	let test = "SMT 2024";
 	let round = "Team Round";
@@ -36,23 +37,76 @@
 	});
 
 	async function selected(event) {
-		answer_data = await getAnswerData();
-		curr_team = event.target.value;	
-		curr_team = curr_team.replace(/-/g, ' ');	
-		curr_team_answer_data = JSON.parse(JSON.stringify(answer_data[curr_team]));
+		let different = false;
+		if (curr_team != "...") {
+			console.log("HUDHIKSJDSD")
+			console.log(curr_team_answer_data)
+			for(let i = 1; i < num_rounds+1; i ++) {
+				for(let j = 1; j < questions_per_round+1; j ++) {
+					if (answer_data[curr_team][i][j]["correct"] != curr_team_answer_data[i][j]["correct"]) {
+						different = true
+					}
+					if (answer_data[curr_team][i][j]["value"] != curr_team_answer_data[i][j]["value"]) {
+						different = true
+					}
+				}
+			}
+		}
+		if (different) {
+			if (!confirm(`Your have unsaved changes! Are you sure you want to switch to a different team?`)) {
+				console.log(event.target.value)
+				console.log(curr_team)
+				event.target.value = curr_team.replace(/ /g, '-');
+        		return; // Exit if user cancels
+			}
+    	}
+		try {
+			answer_data = await getAnswerData();
+			curr_team = event.target.value;	
+			curr_team = curr_team.replace(/-/g, ' ');	
+			curr_team_answer_data = JSON.parse(JSON.stringify(answer_data[curr_team]));
+			toast.success(`Now grading ${curr_team}`, {
+				duration: 1000,
+			});
+		} catch{
+			console.log("issue")
+		}
+	
 	}
 
 	async function clear_helper(curr_team, round) {
-		answer_data[curr_team][round] = curr_team_answer_data[round];
-		await clear(curr_team, round);
-		answer_data = {...answer_data}
-		curr_team_answer_data = {...curr_team_answer_data}
+		if (!confirm(`Are you sure you want to clear all of ${curr_team}'s answers for round ${round}?`)) {
+        	return; // Exit if user cancels
+    	}
+		try {
+			answer_data[curr_team][round] = curr_team_answer_data[round];
+			await clear(curr_team, round);
+			answer_data = {...answer_data}
+			curr_team_answer_data = {...curr_team_answer_data}
+			toast.success('Clear successful!', {
+				duration: 3000,
+			});
+		} catch (error) {
+			toast.error('Clear failed!', {
+				duration: 3000,
+			});
+		}
 	}
+
 
 	async function submit_helper(curr_team, round) {
 		if (curr_team != "...") {
-			answer_data[curr_team][round] = curr_team_answer_data[round];
-			await submit(curr_team, round);
+			try {
+				answer_data[curr_team][round] = curr_team_answer_data[round];
+				await submit(curr_team, round);
+				toast.success('Submission successful!', {
+					duration: 3000,
+				});
+			} catch (error) {
+				toast.error('Submission failed!', {
+					duration: 3000,
+				});
+			}
 		}
 	}
 
