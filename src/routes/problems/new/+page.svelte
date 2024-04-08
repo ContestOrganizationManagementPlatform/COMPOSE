@@ -16,6 +16,14 @@
 	let authorName = "";
 	let openModal = false;
 	let problem_id = 0;
+	let dirty = false;
+
+	window.onbeforeunload = function(){
+		if (dirty) {
+		  return 'Changes may not be saved.';
+		}
+	};
+
 
 	async function submitProblem(payload) {
 		authorName = await getAuthorName((await getThisUser()).id);
@@ -62,6 +70,7 @@
 				problem_id = problemId;
 				//window.location.replace(`/problems/${problemId}`);
 			}
+			dirty = false;
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -73,7 +82,7 @@
 
 <h1>Create New Problem</h1>
 
-<ProblemEditor onSubmit={submitProblem} />
+<ProblemEditor onSubmit={submitProblem} onDirty={() => dirty = true}/>
 
 {#if openModal}
 	<div
