@@ -1,34 +1,38 @@
 <script lang="ts">
-	let test = "MMT 2024";
-	let round = "Team Round";
+	let loaded = false;
 
-	let names = [  //0 = Not started, 1 = In Progress, 2 = Done
-		{ prob_id: 1, status: 2 },
-		{ prob_id: 2, status: 1 },
-		{ prob_id: 3, status: 0 },
-		{ prob_id: 4, status: 0 },
-	];
+	import { getAllTournamentsUnarchived } from "$lib/supabase";
+	import toast from "svelte-french-toast";
+	import { handleError } from "$lib/handleError";
+
+	let tournaments = [];
+
+	(async () => {
+		try {
+			tournaments = await getAllTournamentsUnarchived();
+			loaded = true;
+			console.log(tournaments);
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	})();
 </script>
 
 <div>
-	<h1>Grade {test}</h1>
-	<p>Round: {round}</p>
+	<h1>Grading</h1>
+	{#if !loaded}
+		<p>Loading problems...</p>
+	{/if}
 
 	<br />
 
-	<p style="font-style: italic;">Pick a problem to grade</p>
+	<p style="font-style: italic;">Pick a tournament to grade</p>
 
-	{#each names as item, index (item.prob_id)}
+	{#each tournaments as tournament, index (tournament.id)}
 		<div>
-			<a class="problemContainer" href="/grading/{item.prob_id}">
-				Problem {item.prob_id}:
-				{#if item.status == 0}
-					<span style="color: var(--incorrect-text)">Not Started</span>
-				{:else if item.status == 1}
-					<span style="color: var(--unsure-text)">In Progress</span>
-				{:else}
-					<span style="color: var(--correct-text)">Done</span>
-				{/if}
+			<a class="problemContainer" href="/grading/{tournament.id}">
+				{tournament.tournament_name}
 			</a>
 		</div>
 	{/each}

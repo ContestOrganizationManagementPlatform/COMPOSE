@@ -16,7 +16,7 @@
 		reorderProblemsOnTest,
 		massProblemReordering,
 		getThisUserRole,
-		getAllProblems,
+		getProblems,
 	} from "$lib/supabase";
 
 	let testId = Number($page.params.id);
@@ -46,14 +46,14 @@
 					async (tc) => tc.id === (await getThisUser()).id
 				) || (await getThisUserRole()) >= 40;
 			loading = false;
-			getProblems();
+			await getProblemData();
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
 		}
 	}
 
-	async function getProblems() {
+	async function getProblemData() {
 		try {
 			let problemList = await getTestProblems(testId);
 
@@ -70,7 +70,8 @@
 				...pb.full_problems,
 			}));
 			selectedTest = testProblems.map((pb) => pb.id);
-			let allProblemList = await getAllProblems("*", "front_id");
+			let allProblemList = await getProblems({ customSelect: "*" });
+			console.log("PROBLEMS", allProblemList);
 
 			// prevent problems from appearing twice
 			allProblems = allProblemList.filter(
@@ -137,7 +138,7 @@
 	}
 
 	async function refreshProblems() {
-		await getProblems();
+		await getProblemData();
 	}
 
 	async function handleReorder(e) {
@@ -248,11 +249,15 @@
 				<h3>All Problems</h3>
 				<ProblemList
 					problems={allProblems}
-					condensed
 					selectable
-					editable={false}
-					showUnresolved={false}
-					showSubtopic={false}
+					showList={[
+						"topics_short",
+						"sub_topics",
+						"problem_tests",
+						"average_difficulty",
+						"average_quality",
+						"unresolved_count",
+					]}
 					bind:selectedItems={selectedAll}
 					disableAll={refreshingProblems}
 				/>
@@ -261,18 +266,24 @@
 				<h3>Test Problems</h3>
 				<ProblemList
 					problems={testProblems}
-					condensed
 					selectable
 					draggable
-					editable={false}
+					sortKey={"problem_number"}
+					sortDirection={"ascending"}
 					pageEnabled={false}
-					showUnresolved={false}
-					showSubtopic={false}
+					showList={[
+						"topics_short",
+						"sub_topics",
+						"problem_tests",
+						"average_difficulty",
+						"average_quality",
+						"unresolved_count",
+					]}
 					bind:selectedItems={selectedTest}
 					disableAll={refreshingProblems}
 					customHeaders={[
 						{ key: "drag", value: "", sort: false },
-						{ key: "problem_number", value: "#" }
+						{ key: "problem_number", value: "", icon: "ri-hashtag" },
 					]}
 					on:reorder={handleReorder}
 				/>
@@ -291,5 +302,9 @@
 	.flex-col {
 		width: 100%;
 		padding: 10px;
+	}
+
+	:global(.bx--table-expand) {
+		width: 3rem !important;
 	}
 </style>

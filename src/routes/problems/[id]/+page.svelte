@@ -2,7 +2,7 @@
 	import { page } from "$app/stores";
 	import Problem from "$lib/components/Problem.svelte";
 	import Button from "$lib/components/Button.svelte";
-	import Modal from "$lib/components/Modal.svelte";
+	import ModalButton from "$lib/components/ModalButton.svelte";
 	import ProblemFeedback from "$lib/components/ProblemFeedback.svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
@@ -65,16 +65,17 @@
 		try {
 			await archiveProblem(problem.id);
 
-			const authorName = await getAuthorName(user.id);
-			await fetch("/api/discord-update", {
-				method: "POST",
-				body: JSON.stringify({
-					id: problem.id,
-					update: "deleted",
-					updater: authorName,
-				}),
-			});
-
+			/**
+			    const authorName = await getAuthorName(user.id);
+				await fetch("/api/discord-update", {
+					method: "POST",
+					body: JSON.stringify({
+						id: problem.id,
+						update: "deleted",
+						updater: authorName,
+					}),
+				});
+			*/
 			window.location.replace("/problems");
 		} catch (error) {
 			handleError(error);
@@ -105,11 +106,11 @@
 		<br />
 		<br />
 		{#if problem.archived && isAdmin}
-			<Modal runHeader="Restore Problem" onSubmit={restoreLocalProblem} />
+			<ModalButton runHeader="Restore Problem" onSubmit={restoreLocalProblem} />
 			<br />
 			<br />
 		{:else if problem.author_id === user.id || isAdmin}
-			<Modal runHeader="Archive Problem" onSubmit={deleteProblem} />
+			<ModalButton runHeader="Archive Problem" onSubmit={deleteProblem} />
 			<br />
 			<br />
 		{/if}

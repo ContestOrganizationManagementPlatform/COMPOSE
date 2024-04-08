@@ -7,7 +7,7 @@
 		TextArea,
 	} from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
-	import Modal from "$lib/components/Modal.svelte";
+	import ModalButton from "$lib/components/ModalButton.svelte";
 	import Button from "$lib/components/Button.svelte";
 
 	import { handleError } from "$lib/handleError";
@@ -34,6 +34,7 @@
 	let feedbackQuestions = [];
 
 	async function addFeedbackQuestion() {
+		console.log("addFeedbackQuestion");
 		try {
 			await addTestFeedbackQuestion({
 				test_id: Number(testId),
@@ -48,13 +49,15 @@
 	}
 
 	async function getTest() {
+		console.log("getTest");
 		try {
 			test = await getTestInfo(Number(testId));
-
+			console.log("test", test);
 			let queriedCoordinators = await getTestCoordinators(
 				Number(testId),
 				"*,users(*)"
 			);
+			console.log(queriedCoordinators);
 			testCoordinators = queriedCoordinators.map((tc) => tc.users);
 
 			loading = false;
@@ -64,7 +67,7 @@
 				(x) => !testCoordinators.some((tc) => tc.id === x.id)
 			);
 
-			await getFeedbackQuestions(testId);
+			feedbackQuestions = await getFeedbackQuestions(testId);
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
@@ -72,6 +75,7 @@
 	}
 
 	async function addTestCoordinatorSubmit() {
+		console.log("addTestCoordinatorSubmit");
 		try {
 			await addTestCoordinator(Number(testId), selectRef.value);
 			getTest();
@@ -82,6 +86,7 @@
 	}
 
 	async function deleteTestCoordinator(testCoordinatorId: number) {
+		console.log("deleteTestCoordinator");
 		try {
 			await removeTestCoordinator(Number(testId), testCoordinatorId);
 			getTest();
@@ -92,6 +97,7 @@
 	}
 
 	async function editTest() {
+		console.log("editTest");
 		try {
 			await editTestInfo(
 				{
@@ -108,6 +114,7 @@
 	}
 
 	async function deleteTest() {
+		console.log("deleteTest");
 		try {
 			await archiveTest(testId);
 			toast.success("Successfully deleted test.");
@@ -128,7 +135,7 @@
 		<h1>Test {testId}: {test.test_name}</h1>
 		<br />
 		<form on:submit|preventDefault>
-			<Modal runHeader="Delete Test" onSubmit={deleteTest} />
+			<ModalButton runHeader="Delete Test" onSubmit={deleteTest} />
 		</form>
 		<br />
 		<br />
@@ -160,7 +167,7 @@
 							>
 								{testCoordinator.full_name}
 							</p>
-							<Modal
+							<ModalButton
 								runHeader="Remove {testCoordinator.full_name}"
 								del={true}
 								onSubmit={() => deleteTestCoordinator(testCoordinator.id)}

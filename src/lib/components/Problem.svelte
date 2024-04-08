@@ -2,7 +2,7 @@
 	import { displayLatex } from "$lib/latexStuff";
 	import { ImageBucket } from "$lib/ImageBucket";
 	import toast from "svelte-french-toast";
-	import { handleError } from "$lib/handleError.ts";
+	import { handleError } from "$lib/handleError";
 	import { getAuthorName } from "$lib/supabase";
 
 	export let problem; // whole object from database

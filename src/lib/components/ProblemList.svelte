@@ -18,44 +18,37 @@
 	import { Filter } from "carbon-icons-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError.ts";
+	import { LogarithmicScale } from "chart.js";
 
 	export let problems = [];
-	export let condensed = false;
 	export let selectable = false;
+	export let stickyHeader = false;
 	export let selectedItems = [];
 	export let nonselectableItems = [];
+	export let sortKey = "created_at";
+	export let sortDirection = "descending";
 	export let editable = true;
 	export let disableAll = false; // disables everything from being selectable
 	export let customHeaders = [];
 	export let draggable = false;
 	export let pageEnabled = true;
-	export let showDifficulty = false;
-	export let showUnresolved = true;
-	export let showSubtopic = true;
+	export let minWidth = 100;
 
-	let showList = [
-		"front_id",
+	export let showList = [
 		"full_name",
 		"topics_short",
-		"problem_tests",
+		"sub_topics",
 		"average_difficulty",
 		"average_quality",
-		"created_at",
-		"edited_at",
+		"unresolved_count",
 	];
-	$: if (showUnresolved) {
-		showList.push("unresolved_count");
-	}
-	$: if (showSubtopic) {
-		showList.push("sub_topics");
-	}
-	$: if (showDifficulty) {
-		showList.push("difficulty");
-	}
 
 	const dispatch = createEventDispatcher();
 
 	let width = 0;
+	$: maxCols = Math.floor((width - 100) / minWidth);
+	$: colWidth = (width - 100) / Math.min(maxCols, showList.length);
+
 	let mobileFriendly = {
 		Algebra: "Alg",
 		Mixed: "Mx",
@@ -71,71 +64,73 @@
 
 	let headers = [
 		{
-			key: "front_id",
-			value: "ID",
-			width: "100px",
-			sort: sortIDs,
-		},
-		{
 			key: "full_name",
 			value: "Author",
+			short: "Author",
+			icon: "ri-user-fill",
 		},
 		{
 			key: "topics_short",
 			value: "Topics",
-		},
-		{
-			key: "difficulty",
-			value: "Difficulty",
+			short: "Topics",
+			icon: "ri-pie-chart-2-fill",
 		},
 		{
 			key: "problem_tests",
-			value: "Test(s)",
+			value: "Tests",
+			short: "Tests",
+			icon: "ri-archive-fill",
 		},
 		{
 			key: "sub_topics",
 			value: "Subtopics",
+			short: "SubTps",
+			icon: "ri-node-tree",
 		},
 		{
 			key: "average_difficulty",
-			value: "Avg. Difficulty",
+			value: "Difficulty",
+			short: "Diff",
+			icon: "ri-bar-chart-2-fill",
 		},
 		{
 			key: "average_quality",
-			value: "Avg. Quality",
+			value: "Quality",
+			short: "Qlty",
+			icon: "ri-star-fill",
 		},
 		{
 			key: "unresolved_count",
-			value: "Unresolved Feedback",
+			value: "Feedback",
+			short: "Fdbk",
+			icon: "ri-flag-fill",
 		},
 		{
 			key: "created_at",
-			value: width > 700 ? "Created on" : "Created",
+			value: "Created",
+			short: "Create",
+			icon: "ri-calendar-event-fill",
 		},
 		{
 			key: "edited_at",
-			value: width > 700 ? "Edited on" : "Edited",
+			value: "Edit",
+			icon: "ri-calendar-todo-fill",
 		},
 	];
 
-	let headersCondensed = [
-		{ key: "front_id", value: "ID", sort: sortIDs },
-		{ key: "full_name", value: "Author" },
-		{ key: "unresolved_count", value: "Unresolved" },
-		{ key: "topics_short", value: "Topics" },
-		{ key: "sub_topics", value: "SubTop" },
-		{ key: "difficulty", value: width > 700 ? "Difficulty" : "Diff." },
-		{ key: "problem_tests", value: "Test(s)" },
-	];
-
 	$: headersF = headers.filter((row) => showList.includes(row.key));
-	$: headersCondensedF = headersCondensed.filter((row) =>
-		showList.includes(row.key)
-	);
-	$: headerVersion = condensed ? headersCondensedF : headersF;
 	$: curHeaders = [
 		...(editable ? [editHeader] : []),
-		...headerVersion,
+		...[
+			{
+				key: "front_id",
+				value: "ID",
+				icon: "ri-key-2-fill",
+				sort: sortIDs,
+				width: "90px",
+			},
+		],
+		...headersF.slice(0, maxCols),
 		...customHeaders,
 	];
 
@@ -216,18 +211,14 @@
 	}
 </script>
 
-<svelte:window bind:outerWidth={width} />
-<div class="align-items: right; display: flex;">
+<svelte:window />
+<div bind:clientWidth={width} class="align-items: right; display: flex;">
 	<MultiSelect
 		bind:selectedIds={showList}
 		direction="top"
 		size="sm"
 		label="Filter visible columns"
 		items={[
-			{
-				id: "front_id",
-				text: "ID",
-			},
 			{
 				id: "full_name",
 				text: "Author",
@@ -239,10 +230,6 @@
 			{
 				id: "sub_topics",
 				text: "SubTopic",
-			},
-			{
-				id: "difficulty",
-				text: "Difficulty",
 			},
 			{
 				id: "problem_tests",
@@ -258,7 +245,7 @@
 			},
 			{
 				id: "unresolved_count",
-				text: "Unresolved Feedback",
+				text: "Feedback",
 			},
 			{
 				id: "created_at",
@@ -281,7 +268,10 @@
 		size="compact"
 		expandable
 		sortable
+		{sortKey}
+		{sortDirection}
 		{selectable}
+		{stickyHeader}
 		bind:selectedRowIds={selectedItems}
 		nonSelectableRowIds={disableAll
 			? problems.map((pb) => pb.id)
@@ -297,6 +287,19 @@
 				<ToolbarSearch persistent shouldFilterRows />
 			</ToolbarContent>
 		</Toolbar>
+		<svelte:fragment slot="cell-header" let:header>
+			{#if colWidth > 120}
+				<i class={header.icon} /> {header.value}
+			{:else}
+				<div style="display: flex; align-items: flex-center;">
+					<i
+						class={header.icon}
+						style="display: flex; align-items: flex-center;"
+					/>
+					{header.short ? header.short : header.value}
+				</div>
+			{/if}
+		</svelte:fragment>
 		<svelte:fragment slot="cell" let:row let:header let:cell>
 			<div>
 				{#if cell.key === "edit"}
@@ -319,7 +322,8 @@
 					<div>
 						{cell.value + 1}
 					</div>
-				{:else if cell.key === "topic"}
+				{:else if cell.key === "topics"}
+					{console.log(cell.value)}
 					<div style="overflow: hidden;">
 						{cell.value == null || cell.value == ""
 							? "None"
@@ -349,8 +353,16 @@
 						{cell.value ?? 0}
 					</div>
 				{:else if cell.key === "average_difficulty" || cell.key === "average_quality"}
-					<div style="overflow: hidden;">
-						<Rating rating={cell.value / 2} size={15} count={true} round={2} />
+					<div
+						style="overflow: hidden; display: flex; align-items: flex-start;"
+					>
+						<Rating
+							rating={cell.value}
+							size={15}
+							count={true}
+							round={2}
+							style="align-items: left"
+						/>
 					</div>
 				{:else}
 					<div style="overflow: hidden;">
@@ -380,6 +392,18 @@
 		align-items: center;
 		justify-content: center;
 		cursor: grab;
+	}
+
+	.rating {
+		align-items: left;
+	}
+
+	:global(.bx--data-table--sticky-header) {
+		max-height: 800px;
+	}
+
+	:global(.bx--table-header-label) {
+		white-space: nowrap;
 	}
 
 	:global(.bx--data-table-container),

@@ -1,7 +1,7 @@
 <script>
 	import { page } from "$app/stores";
 	import Button from "$lib/components/Button.svelte";
-	import Modal from "$lib/components/Modal.svelte";
+	import ModalButton from "$lib/components/ModalButton.svelte";
 	import Loading from "../../../../lib/components/Loading.svelte";
 	import toast from "svelte-french-toast";
 	import JSZip from "jszip";
@@ -10,7 +10,7 @@
 		getTournamentInfo,
 		getTournamentTests,
 		getTestProblems,
-		getAllProblems,
+		getProblems,
 		getImages,
 		downloadImagesFromPath,
 	} from "$lib/supabase";
@@ -80,7 +80,7 @@
 	async function downloadTournament() {
 		try {
 			let zip = new JSZip();
-			let full_problems = await getAllProblems();
+			let full_problems = await getProblems();
 			let problemFolder = zip.folder("Problems");
 			for (const x of full_problems) {
 				let s = "";
@@ -225,7 +225,7 @@
 			</div>
 		{/each}
 	{/if}
-	<br /><Modal
+	<br /><ModalButton
 		runHeader="Archive Tournament"
 		onSubmit={async () => {
 			await archiveTournament(tournamentId);

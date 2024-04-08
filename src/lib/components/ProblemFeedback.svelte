@@ -1,5 +1,4 @@
 <script>
-	import PieChart from "./PieChart.svelte";
 	import Rating from "$lib/components/Rating.svelte";
 	import { Checkbox } from "carbon-components-svelte";
 	import {
@@ -19,7 +18,7 @@
 	import { handleError } from "$lib/handleError.ts";
 	import {
 		addProblemTestsolveAnswer,
-		getProblemTestsolveAnswers,
+		getProblemFeedback,
 		updateTestsolveAnswer,
 	} from "$lib/supabase";
 	import Error from "../../routes/+error.svelte";
@@ -57,7 +56,7 @@
 
 	async function loadFeedback() {
 		try {
-			const data = await getProblemTestsolveAnswers(problem_id, "*,users(*)");
+			const data = await getProblemFeedback(problem_id, "*,users(*)");
 
 			// filter empty feedback
 			const totalFeedbackList = data.filter((fd) => !!fd.feedback);
@@ -224,6 +223,7 @@
 			{/if}
 		</div>
 		<br /><br />
+		<!--
 		<div class="answerChart">
 			<h2>Submitted Answers</h2>
 
@@ -239,6 +239,7 @@
 				{/if}
 			{/if}
 		</div>
+		-->
 	</div>
 </div>
 <div class="flex">
