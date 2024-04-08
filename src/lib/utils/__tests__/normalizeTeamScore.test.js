@@ -11,7 +11,7 @@ describe('normalizeTeamScore function', () => {
         roster = readCsvString(roster, logFile, type="roster");
         let algebra = path.join(__dirname, '..', 'testData', 'small-algebra.csv');
         algebra = fs.readFileSync(algebra, 'utf-8');
-        algebra = readCsvString(algebra, logFile);
+        algebra = readCsvString(algebra, logFile, "");
         normalizedAlgebra = normalizeTeamScore(logFile, roster, [], algebra, 'algebra');
         expect(normalizedAlgebra.length).toBe(algebra.length);
         let expected = [
@@ -34,7 +34,7 @@ describe('normalizeTeamScore function', () => {
         roster = readCsvString(roster, logFile, type="roster");
         let guts = path.join(__dirname, '..', 'testData', 'guts.csv');
         guts = fs.readFileSync(guts, 'utf-8');
-        guts = readCsvString(guts, logFile);
+        guts = readCsvString(guts, logFile, "");
         normalizedGuts = normalizeTeamScore(logFile, roster, [], guts, 'guts');
         expect(normalizedGuts.length).toBe(guts.length);
         expect(normalizedGuts[9].scores.guts).toBe(100);
@@ -45,7 +45,7 @@ describe('normalizeTeamScore function', () => {
         roster = readCsvString(roster, logFile, type="roster");
         let power = path.join(__dirname, '..', 'testData', 'power.csv');
         power = fs.readFileSync(power, 'utf-8');
-        power = readCsvString(power, logFile);
+        power = readCsvString(power, logFile, "");
         normalizedPower = normalizeTeamScore(logFile, roster, [], power, 'power');
         expect(normalizedPower.length).toBe(power.length);
         expect(normalizedPower[9].scores.power).toBe(100);
@@ -56,7 +56,7 @@ describe('normalizeTeamScore function', () => {
         roster = readCsvString(roster, logFile, type="roster");
         let team = path.join(__dirname, '..', 'testData', 'team.csv');
         team = fs.readFileSync(team, 'utf-8');
-        team = readCsvString(team, logFile);
+        team = readCsvString(team, logFile, "");
         normalizedTeam = normalizeTeamScore(logFile, roster, [], team, 'team');
         expect(normalizedTeam.length).toBe(team.length);
         expect(normalizedTeam[9].scores.team).toBe(100);

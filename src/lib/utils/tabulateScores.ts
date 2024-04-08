@@ -1,6 +1,6 @@
 /*
 IMPORTANT: Must run this script from COMPOSE/src/lib/utils directory
-Files are expected to be in "./grading" directory
+Files are expected to be in "${data}" directory
 For all files , the first line of the CSV file should be the headers.
 For all files related to grades/scores, a row must have a value for "id" and "score" to be valid/included
 For roster.csv, a row must have a value for "name", "studentID", and "teamID" to be valid/included
@@ -21,14 +21,6 @@ const SCALING_MAP = {
   general: 60,
   individualSpecific: 50,
 }
-interface CsvRow {
-  id: string;
-  name: string;
-  score: string;
-  teamID: string;
-  studentID: string;
-  // Add other properties as needed
-}
 
 
 
@@ -47,11 +39,9 @@ function readCsvString(csvString, logFile, type) {
     headers[headers.length - 1] = lastHeader.slice(0, -1);
   }
   const jsonArray = [];
-
   for (let i = 1; i < lines.length; i++) {
     const values = lines[i].split(",");
     const jsonObject = {};
-
     for (let j = 0; j < headers.length; j++) {
       const value = values[j] || ''; // Add null check
       jsonObject[headers[j]] = value.endsWith("\r") ? value.slice(0, -1) : value;
@@ -79,6 +69,8 @@ function readCsvString(csvString, logFile, type) {
         // console.error("Invalid roster data: ", jsonObject);
         fs.writeSync(logFile, `readCsvString - Invalid Roster Data: ${JSON.stringify(jsonObject)}\n\n`, { flag: 'a' });
       }
+    } else {
+      fs.writeSync(logFile, `readCsvString - Invalid type: ${type}\n\n`, { flag: 'a' });
     }
   }
   return jsonArray;
@@ -374,7 +366,7 @@ function calculateOverallScores(logFile, teams, roster, team, power, guts, gener
     rankedCsv += `${teamID},${name},${score},${rank}\n`;
     previousScore = score;
   }
-  fs.writeFile('overall.csv', rankedCsv, { flag: 'w' }, (err) => {
+  fs.writeFileSync('overall.csv', rankedCsv, { flag: 'w' }, (err) => {
     if (err) {
       fs.writeSync(logFile, `calculateOverallScores - Error writing to overall.csv: ${err}\n\n`, { flag: 'a' });
     }
@@ -392,22 +384,22 @@ function main(directoryName) {
   const data = directoryName;
 
   // Read in all csvs as strings
-  const teams = fs.readFileSync(`./grading/teams.csv`, 'utf8');
-  const roster = fs.readFileSync(`./grading/roster.csv`, 'utf8');
-  const team = fs.readFileSync(`./grading/team.csv`, 'utf8');
-  const power = fs.readFileSync(`./grading/power.csv`, 'utf8');
-  const guts = fs.readFileSync(`./grading/guts.csv`, 'utf8');
-  const general = fs.readFileSync(`./grading/general.csv`, 'utf8');
-  const discrete = fs.readFileSync(`./grading/discrete.csv`, 'utf8');
-  const algebra = fs.readFileSync(`./grading/algebra.csv`, 'utf8');
-  const geometry = fs.readFileSync(`./grading/geometry.csv`, 'utf8');
-  const calculus = fs.readFileSync(`./grading/calculus.csv`, 'utf8');
+  const teams = fs.readFileSync(`${data}/teams.csv`, 'utf8');
+  const roster = fs.readFileSync(`${data}/roster.csv`, 'utf8');
+  const team = fs.readFileSync(`${data}/team.csv`, 'utf8');
+  const power = fs.readFileSync(`${data}/power.csv`, 'utf8');
+  const guts = fs.readFileSync(`${data}/guts.csv`, 'utf8');
+  const general = fs.readFileSync(`${data}/general.csv`, 'utf8');
+  const discrete = fs.readFileSync(`${data}/discrete.csv`, 'utf8');
+  const algebra = fs.readFileSync(`${data}/algebra.csv`, 'utf8');
+  const geometry = fs.readFileSync(`${data}/geometry.csv`, 'utf8');
+  const calculus = fs.readFileSync(`${data}/calculus.csv`, 'utf8');
 
   calculateOverallScores(logFile, teams, roster, team, power, guts, general, discrete, algebra, geometry, calculus);
 
   fs.closeSync(logFile);
 }
 
-main(path.join(__dirname, '.', 'grading'));
+// main(path.join(__dirname, '.', 'testData'));
 
 module.exports = { SCALING_MAP, readCsvString, calculateScalingFactor, normalizeTeamScore, sortAndScale, normalizeIndividualScores, normalizeScores, calculateOverallTeamScore, calculateOverallScores, main };

@@ -14,19 +14,19 @@ describe('normalizeIndividualScores function', () => {
         roster = readCsvString(roster, logFile, type="roster");
         let general = path.join(__dirname, '..', 'testData', 'general.csv');
         general = fs.readFileSync(general, 'utf-8');
-        general = readCsvString(general, logFile);
+        general = readCsvString(general, logFile, "");
         let discrete = path.join(__dirname, '..', 'testData', 'discrete.csv');
         discrete = fs.readFileSync(discrete, 'utf-8');
-        discrete = readCsvString(discrete, logFile);
+        discrete = readCsvString(discrete, logFile, "");
         let algebra = path.join(__dirname, '..', 'testData', 'algebra.csv');
         algebra = fs.readFileSync(algebra, 'utf-8');
-        algebra = readCsvString(algebra, logFile);
+        algebra = readCsvString(algebra, logFile, "");
         let geometry = path.join(__dirname, '..', 'testData', 'geometry.csv');
         geometry = fs.readFileSync(geometry, 'utf-8');
-        geometry = readCsvString(geometry, logFile);
+        geometry = readCsvString(geometry, logFile, "");
         let calculus = path.join(__dirname, '..', 'testData', 'calculus.csv');
         calculus = fs.readFileSync(calculus, 'utf-8');
-        calculus = readCsvString(calculus, logFile);
+        calculus = readCsvString(calculus, logFile, "");
         let normalized = normalizeIndividualScores(logFile, roster, [], general, discrete, algebra, geometry, calculus);
         expect(normalized.length).toBe(teams.length);
         let expected = [
