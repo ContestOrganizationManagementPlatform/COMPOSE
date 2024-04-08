@@ -2,7 +2,7 @@
 #import "@preview/codetastic:0.2.2": qrcode
 #import "@preview/tablex:0.0.8": gridx, hlinex, vlinex
 
-#let is_local = toml("./answer_sheet_compiling.toml").config.local
+#let is_local = toml("/answer_sheet_compiling.toml").config.local
 #let (problems, test_metadata) = if is_local {
   (
     (
@@ -74,7 +74,6 @@
 }
 
 #let identification_sticker_box = {
-  // id_box(fill: gray.lighten(50%), "Place Identification Sticker Here")
   id_box(fill: gray.lighten(50%), if is_local {
     set text(size: 16pt)
     id_label("001A")
@@ -122,10 +121,30 @@
       #grid(
         columns: (1fr, 1fr), align(center + horizon, written_identification_box), align(center + horizon, identification_sticker_box),
       )
-      #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-
+      // Add dividing line (and measure it for querying)
+      #layout(
+        size => {
+          style(
+            styles => {
+              let elem = line(start: (0%, 0%), end: (100% * size.width, 0%), stroke: 1pt)
+              // 1-indexed page counter
+              [#elem #metadata(measure(elem, styles)) #label("header_line_" + str(counter(page).at(location).first() - 1))]
+            },
+          )
+        },
+      )
     ],
-  ), header-ascent: 12%, margin: (top: 30%), height: 11in, width: 8.5in,
+  ), footer: {
+    // A marker at the bottom left for alignment.
+    // Uses 1-1-3 ratios of black-white-black.
+    let center_y = -30pt
+    let scale = 2
+    for (radius, fill) in ((7pt * scale, black), (5pt * scale, white), (3pt * scale, black)) {
+      place(
+        bottom + left, dx: -radius, dy: center_y + radius, circle(radius: radius, fill: fill),
+      )
+    }
+  }, header-ascent: 12%, margin: (top: 30%, bottom: 10%), height: 11in, width: 8.5in,
 )
 
 #let answer_box(i, layout) = {
@@ -144,7 +163,8 @@
 
 // Generate boxes and measure them.
 #{
-  columns(3, gutter: 11pt, range(problem_count).map(i => {
+  let answer_box_column_count = 3
+  columns(answer_box_column_count, gutter: 11pt, range(problem_count).map(i => {
     layout(size => {
       style(styles => {
         let elem = answer_box(i, size)
@@ -154,14 +174,31 @@
   }).join())
 }
 
-// Generate metadata for box positions. (accessible via external query)
-#locate(loc => {
-  let a = range(problem_count).map(i => {
-    let elem = query(selector(label("box_" + str(i))), loc).first()
-    (elem.value, elem.location().position(),)
-  });
-  [#metadata(a) #label("box_positions")]
-})
+// Returns a proper bounding box.
+// Querying location position seems to give bottom right x, y coordinates
+// so we correct to give a box instead.
+#let calculate_bounding_box((width, height), (page, x, y)) = {
+  let top_left = (x - width, y - height)
+  (page: page, top_left: top_left, bottom_right: (x, y))
+}
+
+// Generate metadata for dividing lines and box positions. (accessible via external query)
+#locate(
+  loc => {
+    [#metadata(
+        range(counter(page).at(loc).first()).map(
+          i => {
+            let elem = query(selector(label("header_line_" + str(i))), loc).first()
+            calculate_bounding_box(elem.value, elem.location().position())
+          },
+        ),
+      ) #label("header_lines")]
+    [#metadata(range(problem_count).map(i => {
+        let elem = query(selector(label("box_" + str(i))), loc).first()
+        calculate_bounding_box(elem.value, elem.location().position())
+      })) #label("box_positions")]
+  },
+)
 
 // Set page header for problems.
 #set page(header: [
@@ -176,7 +213,7 @@
     align(right)[#smallcaps("April 8, 2023")],
   )
   #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-], margin: auto)
+], footer: none, margin: auto)
 
 // Typeset problems.
 #let macros = (
@@ -208,7 +245,7 @@
   let image_regex = regex(`\\(image|includegraphics)(\[[^\]]*\])*\{([^\}]+)\}`.text);
   latex.replace(image_regex, (m, ..) => {
     let path = "/problem_images" + m.captures.last()
-    "\\iftypst\n #figure(image(\"" + path + "\", height: 20%))\n\\fi"
+    "\\iftypst\n #figure(image(\"" + path + "\", height: 150pt))\n\\fi"
   })
 }
 

@@ -5,14 +5,15 @@
 	import { Loading, Checkbox } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
+	import { downloadBlob } from "$lib/utils/download";
 	import {
 		getImages,
 		getTestInfo,
 		getTestProblems,
 		getThisUser,
 		getThisUserRole,
+		upsertTestAnswerBoxes,
 	} from "$lib/supabase";
-	import QRCode from "qrcode";
 	import compilerPath from "@myriaddreamin/typst-ts-web-compiler/pkg/typst_ts_web_compiler_bg.wasm?url";
 	import rendererPath from "@myriaddreamin/typst-ts-renderer/pkg/typst_ts_renderer_bg.wasm?url";
 	import { $typst as Typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
@@ -84,9 +85,6 @@
 		e.target.innerText = "Processing";
 
 		try {
-			const generateQR = async (text: string) => {
-				return await QRCode.toString(text, { type: "svg" });
-			};
 			const answer_template_body = await fetch(answerSheet).then((r) =>
 				r.text()
 			);
@@ -95,20 +93,22 @@
 			let [year, month, day] = test.tournaments.tournament_date
 				.split("-")
 				.map((n) => parseInt(n));
-			const is_selected = (option) => selected_values.find(o => o == option) != undefined;
+			const is_selected = (option) =>
+				selected_values.find((o) => o == option) != undefined;
 			const test_metadata = JSON.stringify({
 				name: test.test_name,
 				id: "T" + test.id,
 				day,
 				month,
 				year,
-				team_test: false, // TODO: label tests in database as team or individual
+				team_test: test.is_team, // TODO: label tests in database as team or individual
 				display: {
 					answers: is_selected("Answers"),
 					solutions: is_selected("Solutions"),
-				}
+				},
 			});
 
+			Typst.resetShadow();
 			Typst.mapShadow(
 				"/assets/test_metadata.json",
 				utf8Encode.encode(test_metadata)
@@ -117,21 +117,24 @@
 				"/assets/problems.json",
 				utf8Encode.encode(JSON.stringify(problems))
 			);
+			console.log(test_metadata);
 			Typst.mapShadow(
 				"/answer_sheet_compiling.toml",
 				utf8Encode.encode("[config]\nlocal = false")
 			);
-			Typst.mapShadow(
-				"/main.typ",
-				utf8Encode.encode(answer_template_body)
-			);
+
+			Typst.mapShadow("/main.typ", utf8Encode.encode(answer_template_body));
 
 			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
 				(
 					await Promise.all(
-						problems.map((p) =>
-							ImageBucket.downloadLatexImages(p.problem_latex)
-						)
+						problems
+							.flatMap((p) => [
+								p.solution_latex,
+								p.problem_latex,
+								p.answer_latex,
+							])
+							.map((latex: string) => ImageBucket.downloadLatexImages(latex))
 					)
 				).reduce((a, e) => {
 					a.errorList = a.errorList.concat(e.errorList);
@@ -149,32 +152,31 @@
 				);
 			}
 
-			const downloadURL = (data, fileName) => {
-				const a = document.createElement("a");
-				a.href = data;
-				a.download = fileName;
-				document.body.appendChild(a);
-				a.style.display = "none";
-				a.click();
-				a.remove();
-			};
-			const downloadBlob = (data, fileName, mimeType) => {
-				const url = window.URL.createObjectURL(
-					new Blob([data], {
-						type: mimeType,
-					})
-				);
-				downloadURL(url, fileName);
-				setTimeout(() => window.URL.revokeObjectURL(url), 1000);
-			};
+			const pdf_array = await Typst.pdf({ mainFilePath: "/main.typ" });
+			downloadBlob(pdf_array, test.test_name + ".pdf", "application/pdf");
 
-			Typst.pdf({ mainFilePath: "/main.typ" }).then((array) => {
-				downloadBlob(array, test.test_name + ".pdf", "application/pdf");
-			});
-
-			(await Typst.getCompiler()).query({mainFilePath: "/main.typ", selector: "<box_positions>", field: "value"}).then((box_positions) => {
-				downloadBlob(JSON.stringify(box_positions[0]), "box_positions.json", "application/json");
-			});
+			Typst.getCompiler()
+				.then(
+					async (compiler) =>
+						await Promise.all(
+							["<box_positions>", "<header_lines>"].map((selector) =>
+								compiler.query({
+									mainFilePath: "/main.typ",
+									selector,
+									field: "value",
+								})
+							)
+						)
+				)
+				.then(([box_positions, header_lines]) => {
+					upsertTestAnswerBoxes(
+						test.id,
+						JSON.stringify({
+							box_positions: box_positions[0],
+							header_lines: header_lines[0],
+						})
+					);
+				});
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);

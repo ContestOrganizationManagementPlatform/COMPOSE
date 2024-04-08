@@ -56,7 +56,7 @@ export async function getUnarchivedTests(customSelect = "*") {
  */
 export async function getAllTestsOrder(
 	customOrder: string,
-	customSelect = "*"
+	customSelect = "*",
 ) {
 	let { data, error } = await supabase
 		.from("tests")
@@ -92,7 +92,7 @@ export async function getTestInfo(test_id: number, customSelect: string = "*") {
  */
 export async function getTestCoordinators(
 	test_id: number,
-	customSelect: string = "coordinator_id"
+	customSelect: string = "coordinator_id",
 ) {
 	let { data, error } = await supabase
 		.from("test_coordinators")
@@ -114,7 +114,7 @@ export async function getTestCoordinators(
 export async function checkIfTestCoordinator(
 	test_id: number,
 	coordinator_id: number,
-	customSelect: string = "coordinator_id"
+	customSelect: string = "coordinator_id",
 ) {
 	let { error: error, count } = await supabase
 		.from("test_coordinators")
@@ -134,7 +134,7 @@ export async function checkIfTestCoordinator(
  */
 export async function getTestProblems(
 	test_id: number,
-	customSelect: string = "*,full_problems(*)"
+	customSelect: string = "*,full_problems(*)",
 ) {
 	let { data, error } = await supabase
 		.from("test_problems")
@@ -208,7 +208,7 @@ export async function editTestInfo(test: TestEditRequest, test_id: number) {
  */
 export async function addTestCoordinator(
 	test_id: number,
-	coordinator_id: number
+	coordinator_id: number,
 ) {
 	const { data, error } = await supabase
 		.from("test_coordinators")
@@ -226,7 +226,7 @@ export async function addTestCoordinator(
  */
 export async function removeTestCoordinator(
 	test_id: number,
-	coordinator_id: number
+	coordinator_id: number,
 ) {
 	const { error } = await supabase
 		.from("test_coordinators")
@@ -265,7 +265,7 @@ export async function archiveTest(test_id: number) {
  * @returns object in database, including id
  */
 export async function addTestFeedbackQuestion(
-	question: TestFeedbackQuestionRequest
+	question: TestFeedbackQuestionRequest,
 ) {
 	const { data, error } = await supabase
 		.from("test_feedback_questions")
@@ -326,7 +326,7 @@ export async function addAProblemOnTest(test_id: number, problem_id: number) {
  */
 export async function deleteAProblemOnTest(
 	test_id: number,
-	problem_id: number
+	problem_id: number,
 ) {
 	let { error } = await supabase.rpc("delete_test_problem", {
 		p_problem_id: problem_id,
@@ -345,7 +345,7 @@ export async function deleteAProblemOnTest(
 export async function reorderProblemsOnTest(
 	test_id: number,
 	problem_id: number,
-	problem_order: number
+	problem_order: number,
 ) {
 	let { error } = await supabase.rpc("reorder_test_problem", {
 		p_problem_id: problem_id,
@@ -367,7 +367,7 @@ export async function massProblemReordering(
 	test_id: number,
 	problem_id: number,
 	problem_order: number,
-	relation_id: number
+	relation_id: number,
 ) {
 	let { error } = await supabase
 		.from("test_problems")
@@ -377,6 +377,28 @@ export async function massProblemReordering(
 			problem_number: problem_order,
 		})
 		.eq("relation_id", relation_id);
+	if (error) {
+		throw error;
+	}
+}
+
+/**
+ * Upsert the bounding boxes on answers and the location of header lines for a test.
+ *
+ * @param test_id number
+ * @param bounding_boxes string (json)
+ */
+export async function upsertTestAnswerBoxes(
+	test_id: number,
+	bounding_boxes: string,
+) {
+	const { error } = await supabase
+		.from("tests")
+		.update({
+			bounding_boxes,
+		})
+		.eq("id", test_id);
+
 	if (error) {
 		throw error;
 	}

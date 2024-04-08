@@ -303,4 +303,8 @@
 		width: 100%;
 		padding: 10px;
 	}
+
+	:global(.bx--table-expand) {
+		width: 3rem !important;
+	}
 </style>

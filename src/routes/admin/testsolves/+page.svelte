@@ -10,7 +10,6 @@
 		Select,
 		SelectItem,
 	} from "carbon-components-svelte";
-	import Modal from "$lib/components/Modal.svelte";
 	import toast from "svelte-french-toast";
 	import Button from "$lib/components/Button.svelte";
 	import TestsolveList from "$lib/components/TestsolveList.svelte";

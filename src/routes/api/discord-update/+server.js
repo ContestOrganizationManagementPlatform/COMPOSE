@@ -9,7 +9,7 @@ export async function POST({ request }) {
 	try {
 		const webhookClient = new WebhookClient({ id: id, token: token });
 
-		webhookClient.send({
+		await webhookClient.send({
 			username: "Problem Writing Platform",
 			avatarURL: scheme.logo,
 			content: body.updater + " " + body.update + " problem " + body.id,
@@ -20,7 +20,9 @@ export async function POST({ request }) {
 			headers: { "content-type": "application/text" },
 		});
 	} catch (e) {
-		return new Response(e.message, {
+		const message = "Error in updating discord webhook: " + e.message;
+		console.error(message)
+		return new Response(message, {
 			status: 400,
 		});
 	}
