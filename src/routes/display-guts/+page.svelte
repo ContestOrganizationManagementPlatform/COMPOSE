@@ -13,6 +13,8 @@
 	let num_screens = 0
 	let num_teams = 0
 	let status = []
+	let seconds = 0
+	let minutes = 60
 	document.documentElement.style.setProperty('--light', styles["secondary-light"]);
 	document.documentElement.style.setProperty('--medium_green', styles["secondary"]);
 	document.documentElement.style.setProperty('--yellow', styles["background-dark"]);
@@ -35,9 +37,7 @@
 	}
 
 	async function updateTable() {
-		console.log("status!")
 		status = await getStatus()
-		console.log(status)
 		if (curr_screen + 1 >= num_screens) curr_screen = 0;
 		else curr_screen += 2;
 

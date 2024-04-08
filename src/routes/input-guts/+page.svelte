@@ -14,7 +14,6 @@
 	let answer_data = {};
 	let curr_team_answer_data = {};
 	let teams = [];
-	console.log("Defining the onMount now.")
 
 	answer_data["..."] = {};
 	for (let i = 1; i < num_rounds + 1; i++) {
@@ -28,19 +27,14 @@
 	curr_team_answer_data = JSON.parse(JSON.stringify(answer_data["..."]));
 
 	onMount(async () => {
-		console.log("HEEEE");
 		teams = await getTeams();
 		await fillInTeams();
 		answer_data = await getAnswerData();
-		console.log(answer_data);
-		console.log(teams);
 	});
 
 	async function selected(event) {
 		let different = false;
 		if (curr_team != "...") {
-			console.log("HUDHIKSJDSD")
-			console.log(curr_team_answer_data)
 			for(let i = 1; i < num_rounds+1; i ++) {
 				for(let j = 1; j < questions_per_round+1; j ++) {
 					if (answer_data[curr_team][i][j]["correct"] != curr_team_answer_data[i][j]["correct"]) {
@@ -54,8 +48,6 @@
 		}
 		if (different) {
 			if (!confirm(`Your have unsaved changes! Are you sure you want to switch to a different team?`)) {
-				console.log(event.target.value)
-				console.log(curr_team)
 				event.target.value = curr_team.replace(/ /g, '-');
         		return; // Exit if user cancels
 			}
@@ -69,7 +61,7 @@
 				duration: 1000,
 			});
 		} catch{
-			console.log("issue")
+			console.log("Issue!")
 		}
 	
 	}
@@ -95,6 +87,7 @@
 
 
 	async function submit_helper(curr_team, round) {
+		console.log("curr_team", round)
 		if (curr_team != "...") {
 			try {
 				answer_data[curr_team][round] = curr_team_answer_data[round];
@@ -110,6 +103,32 @@
 		}
 	}
 
+	function sleep(ms) {
+    	return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	async function submit_all(curr_team) {
+		for(let i = 1; i < num_rounds+1; i ++) {
+			let no_changes = true;
+			if (curr_team != "...") {
+				for(let j = 1; j < questions_per_round+1; j ++) {
+					if (curr_team_answer_data[i][j]["correct"] != false) {
+						no_changes = false
+					}
+					if (curr_team_answer_data[i][j]["value"] != "") {
+						console.log(i)
+						no_changes = false
+					}
+				}
+			}
+			if (!no_changes) {
+				await submit_helper(curr_team, i);
+			}
+			await sleep(1);
+    	}
+		answer_data[curr_team] = curr_team_answer_data;
+	}
+
 </script>
 
 <div>
@@ -123,6 +142,7 @@
 	</select>
 
 	<div id='all_info'>
+		<br><button on:click={() => submit_all(curr_team)}>Submit All</button><br>
 	{#each Array(num_rounds) as _, round}
 		<div class='block'>
 		<h3>Round {round + 1}</h3>

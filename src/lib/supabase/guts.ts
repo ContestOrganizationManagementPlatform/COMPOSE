@@ -27,8 +27,6 @@ async function downloadJSON() {
         const text = await data.text();
         const json_data = JSON.parse(text);
         const { team_lookup: team_lookup_new, answer_data: answer_data_new } = json_data;
-        console.log("Download JSON")
-        console.log(team_lookup)
         team_lookup = team_lookup_new;
         team_lookup = {...team_lookup}
         answer_data = answer_data_new;
@@ -88,47 +86,35 @@ export async function getAnswerData() {
 
 export async function getStatus() {
     await downloadJSON();
-    console.log(team_lookup)
     let status: any[] = Object.values(team_lookup);
     status = status.filter(a => a.team_name != `...`)
     status.sort((a, b) => b.showing_score - a.showing_score);
-    status.forEach(item => {
-        console.log(item.team_name);
-      });
-    console.log(status)
     return status;
 }
 
 export async function addResult(team_name, round = 0, score = 0, showing_score = 0, add = false) {
-    console.log("add result")
 	let newTeam = {
 		team_name: team_name,
 		score: score,
         showing_score: showing_score,
 	};
     if (round == 0) {
-        console.log("no round!!!")
         for(let j = 0; j < num_rounds; j ++) {
             newTeam[j + 1] = styles["background-dark"];
         }
     }
     else {
-        console.log("round!!!!!")
         for(let j = 0; j < num_rounds; j ++) {
             newTeam[j + 1] = team_lookup[team_name][j+1];
         }
         if (add) {
-            console.log("black")
             newTeam[round] = styles["secondary"];
         } else {
-            console.log("white")
             newTeam[round] = styles["background-dark"];
         }
     }
 	team_lookup[team_name] = newTeam;
-    console.log("added")
     await modifyAndUploadJson();
-    console.log("MODIFIED")
 };
 
 function calculate_score(team, max_round) {
@@ -155,15 +141,9 @@ export function clear(curr_team, round) {
 }
 
 export function submit(curr_team, round) {
-    console.log(curr_team, answer_data)
     if (curr_team in answer_data) {
-        console.log("1")
         let score = calculate_score(curr_team, num_rounds)
-        console.log("2")
         let show_score = calculate_score(curr_team, max_round_display)
-        console.log("3")
-        console.log(curr_team, round, score, show_score, true)
         addResult(curr_team, round, score, show_score, true);
-        console.log("4")
     }
 }
