@@ -103,7 +103,7 @@
 		}
 	}
 
-	function sleep(ms) {
+	async function sleep(ms) {
     	return new Promise(resolve => setTimeout(resolve, ms));
 	}
 
@@ -124,7 +124,7 @@
 			if (!no_changes) {
 				await submit_helper(curr_team, i);
 			}
-			await sleep(1);
+			await sleep(100);
     	}
 		answer_data[curr_team] = curr_team_answer_data;
 	}
