@@ -13,7 +13,7 @@ describe('main function', () => {
 
         let expected = fs.readFileSync(path.join(__dirname, '..', 'testData', 'correctOverall.csv'), 'utf8');
         expected = readCsvString(expected, logFile, "");
-
+        
         expect(output).toEqual(expected);
     });
 });
