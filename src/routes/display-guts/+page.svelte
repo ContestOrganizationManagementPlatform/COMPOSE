@@ -26,8 +26,9 @@
 		status = await getStatus()
 		num_teams = await status.length;
 		num_screens = Math.ceil(num_teams/max_per_side);
-		fillInTeams();
-		updateTable();
+		await fillInTeams();
+		console.log(num_teams)
+		await updateTable();
 	});
 
 	function calculateIndices(extra) {

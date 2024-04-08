@@ -86,6 +86,7 @@ export async function getAnswerData() {
 
 export async function getStatus() {
     await downloadJSON();
+    console.log(team_lookup)
     let status: any[] = Object.values(team_lookup);
     status = status.filter(a => a.team_name != `...`)
     status.sort((a, b) => b.showing_score - a.showing_score);
