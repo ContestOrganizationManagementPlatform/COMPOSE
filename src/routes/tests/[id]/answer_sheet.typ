@@ -9,7 +9,7 @@
       (
         problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$", answer_latex: "$\\frac{3}{4}$", solution_latex: "Think deeply, then guess the answer.",
       ), (
-        problem_latex: "Count how many toes you have. What is that number divided by $2$?", answer_latex: "5", solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5}.$",
+        problem_latex: "Count how many toes you have. What is that number divided by $2$?", answer_latex: "5", solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5\\frac{\\frac{10}3}2 }.$",
       ), ..range(20).map(
         i => (
           problem_latex: "Problem # " + str(i), answer_latex: "Generic answer", solution_latex: "Generic solution",
@@ -241,12 +241,26 @@
   "\\newcommand{" + name + "}" + arg_count + "{" + body + "}"
 }).join()
 
-#let replace_image(latex) = {
-  let image_regex = regex(`\\(image|includegraphics)(\[[^\]]*\])*\{([^\}]+)\}`.text);
-  latex.replace(image_regex, (m, ..) => {
+#let replace_image(latex, convert) = {
+  let no_end_brace = `[^\}]`.text
+  let image_regex = regex(
+    `\\(image|includegraphics)(\[[^\]]*\])*\{(`.text + no_end_brace + `+)\}`.text,
+  );
+  latex = latex.replace(image_regex, (m, ..) => {
     let path = "/problem_images" + m.captures.last()
     "\\iftypst\n #figure(image(\"" + path + "\", height: 150pt))\n\\fi"
   })
+  // Super lazy for now, until https://github.com/mitex-rs/mitex/pull/152 is resolved.
+  // Regex finitely many nested brace pairs.
+  let no_brace = `[^\{\}]`.text
+  let brace_pair_list(center_regex) = no_brace + `*(\{`.text + center_regex + `\}`.text + no_brace + `*)*`.text
+  let nested_brace_pairs(count) = if count == 1 { brace_pair_list(no_brace + "*") } else { brace_pair_list(nested_brace_pairs(count - 1)) }
+  let boxed_regex = regex(`\\boxed\{(`.text + nested_brace_pairs(4) + `)\}`.text)
+  latex.replace(
+    boxed_regex, (m, ..) => {
+      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, " + convert("$" + m.captures.first() + "$") + ")\\fi"
+    },
+  )
 }
 
 #let convert_to_typst(latex) = {
@@ -255,32 +269,27 @@
   latex = latex.replace("\\)", "$")
   latex = latex.replace("\\[", "$$")
   latex = latex.replace("\\]", "$$")
-  mitex-convert(mode: "text", macros + replace_image(latex))
+  mitex-convert(mode: "text", macros + replace_image(latex, convert_to_typst))
 }
 
 #set enum(tight: false)
 #enum(
   ..problems.enumerate().map(
     ((i, p)) => {
-      let p_latex = replace_image(p.problem_latex)
-      let p_typst = convert_to_typst(p_latex)
+      let p_typst = convert_to_typst(p.problem_latex)
       enum.item(
         [
           #eval(p_typst, mode: "markup", scope: mitex-scope)
 
           #if test_metadata.display.answers {
             [
-              *Answer: #eval(
-                convert_to_typst(replace_image(p.answer_latex)), mode: "markup", scope: mitex-scope,
-              )*
+              *Answer: #eval(convert_to_typst(p.answer_latex), mode: "markup", scope: mitex-scope)*
             ]
           }
 
           #if test_metadata.display.solutions {
             [
-              *Solution:* #eval(
-                convert_to_typst(replace_image(p.solution_latex)), mode: "markup", scope: mitex-scope,
-              )
+              *Solution:* #eval(convert_to_typst(p.solution_latex), mode: "markup", scope: mitex-scope)
             ]
           }
         ],
