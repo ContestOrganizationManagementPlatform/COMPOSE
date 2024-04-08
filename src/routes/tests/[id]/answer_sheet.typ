@@ -255,10 +255,10 @@
   let no_brace = `[^\{\}]`.text
   let brace_pair_list(center_regex) = no_brace + `*(\{`.text + center_regex + `\}`.text + no_brace + `*)*`.text
   let nested_brace_pairs(count) = if count == 1 { brace_pair_list(no_brace + "*") } else { brace_pair_list(nested_brace_pairs(count - 1)) }
-  let boxed_regex = regex(`\\boxed\{(`.text + nested_brace_pairs(4) + `)\}`.text)
+  let boxed_regex = regex(`\\(boxed|ans)\{(`.text + nested_brace_pairs(4) + `)\}`.text)
   latex.replace(
     boxed_regex, (m, ..) => {
-      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, " + convert("$" + m.captures.first() + "$") + ")\\fi"
+      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, baseline: 6pt, " + convert("$" + m.captures.at(1) + "$") + ")\\fi"
     },
   )
 }
