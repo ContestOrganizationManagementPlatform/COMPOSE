@@ -245,7 +245,7 @@
   let image_regex = regex(`\\(image|includegraphics)(\[[^\]]*\])*\{([^\}]+)\}`.text);
   latex.replace(image_regex, (m, ..) => {
     let path = "/problem_images" + m.captures.last()
-    "\\iftypst\n #figure(image(\"" + path + "\", height: 20%))\n\\fi"
+    "\\iftypst\n #figure(image(\"" + path + "\", height: 150pt))\n\\fi"
   })
 }
 
