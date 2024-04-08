@@ -4,6 +4,7 @@
 	import { getStatus } from "$lib/supabase/guts.ts";
 	import { fillInTeams } from "$lib/supabase/guts.ts";
 	import { max_round_display } from "$lib/supabase/guts.ts";
+	import { styles } from "$lib/scheme.json";
 	let test = "SMT 2024";
 	let round = "Guts Round: Score Display";
 	let max_per_side = 10;
@@ -12,6 +13,11 @@
 	let num_screens = 0
 	let num_teams = 0
 	let status = []
+	document.documentElement.style.setProperty('--light', styles["secondary-light"]);
+	document.documentElement.style.setProperty('--medium_green', styles["secondary"]);
+	document.documentElement.style.setProperty('--yellow', styles["background-dark"]);
+	//document.documentElement.style.setProperty('--light', styles["background-dark"]);
+	//document.documentElement.style.setProperty('--medium_green', styles["primary"]);
 	document.documentElement.style.setProperty('--screen_height', screen.height*0.65 + 'px');
 
 	onMount(async () => {
@@ -51,92 +57,118 @@
 	{#if max_round_display > 0}
 		<p style="font-style: italic;">Please note that all scores after round {max_round_display} will not be shown.</p>
 	{/if}
-	<table class="gutsDisplay" id="leftTable">
-		<thead>
-			<tr class="gutsTr">
-				<th class="gutsInfo">Ranking</th>
-				<th class="gutsInfo teamName">Team Name</th>
-				<th class="gutsInfo progress">Progress</th>
-				<th class="gutsInfo">Score</th>
-			</tr>
-		</thead>
-		<tbody id = "leftbody">
-		    {#each Array.from({ length: calculateIndices(0).end - calculateIndices(0).start }, (_, i) => i + calculateIndices(0).start) as i}
+	<div id = "leftwrapper">
+		<table class="gutsDisplay" id="leftTable">
+			<thead>
 				<tr class="gutsTr">
-					<td class="gutsInfo">{max_per_side * curr_screen + i % max_per_side + 1}</td>
-					<td class="gutsResult teamName">{status[i].team_name}</td>
-					<td class="gutsResult">
-						<div class ="round">
-							{#each Array(num_rounds) as __, round}
-								<div class="color-box" style="background-color: {status[i][round + 1]};"></div>
-							{/each}
-						</div>
-					</td>
-					<td class="gutsResult">{status[i].showing_score}</td>
+					<th class="gutsInfo">Rank</th>
+					<th class="gutsInfo teamName">Team Name</th>
+					<th class="gutsInfo progress">Progress</th>
+					<th class="gutsInfo">Score</th>
 				</tr>
-			{/each}
-		</tbody>
-	</table>
-	<table class="gutsDisplay" id="rightTable">
-		<thead>
-			<tr class="gutsTr">
-				<th class="gutsInfo">Ranking</th>
-				<th class="gutsInfo teamName">Team Name</th>
-				<th class="gutsInfo progress">Progress</th>
-				<th class="gutsInfo">Score</th>
-			</tr>
-		</thead>
-		<tbody id = "rightbody">
-		    {#each Array.from({ length: calculateIndices(max_per_side).end - calculateIndices(max_per_side).start }, (_, i) => i + (calculateIndices(max_per_side).start)) as i}
+			</thead>
+			<tbody id = "leftbody">
+				{#each Array.from({ length: calculateIndices(0).end - calculateIndices(0).start }, (_, i) => i + calculateIndices(0).start) as i}
+					<tr class="gutsTr">
+						<td class="gutsResult">{max_per_side * curr_screen + i % max_per_side + 1}</td>
+						<td class="gutsResult teamName">{status[i].team_name}</td>
+						<td class="gutsResult">
+							<div class ="round">
+								{#each Array(num_rounds) as __, round}
+									<div class="color-box" style="background-color: {status[i][round + 1]}; border: 2px solid var(--medium_green);"></div>
+								{/each}
+							</div>
+						</td>
+						<td class="gutsResult">{status[i].showing_score}</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
+		<div id = "rightwrapper">
+		<table class="gutsDisplay" id="rightTable">
+			<thead>
 				<tr class="gutsTr">
-					<td class="gutsInfo">{max_per_side * (curr_screen + 1) + i % max_per_side + 1}</td>
-					<td class="gutsResult teamName">{status[i].team_name}</td>
-					<td class="gutsResult">
-						<div class ="round">
-							{#each Array(num_rounds) as __, round}
-								<div class="color-box" style="background-color: {status[i][round + 1]};"></div>
-							{/each}
-						</div>
-					</td>
-					<td class="gutsResult">{status[i].score}</td>
+					<th class="gutsInfo">Rank</th>
+					<th class="gutsInfo teamName">Team Name</th>
+					<th class="gutsInfo progress">Progress</th>
+					<th class="gutsInfo">Score</th>
 				</tr>
-			{/each}
-		</tbody>
-	</table>
+			</thead>
+			<tbody id = "rightbody">
+				{#each Array.from({ length: calculateIndices(max_per_side).end - calculateIndices(max_per_side).start }, (_, i) => i + (calculateIndices(max_per_side).start)) as i}
+					<tr class="gutsTr">
+						<td class="gutsResult">{max_per_side * (curr_screen + 1) + i % max_per_side + 1}</td>
+						<td class="gutsResult teamName">{status[i].team_name}</td>
+						<td class="gutsResult">
+							<div class ="round">
+								{#each Array(num_rounds) as __, round}
+									<div class="color-box" style="background-color: {status[i][round + 1]};"></div>
+								{/each}
+							</div>
+						</td>
+						<td class="gutsResult">{status[i].score}</td>
+					</tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 </div>
 
 
 
 <style>
 	.color-box {
-		width: 20px;
-		height: 20px;
+		width: 18px;
+		height: 18px;
 		border: 1px solid #000;
-		margin: 3px;
+		margin: 2px;
   	}
 
-    #leftTable {
-        float: left;
-		background-color: #aaccee;
-		
-    }
-
-    #rightTable {
-        float: right;
-		background-color: #aabbcc;
-    }
-
-    .gutsDisplay {
+    #leftwrapper {
 		width: 50%;
         justify-content: center;
 		border-collapse: collapse;
 		padding: 10px;
 		white-space: nowrap;
 		height: var(--screen_height);
+        float: left;
+		background-color: var(--light);
+		border-right: 3px dotted var(--medium_green);
+    }
+
+	#rightwrapper {
+		width: 50%;
+        justify-content: center;
+		border-collapse: collapse;
+		padding: 10px;
+		white-space: nowrap;
+		height: var(--screen_height);
+        float: right;
+		background-color: var(--light);
+    }
+
+	#leftTable {
+		float: left;
+		background-color: var(--light);
+		margin: 10px;
+    }
+
+    #rightTable {
+		float: right;
+        background-color: var(--light);
+		margin: 10px;
+    }
+
+    .gutsDisplay {
+        justify-content: center;
+		border-collapse: collapse;
+		padding: 10px;
+		white-space: nowrap;
     }
 
     .progress {
-        width: 600px;
+        width: 60px;
     }
 
     .teamName {
@@ -150,16 +182,23 @@
     }
 
     .gutsInfo {
+		color: white;
+		background-color: var(--medium_green);
 		padding: 10px;
-        border: 1px solid black;
+        border: none;
         text-align: left;
 		font-family: var(--font-family);
 		font-size: 20px;
+		font-weight: bold; /* Makes the text bold */
+    	text-shadow: -1px -1px 0 #000, 
+			1px -1px 0 #000; ; 
     }
 
 	.gutsResult {
+		background-color: var(--light);
+
 		padding: 10px;
-        border: 1px solid black;
+        border: none;
         text-align: left;
 		font-family: var(--font-family);
 		font-size: 20px;

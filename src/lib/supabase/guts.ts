@@ -1,4 +1,5 @@
 import { supabase } from "../supabaseClient";
+import { styles } from "$lib/scheme.json";
 
 export let num_rounds = 9;
 export let max_round_display = 8;
@@ -108,7 +109,7 @@ export async function addResult(team_name, round = 0, score = 0, showing_score =
     if (round == 0) {
         console.log("no round!!!")
         for(let j = 0; j < num_rounds; j ++) {
-            newTeam[j + 1] = "#FFFFFF";
+            newTeam[j + 1] = styles["background-dark"];
         }
     }
     else {
@@ -118,10 +119,10 @@ export async function addResult(team_name, round = 0, score = 0, showing_score =
         }
         if (add) {
             console.log("black")
-            newTeam[round] = "#000000";
+            newTeam[round] = styles["secondary"];
         } else {
             console.log("white")
-            newTeam[round] = "#FFFFFF";
+            newTeam[round] = styles["background-dark"];
         }
     }
 	team_lookup[team_name] = newTeam;
