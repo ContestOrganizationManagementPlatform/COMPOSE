@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { fillInTeams, getTeams } from "$lib/supabase/guts.ts";
+	import { getTeams } from "$lib/supabase/guts.ts";
 	import { clear } from "$lib/supabase/guts.ts";
 	import { submit } from "$lib/supabase/guts.ts";
 	import { getAnswerData } from "$lib/supabase/guts.ts";
@@ -24,16 +24,18 @@
 		answer_data["..."][i]["complete"] = false;
 	}
 	answer_data["..."]["score"] = 0;
-	curr_team_answer_data = JSON.parse(JSON.stringify(answer_data["..."]));
+	curr_team_answer_data = answer_data["..."];
+	// curr_team_answer_data = JSON.parse(JSON.stringify(answer_data["..."]));
 
 	onMount(async () => {
 		teams = await getTeams();
-		await fillInTeams();
+		// await fillInTeams();
 		answer_data = await getAnswerData();
 	});
 
 	async function selected(event) {
 		let different = false;
+		let answer_data = await getAnswerData();
 		if (curr_team != "...") {
 			for(let i = 1; i < num_rounds+1; i ++) {
 				for(let j = 1; j < questions_per_round+1; j ++) {
@@ -48,17 +50,20 @@
 		}
 		if (different) {
 			if (!confirm(`Your have unsaved changes! Are you sure you want to switch to a different team?`)) {
-				event.target.value = curr_team.replace(/ /g, '-');
+				// event.target.value = curr_team.replace(/ /g, '-');
+				event.target.value = curr_team
         		return; // Exit if user cancels
 			}
     	}
 		try {
 			answer_data = await getAnswerData();
 			curr_team = event.target.value;	
-			curr_team = curr_team.replace(/-/g, ' ');	
-			curr_team_answer_data = JSON.parse(JSON.stringify(answer_data[curr_team]));
-			toast.success(`Now grading ${curr_team}`, {
-				duration: 1000,
+	
+			// curr_team = curr_team.replace(/-/g, ' ');	
+			// curr_team_answer_data = JSON.parse(JSON.stringify(answer_data[curr_team]));
+			curr_team_answer_data = answer_data[curr_team];
+			toast.success(`Now grading Team ${curr_team}`, {
+				duration: 2000,
 			});
 		} catch{
 			console.log("Issue!")
@@ -71,10 +76,12 @@
         	return; // Exit if user cancels
     	}
 		try {
-			answer_data[curr_team][round] = curr_team_answer_data[round];
+			// answer_data[curr_team][round] = curr_team_answer_data[round];
 			await clear(curr_team, round);
-			answer_data = {...answer_data}
-			curr_team_answer_data = {...curr_team_answer_data}
+			answer_data = await getAnswerData();
+			curr_team_answer_data = answer_data[curr_team];
+			// answer_data = {...answer_data}
+			// curr_team_answer_data = {...curr_team_answer_data}
 			toast.success('Clear successful!', {
 				duration: 3000,
 			});
@@ -87,11 +94,12 @@
 
 
 	async function submit_helper(curr_team, round) {
-		console.log("curr_team", round)
 		if (curr_team != "...") {
 			try {
-				answer_data[curr_team][round] = curr_team_answer_data[round];
-				await submit(curr_team, round);
+				// answer_data[curr_team][round] = curr_team_answer_data[round];
+				await submit(curr_team, round, curr_team_answer_data[round]);
+				answer_data = await getAnswerData();
+				curr_team_answer_data = answer_data[curr_team];
 				toast.success('Submission successful!', {
 					duration: 3000,
 				});
@@ -107,27 +115,27 @@
     	return new Promise(resolve => setTimeout(resolve, ms));
 	}
 
-	async function submit_all(curr_team) {
-		for(let i = 1; i < num_rounds+1; i ++) {
-			let no_changes = true;
-			if (curr_team != "...") {
-				for(let j = 1; j < questions_per_round+1; j ++) {
-					if (curr_team_answer_data[i][j]["correct"] != false) {
-						no_changes = false
-					}
-					if (curr_team_answer_data[i][j]["value"] != "") {
-						console.log(i)
-						no_changes = false
-					}
-				}
-			}
-			if (!no_changes) {
-				await submit_helper(curr_team, i);
-			}
-			await sleep(100);
-    	}
-		answer_data[curr_team] = curr_team_answer_data;
-	}
+	// async function submit_all(curr_team) {
+	// 	for(let i = 1; i < num_rounds+1; i ++) {
+	// 		let no_changes = true;
+	// 		if (curr_team != "...") {
+	// 			for(let j = 1; j < questions_per_round+1; j ++) {
+	// 				if (curr_team_answer_data[i][j]["correct"] != false) {
+	// 					no_changes = false
+	// 				}
+	// 				if (curr_team_answer_data[i][j]["value"] != "") {
+	// 					console.log(i)
+	// 					no_changes = false
+	// 				}
+	// 			}
+	// 		}
+	// 		if (!no_changes) {
+	// 			await submit_helper(curr_team, i);
+	// 		}
+	// 		await sleep(100);
+    // 	}
+	// 	answer_data[curr_team] = curr_team_answer_data;
+	// }
 
 </script>
 
@@ -137,28 +145,29 @@
 	<select id="teamSelect" on:change={selected}>
 		<option value="" disabled selected>Select the Team:</option>
 		{#each teams as team}
-			<option value={team.replace(/\s+/g, '-')}>{team}</option>
+			<option>{team}</option>
 		{/each}
 	</select>
+	<h2>Grading Team {curr_team}</h2>
 
 	<div id='all_info'>
-		<br><button on:click={() => submit_all(curr_team)}>Submit All</button><br>
-	{#each Array(num_rounds) as _, round}
-		<div class='block'>
-		<h3>Round {round + 1}</h3>
-		{#each Array(questions_per_round) as __, question}
-			<div class="set">
-			Response:
-			<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
-			Correct:
-			<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["correct"]}>
+			<!-- <br><button on:click={() => submit_all(curr_team)}>Submit All</button><br> -->
+		{#each Array(num_rounds) as _, round}
+			<div class='block'>
+			<h3>Round {round + 1}</h3>
+			{#each Array(questions_per_round) as __, question}
+				<div class="set">
+				Response:
+				<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
+				Correct:
+				<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["correct"]}>
+				</div>
+			{/each}
+			<button on:click={() => submit_helper(curr_team, round + 1)}>Submit</button>
+			<button on:click={() => clear_helper(curr_team, round + 1)}>Clear Data</button>
 			</div>
+			<br>
 		{/each}
-		<button on:click={() => submit_helper(curr_team, round + 1)}>Submit</button>
-		<button on:click={() => clear_helper(curr_team, round + 1)}>Clear Data</button>
-		</div>
-		<br>
-	{/each}
 	</div>
-
+	
 </div>

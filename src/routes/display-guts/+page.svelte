@@ -2,7 +2,6 @@
 	import { onMount } from "svelte";
 	import { num_rounds } from "$lib/supabase/guts.ts";
 	import { getStatus } from "$lib/supabase/guts.ts";
-	import { fillInTeams } from "$lib/supabase/guts.ts";
 	import { max_round_display } from "$lib/supabase/guts.ts";
 	import { styles } from "$lib/scheme.json";
 	let test = "SMT 2024";
@@ -26,7 +25,7 @@
 		status = await getStatus()
 		num_teams = await status.length;
 		num_screens = Math.ceil(num_teams/max_per_side);
-		await fillInTeams();
+		// await fillInTeams();
 		console.log(num_teams)
 		await updateTable();
 	});
@@ -76,7 +75,7 @@
 						<td class="gutsResult">
 							<div class ="round">
 								{#each Array(num_rounds) as __, round}
-									<div class="color-box" style="background-color: {status[i][round + 1]}; border: 2px solid var(--medium_green);"></div>
+									<div class="color-box" style="background-color: {status[i].round_colors[round + 1]}; border: 2px solid var(--medium_green);"></div>
 								{/each}
 							</div>
 						</td>
