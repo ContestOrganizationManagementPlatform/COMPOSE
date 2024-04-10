@@ -20,11 +20,11 @@
 	for (let i = 1; i < num_rounds + 1; i++) {
 		answer_data["..."][i] = {};
 		for (let j = 1; j < questions_per_round + 1; j++) {
-			answer_data["..."][i][j] = { value: "", correct: false };
+			answer_data["..."][i][j] = { value: "", correct: false, incorrect: false };
 		}
-		answer_data["..."][i]["complete"] = false;
+		// answer_data["..."][i]["complete"] = false;
 	}
-	answer_data["..."]["score"] = 0;
+	// answer_data["..."]["score"] = 0;
 	init_team_answer_data = answer_data["..."];
 	curr_team_answer_data = answer_data["..."];
 	// curr_team_answer_data = JSON.parse(JSON.stringify(answer_data["..."]));
@@ -39,12 +39,15 @@
 		let different = false;
 		// let answer_data = await getAnswerData();
 		if (curr_team != "...") {
-			for(let i = 1; i < num_rounds+1; i ++) {
-				for(let j = 1; j < questions_per_round+1; j ++) {
+			for (let i = 1; i < num_rounds+1; i++) {
+				for (let j = 1; j < questions_per_round+1; j++) {
+					if (init_team_answer_data[i][j]["value"] != curr_team_answer_data[i][j]["value"]) {
+						different = true
+					}
 					if (init_team_answer_data[i][j]["correct"] != curr_team_answer_data[i][j]["correct"]) {
 						different = true
 					}
-					if (init_team_answer_data[i][j]["value"] != curr_team_answer_data[i][j]["value"]) {
+					if (init_team_answer_data[i][j]["incorrect"] != curr_team_answer_data[i][j]["incorrect"]) {
 						different = true
 					}
 				}
@@ -59,8 +62,9 @@
     	}
 		try {
 			answer_data = await getAnswerData();
+			console.log(`Loking at ${answer_data}`);
 			curr_team = event.target.value;	
-	
+			
 			// curr_team = curr_team.replace(/-/g, ' ');	
 			// curr_team_answer_data = JSON.parse(JSON.stringify(answer_data[curr_team]));
 			init_team_answer_data = answer_data[curr_team];
@@ -104,7 +108,7 @@
 				// answer_data[curr_team][round] = curr_team_answer_data[round];
 				await submit(curr_team, round, curr_team_answer_data[round]);
 				answer_data = await getAnswerData();
-				
+
 				curr_team_answer_data[round] = answer_data[curr_team][round];
 				init_team_answer_data = curr_team_answer_data;
 				toast.success('Submission successful!', {
@@ -118,9 +122,9 @@
 		}
 	}
 
-	async function sleep(ms) {
-    	return new Promise(resolve => setTimeout(resolve, ms));
-	}
+	// async function sleep(ms) {
+    // 	return new Promise(resolve => setTimeout(resolve, ms));
+	// }
 
 	// async function submit_all(curr_team) {
 	// 	for(let i = 1; i < num_rounds+1; i ++) {
@@ -168,6 +172,8 @@
 				<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
 				Correct:
 				<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["correct"]}>
+				Incorrect:
+				<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["incorrect"]}>
 				</div>
 			{/each}
 			<button on:click={() => submit_helper(curr_team, round + 1)}>Submit</button>
