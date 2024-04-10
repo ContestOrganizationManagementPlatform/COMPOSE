@@ -82,8 +82,9 @@
 			// answer_data[curr_team][round] = curr_team_answer_data[round];
 			await clear(curr_team, round);
 			answer_data = await getAnswerData();
-			init_team_answer_data = answer_data[curr_team];
-			curr_team_answer_data = answer_data[curr_team];
+
+			curr_team_answer_data[round] = answer_data[curr_team][round];
+			init_team_answer_data = curr_team_answer_data;
 			// answer_data = {...answer_data}
 			// curr_team_answer_data = {...curr_team_answer_data}
 			toast.success('Clear successful!', {
@@ -103,8 +104,9 @@
 				// answer_data[curr_team][round] = curr_team_answer_data[round];
 				await submit(curr_team, round, curr_team_answer_data[round]);
 				answer_data = await getAnswerData();
-				init_team_answer_data = answer_data[curr_team];
-				curr_team_answer_data = answer_data[curr_team];
+				
+				curr_team_answer_data[round] = answer_data[curr_team][round];
+				init_team_answer_data = curr_team_answer_data;
 				toast.success('Submission successful!', {
 					duration: 3000,
 				});
