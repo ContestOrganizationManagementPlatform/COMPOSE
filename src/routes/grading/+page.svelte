@@ -27,7 +27,7 @@
 
 	<br />
 
-	<p style="font-style: italic;">Pick a tournament to grade</p>
+	<p style="font-style: italic;">Pick the tournament to grade</p>
 
 	{#each tournaments as tournament, index (tournament.id)}
 		<div>
