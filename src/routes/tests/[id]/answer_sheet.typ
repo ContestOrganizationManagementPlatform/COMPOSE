@@ -220,7 +220,7 @@
       // Center
       align(center, [#smallcaps(test_metadata.name)]),
       // Right
-      align(right)[#smallcaps("April 8, 2023")],
+      align(right)[#smallcaps("April 13, 2024")],
     )
     #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
   ], footer: none, margin: auto,
