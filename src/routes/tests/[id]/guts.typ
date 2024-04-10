@@ -61,7 +61,7 @@
   );
   latex = latex.replace(image_regex, (m, ..) => {
     let path = "/problem_images" + m.captures.last()
-    "\\iftypst\n #figure(image(\"" + path + "\", height: 150pt))\n\\fi"
+    "\\iftypst\n #figure(image(\"" + path + "\", height: 110pt))\n\\fi"
   })
   // Super lazy for now, until https://github.com/mitex-rs/mitex/pull/152 is resolved.
   // Regex finitely many nested brace pairs.
@@ -119,9 +119,9 @@
 
 #let problem_cell(i, problems) = {
   rect(
-    inset: (x: 70pt, y: 90pt), width: 100%, height: 50%,
+    inset: (x: 60pt, y: 40pt), width: 100%, height: 50%,
   )[
-    #set text(size: 12pt, font: "New Computer Modern")
+    #set text(size: 11pt, font: "New Computer Modern")
     *This is set #{ i + 1 }*
 
     #enum(
