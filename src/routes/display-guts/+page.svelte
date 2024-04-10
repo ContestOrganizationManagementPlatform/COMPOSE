@@ -103,7 +103,7 @@
 						<td class="gutsResult">
 							<div class ="round">
 								{#each Array(num_rounds) as __, round}
-									<div class="color-box" style="background-color: {status[i][round + 1]};"></div>
+									<div class="color-box" style="background-color: {status[i].round_colors[round + 1]}; border: 2px solid var(--medium_green);"></div>
 								{/each}
 							</div>
 						</td>
