@@ -109,6 +109,18 @@
 						<p class="linkPara">Grade Tests</p>
 					</Link>
 					<Link
+						href="/input-guts"
+						class={path == "input-guts" ? "active link" : "link"}
+					>
+						<p class="linkPara">Grade Guts Tests</p>
+					</Link>
+					<Link
+						href="/display-guts"
+						class={path == "display-guts" ? "active link" : "link"}
+					>
+						<p class="linkPara">Guts Live Scoreboard</p>
+					</Link>
+					<Link
 						href="/admin/grading/upload"
 						class={path == "/admin/grading/upload" ? "active link" : "link"}
 					>

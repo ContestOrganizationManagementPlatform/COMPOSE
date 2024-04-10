@@ -30,5 +30,16 @@
 		"secondary-dark": "#485445",
 		"secondary-tint": "#e3f2df",
 		"font-family": "Source Sans Pro"
+	},
+	"constants": {
+		"white": "#fff",
+		"incorrect": "#ff9999",
+		"incorrect-text": "#AD2828",
+		"unsure": "#FFFB99",
+		"unsure-text": "#7C7215",
+		"correct": "#9BFF99",
+		"correct-text": "#157C20",
+		"return": "#999999",
+		"return-text": "#282828"
 	}
 }
