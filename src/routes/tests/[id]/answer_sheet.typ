@@ -1,4 +1,4 @@
-#import "@preview/mitex:0.2.1": *
+#import "@preview/mitex:0.2.3": *
 #import "@preview/codetastic:0.2.2": qrcode
 #import "@preview/tablex:0.0.8": gridx, hlinex, vlinex
 
@@ -9,7 +9,7 @@
       (
         problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$", answer_latex: "$\\frac{3}{4}$", solution_latex: "Think deeply, then guess the answer.",
       ), (
-        problem_latex: "Count how many toes you have. What is that number divided by $2$?", answer_latex: "5", solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5\\frac{\\frac{10}3}2 }.$",
+        problem_latex: "Count how many toes you have. What is that number divided by $2$?", answer_latex: "5", solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5\\frac{\\frac{10}{3}2}{1}}.$",
       ), ..range(20).map(
         i => (
           problem_latex: "Problem # " + str(i), answer_latex: "Generic answer", solution_latex: "Generic solution",
@@ -101,6 +101,11 @@
   header: locate(
     location => [
       #set text(10pt)
+      #if not is_local {
+        place(
+          top + left, dy: 20pt, image(width: 70pt, height: 70pt, "/assets/test_logo.png"),
+        )
+      }
       #place(
         top + right, dy: 10pt, make_qr(test_metadata.id + "P" + str(location.page())),
       )
@@ -201,19 +206,25 @@
 )
 
 // Set page header for problems.
-#set page(header: [
-  #set text(10pt)
-  #grid(
-    columns: (12em, 1fr, 12em),
-    // Left
-    [#smallcaps("Stanford Math Tournament")],
-    // Center
-    align(center, [#smallcaps(test_metadata.name)]),
-    // Right
-    align(right)[#smallcaps("April 8, 2023")],
-  )
-  #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
-], footer: none, margin: auto)
+#set page(
+  header: [
+    #set text(10pt)
+    #grid(
+      columns: (4em, 8em, 1fr, 12em),
+      // Left
+      align(
+        bottom + left, if not is_local {
+          move(dy: 0.4em, image(width: 3em, height: 3em, "/assets/test_logo.png"))
+        },
+      ), smallcaps("Stanford Math Tournament"),
+      // Center
+      align(center, [#smallcaps(test_metadata.name)]),
+      // Right
+      align(right)[#smallcaps("April 8, 2023")],
+    )
+    #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
+  ], footer: none, margin: auto,
+)
 
 // Typeset problems.
 #let macros = (
@@ -258,7 +269,7 @@
   let boxed_regex = regex(`\\(boxed|ans)\{(`.text + nested_brace_pairs(4) + `)\}`.text)
   latex.replace(
     boxed_regex, (m, ..) => {
-      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, baseline: 6pt, " + convert("$" + m.captures.at(1) + "$") + ")\\fi"
+      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, baseline: 6pt, [" + mitex-convert(mode: "text", "$" + m.captures.at(1) + "$") + "])\\fi"
     },
   )
 }

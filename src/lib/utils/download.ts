@@ -8,7 +8,11 @@ function downloadURL(data: string, fileName: string) {
 	a.remove();
 }
 
-export function downloadBlob(data: Blob, fileName: string, mimeType: string) {
+export function downloadBlob(
+	data: Uint8Array,
+	fileName: string,
+	mimeType: string,
+) {
 	const url = window.URL.createObjectURL(
 		new Blob([data], {
 			type: mimeType,

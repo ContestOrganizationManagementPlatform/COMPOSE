@@ -7,7 +7,6 @@
 	import { handleError } from "$lib/handleError";
 	import { downloadBlob } from "$lib/utils/download";
 	import {
-		getImages,
 		getTestInfo,
 		getTestProblems,
 		getThisUser,
@@ -20,9 +19,14 @@
 	import { ImageBucket } from "$lib/ImageBucket";
 	import type { ProblemImage } from "$lib/getProblemImages";
 	import answerSheet from "./answer_sheet.typ?url";
+	import * as scheme from "$lib/scheme.json";
 
-	Typst.setRendererInitOptions({ getModule: () => rendererPath });
-	Typst.setCompilerInitOptions({ getModule: () => compilerPath });
+	try {
+		Typst.setRendererInitOptions({ getModule: () => rendererPath });
+		Typst.setCompilerInitOptions({ getModule: () => compilerPath });
+	} catch (e) {
+		console.error("compiler may have been initialized", e);
+	}
 
 	let testId = Number($page.params.id);
 	let test;
@@ -107,23 +111,28 @@
 					solutions: is_selected("Solutions"),
 				},
 			});
-
-			Typst.resetShadow();
-			Typst.mapShadow(
-				"/assets/test_metadata.json",
-				utf8Encode.encode(test_metadata)
-			);
-			Typst.mapShadow(
-				"/assets/problems.json",
-				utf8Encode.encode(JSON.stringify(problems))
-			);
-			console.log(test_metadata);
-			Typst.mapShadow(
-				"/answer_sheet_compiling.toml",
-				utf8Encode.encode("[config]\nlocal = false")
+			const test_logo = await fetch(scheme.test_logo).then((r) =>
+				r.arrayBuffer()
 			);
 
-			Typst.mapShadow("/main.typ", utf8Encode.encode(answer_template_body));
+			await Typst.resetShadow();
+			await Promise.all([
+				Typst.mapShadow(
+					"/assets/test_metadata.json",
+					utf8Encode.encode(test_metadata)
+				),
+				Typst.mapShadow("/assets/test_logo.png", new Uint8Array(test_logo)),
+				Typst.mapShadow(
+					"/assets/problems.json",
+					utf8Encode.encode(JSON.stringify(problems))
+				),
+				Typst.mapShadow(
+					"/answer_sheet_compiling.toml",
+					utf8Encode.encode("[config]\nlocal = false")
+				),
+				Typst.mapShadow("/main.typ", utf8Encode.encode(answer_template_body)),
+			]);
+			console.log("test metadata", test_metadata);
 
 			let { images, errorList }: { images: ProblemImage[]; errorList: any[] } =
 				(
@@ -145,13 +154,16 @@
 				throw errorList;
 			}
 
-			for (const image of images) {
-				Typst.mapShadow(
-					"/problem_images" + image.name,
-					new Uint8Array(await image.blob.arrayBuffer())
-				);
-			}
+			await Promise.all(
+				images.map(async (image) => {
+					return await Typst.mapShadow(
+						"/problem_images" + image.name,
+						new Uint8Array(await image.blob.arrayBuffer())
+					);
+				})
+			);
 
+			await new Promise((r) => setTimeout(() => r(1), 1000));
 			const pdf_array = await Typst.pdf({ mainFilePath: "/main.typ" });
 			downloadBlob(pdf_array, test.test_name + ".pdf", "application/pdf");
 

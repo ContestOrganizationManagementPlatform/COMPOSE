@@ -21,10 +21,10 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@myriaddreamin/typst-ts-renderer": "^0.4.2-rc6",
-		"@myriaddreamin/typst-ts-web-compiler": "^0.4.2-rc6",
-		"@myriaddreamin/typst.ts": "^0.4.2-rc6",
 		"@react2svelte/swipeable": "^0.1.4",
+		"@myriaddreamin/typst-ts-renderer": "^0.5.0-rc3",
+		"@myriaddreamin/typst-ts-web-compiler": "^0.5.0-rc3",
+		"@myriaddreamin/typst.ts": "^0.5.0-rc3",
 		"@supabase/auth-helpers-sveltekit": "^0.10.3",
 		"@supabase/supabase-js": "^2.38.0",
 		"@unified-latex/unified-latex": "^1.2.2",
