@@ -119,7 +119,7 @@
 
 #let problem_cell(i, problems) = {
   rect(
-    inset: (x: 60pt, y: 40pt), width: 100%, height: 50%,
+    inset: (x: 0.5in, y: 0.5in), width: 100%, height: 50%,
   )[
     #set text(size: 11pt, font: "New Computer Modern")
     *This is set #{ i + 1 }*
