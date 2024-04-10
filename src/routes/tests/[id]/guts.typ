@@ -85,9 +85,15 @@
   mitex-convert(mode: "text", macros + replace_image(latex, convert_to_typst))
 }
 
-#let answer_cell(index) = {
+// Creates a pattern for a marker line.
+#let line_length = 0.5in
+#let pat = pattern(size: (8.5in - line_length, 0.1in))[
+  #place(line(start: (0%, 0%), end: (line_length, 0%)))
+]
+
+#let answer_cell(index, top_of_page) = {
   rect(
-    inset: 50pt, width: 100%, height: 50%, grid(
+    inset: 50pt, width: 100%, height: 50%, stroke: if top_of_page { (bottom: pat) } else { (top: pat) }, grid(
       rows: (1.5fr, 2fr, 2fr, 2fr), grid(
         columns: (9fr, 1.5fr), align(center, box(width: 50%, align(left, [
           #text(size: 16pt, "Stanford Math Tournament 2023")
@@ -114,12 +120,12 @@
 #set page(margin: 0pt)
 
 #grid(
-  columns: (auto), rows: (auto, auto), ..range(problem_count).map(i => (i, i)).flatten().map(i => answer_cell(i)),
+  columns: (auto), rows: (auto, auto), ..range(problem_count).map(i => (answer_cell(i, true), answer_cell(i, false))).flatten(),
 )
 
-#let problem_cell(i, problems) = {
+#let problem_cell(i, problems, top_of_page) = {
   rect(
-    inset: (x: 0.5in, y: 0.5in), width: 100%, height: 50%,
+    inset: (x: 0.5in, y: 0.5in), width: 100%, height: 50%, stroke: if top_of_page { (bottom: pat) } else { (top: pat) },
   )[
     #set text(size: 11pt, font: "New Computer Modern")
     *This is set #{ i + 1 }*
@@ -127,11 +133,25 @@
     #enum(
       ..range(calc.min(3, problems.len())).map(
         index => {
-          enum.item(
-            i * 3 + index + 1, eval(
-              convert_to_typst(problems.at(index).problem_latex), mode: "markup", scope: mitex-scope,
-            ),
-          )
+          // Special hacky case for certain problem for spacing.
+          // TODO: @Tweoss remove this special case image to the right code.
+          if i * 3 + index + 1 == 4 {
+            enum.item(
+              i * 3 + index + 1, grid(
+                columns: (auto, 120pt), eval(
+                  convert_to_typst(
+                    problems.at(index).problem_latex.replace("\n\\image{image/SMTSemicirclesFinal.png}", ""),
+                  ), mode: "markup", scope: mitex-scope,
+                ), image("image/SMTSemicirclesFinal.png", height: 120pt, fit: "contain"),
+              ),
+            )
+          } else {
+            enum.item(
+              i * 3 + index + 1, eval(
+                convert_to_typst(problems.at(index).problem_latex), mode: "markup", scope: mitex-scope,
+              ),
+            )
+          }
         },
       ),
     )
@@ -139,5 +159,5 @@
 }
 
 #grid(
-  columns: (auto), rows: (auto, auto), ..problems.chunks(3).enumerate().map(((i, ps)) => (problem_cell(i, ps), problem_cell(i, ps))).flatten(),
+  columns: (auto), rows: (auto, auto), ..problems.chunks(3).enumerate().map(((i, ps)) => (problem_cell(i, ps, true), problem_cell(i, ps, false))).flatten(),
 )
