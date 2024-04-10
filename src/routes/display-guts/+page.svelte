@@ -38,14 +38,14 @@
 
 	async function updateTable() {
 		status = await getStatus()
-		if (curr_screen + 1 >= num_screens) curr_screen = 0;
-		else curr_screen += 2;
+		if (curr_screen + 2 >= num_screens) curr_screen = 0;
+		else curr_screen += 1;
 
     };
 
 	setInterval(function() {
     	updateTable();
-	}, 2000);
+	}, 5000);
 
 </script>
 
@@ -68,9 +68,9 @@
 				</tr>
 			</thead>
 			<tbody id = "leftbody">
-				{#each Array.from({ length: calculateIndices(0).end - calculateIndices(0).start }, (_, i) => i + calculateIndices(0).start) as i}
+				{#each Array.from({ length: Math.min(10, status.length) }, (_, i) => i) as i}
 					<tr class="gutsTr">
-						<td class="gutsResult">{max_per_side * curr_screen + i % max_per_side + 1}</td>
+						<td class="gutsResult">{i + 1}</td>
 						<td class="gutsResult teamName">{status[i].team_name}</td>
 						<td class="gutsResult">
 							<div class ="round">
