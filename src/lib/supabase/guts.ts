@@ -19,6 +19,15 @@ export async function getTeams() {
     return teams;
 }
 
+export async function getTeamTitles() {
+    const { data, error } = await supabase.from("teams").select("id, name");
+    if (error) {
+        throw error;
+    }
+    const teams = data.map((item) => ({ id: item.id, name: `[${item.id}] ${item.name}`}));
+    return teams;
+}
+
 // async function downloadJSON() {
 //     try {
 //         const cacheBuster = new Date().getTime();
@@ -149,6 +158,7 @@ export async function getStatus() {
     let status = [];
     let answer_data = await getAnswerData();
     const teams = await getTeams();
+    const team_titles = await getTeamTitles();
     for (let team of teams) {
         let score = 0;
         let showing_score = 0;
@@ -168,7 +178,7 @@ export async function getStatus() {
                 round_colors[i] = styles["background-dark"];
             }
         }
-        status.push({ team_name: team, score: score, showing_score: showing_score, round_colors: round_colors });
+        status.push({ team_name: team_titles[team - 1].name, score: score, showing_score: showing_score, round_colors: round_colors });
     }
     status.sort((a, b) => b.showing_score - a.showing_score);
     return status;
