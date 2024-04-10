@@ -220,7 +220,13 @@
       // Center
       align(center, [#smallcaps(test_metadata.name)]),
       // Right
-      align(right)[#smallcaps("April 13, 2024")],
+      align(
+        right,
+      )[#smallcaps(
+          datetime(
+            day: test_metadata.day, month: test_metadata.month, year: test_metadata.year,
+          ).display("[month repr:long] [day], [year padding:zero repr:full]"),
+        )],
     )
     #line(start: (0%, 0%), end: (100%, 0%), stroke: 1pt)
   ], footer: none, margin: auto,
