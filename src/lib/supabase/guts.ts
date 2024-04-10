@@ -156,7 +156,7 @@ export async function getStatus() {
             for (let j = 1; j < questions_per_round + 1; j++) {
                 if (answer_data[team][i][j]["correct"]) {
                     score += points[i - 1];
-                    if (j < max_round_display + 1) {
+                    if (i < max_round_display + 1) {
                         showing_score += points[i - 1];
                     }
                 }

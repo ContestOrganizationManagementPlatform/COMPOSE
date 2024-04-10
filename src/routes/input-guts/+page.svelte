@@ -9,7 +9,7 @@
 	import toast from "svelte-french-toast";
 
 	let test = "SMT 2024";
-	let round = "Team Round";
+	let round = "Guts Round";
 	let curr_team = "...";
 	let answer_data = {};
 	let init_team_answer_data = {};
