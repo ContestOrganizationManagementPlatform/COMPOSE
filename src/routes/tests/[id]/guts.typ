@@ -95,16 +95,29 @@
   rect(
     inset: 50pt, width: 100%, height: 50%, stroke: if top_of_page { (bottom: pat) } else { (top: pat) }, grid(
       rows: (1.5fr, 2fr, 2fr, 2fr), grid(
-        columns: (9fr, 1.5fr), align(center, box(width: 50%, align(left, [
-          #text(size: 16pt, "Stanford Math Tournament 2024")
-          Guts Round Answer Sheet
-        ]))), align(horizon, text(size: 24pt, weight: "medium", "Set " + str(index + 1))),
-      ), grid(
-        columns: (1.5fr, 1fr), if not is_local {
+        columns: (4fr, 9fr, 1.5fr), if not is_local {
           full_box(
-            align(center, image(width: 80pt, height: 80pt, "/assets/test_logo.png")),
+            align(
+              right, box(
+                width: 70pt, align(left, image(width: 60pt, height: 60pt, "assets/test_logo.png")),
+              ),
+            ),
           )
-        } else { "" }, full_box(stroke: 0.5pt, inset: 5pt, align(top + center, "Write team ID here.")),
+        } else {
+          ""
+        }, full_box(align(left + horizon, [
+          #text(size: 16pt, "Stanford Math Tournament 2024")
+
+          Guts Round Answer Sheet
+        ])), align(horizon, text(size: 24pt, weight: "medium", "Set " + str(index + 1))),
+      ), grid(
+        columns: (1.5fr, 1fr), full_box(
+          inset: (bottom: 0pt, left: 25pt, rest: 15pt), full_box(stroke: 0.5pt, inset: 5pt, align(top + center, "Write team ID here.")),
+        ), full_box(
+          inset: (bottom: 0pt, right: 0pt, rest: 15pt), full_box(
+            stroke: 0.5pt, inset: 5pt, align(top + center, "Write team name here."),
+          ),
+        ),
       ), grid(
         columns: (1fr, 1fr), ..range(index * 3 + 1, index * 3 + 4).map(
           i => {
