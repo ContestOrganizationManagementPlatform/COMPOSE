@@ -291,7 +291,7 @@
 
 #set enum(tight: false)
 #enum(
-  number-align: end + top, ..problems.enumerate().map(
+  ..problems.enumerate().map(
     ((i, p)) => {
       let p_typst = convert_to_typst(p.problem_latex)
       enum.item(
