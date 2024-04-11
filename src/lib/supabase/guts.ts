@@ -19,6 +19,15 @@ export async function getTeams() {
     return teams;
 }
 
+export async function getTeamTitles() {
+    const { data, error } = await supabase.from("teams").select("id, name");
+    if (error) {
+        throw error;
+    }
+    const teams = data.map((item) => ({ id: item.id, name: `[${item.id}] ${item.name}`}));
+    return teams;
+}
+
 // async function downloadJSON() {
 //     try {
 //         const cacheBuster = new Date().getTime();
@@ -85,7 +94,7 @@ export async function getAnswerData() {
     const teams = await getTeams();
     const { data, error } = await supabase
         .from('guts')
-        .select("team_id,round_num,answers,corrects")
+        .select("team_id,round_num,answers,corrects,incorrects")
     if (error) {
         throw error;
     }
@@ -95,17 +104,18 @@ export async function getAnswerData() {
             answer_data[team][i] = {};
             answer_data[team][i]["submitted"] = false;
             for (let j = 1; j < questions_per_round + 1; j++) {
-                answer_data[team][i][j] = { value: "", correct: false };
+                answer_data[team][i][j] = { value: "", correct: false, incorrect: false };
             }
         }
     }
     console.log(answer_data);
-
+    console.log(`data: ${data.length}`);
+    
     for (const entry of data) {
-        const { team_id, round_num, answers, corrects } = entry;
+        const { team_id, round_num, answers, corrects, incorrects } = entry;
         answer_data[team_id][round_num]["submitted"] = true;
         for (let j = 1; j < questions_per_round + 1; j++) {
-            answer_data[team_id][round_num][j] = { value: answers[j - 1], correct: corrects[j - 1] };
+            answer_data[team_id][round_num][j] = { value: answers[j - 1], correct: corrects[j - 1], incorrect: incorrects[j - 1]};
         }
     }
 
@@ -149,6 +159,7 @@ export async function getStatus() {
     let status = [];
     let answer_data = await getAnswerData();
     const teams = await getTeams();
+    const team_titles = await getTeamTitles();
     for (let team of teams) {
         let score = 0;
         let showing_score = 0;
@@ -168,7 +179,7 @@ export async function getStatus() {
                 round_colors[i] = styles["background-dark"];
             }
         }
-        status.push({ team_name: team, score: score, showing_score: showing_score, round_colors: round_colors });
+        status.push({ team_name: team_titles[team - 1].name, score: score, showing_score: showing_score, round_colors: round_colors });
     }
     status.sort((a, b) => b.showing_score - a.showing_score);
     return status;
@@ -222,15 +233,17 @@ export async function clear(curr_team, round) {
 
 export async function submit(curr_team, round, round_data) {
     let corrects = [];
+    let incorrects = [];
     let answers = [];
     for (let i = 1; i < questions_per_round + 1; i++) {
         corrects.push(round_data[i].correct);
+        incorrects.push(round_data[i].incorrect);
         answers.push(round_data[i].value);
     }
     const { error } = await supabase
         .from("guts")
         .upsert([
-            { team_id: curr_team, round_num: round, corrects: corrects, answers: answers}
+            { team_id: curr_team, round_num: round, corrects: corrects, incorrects: incorrects, answers: answers}
         ], { onConflict: "team_id,round_num" },)
 
     if (error) console.log('Error: ', error)
