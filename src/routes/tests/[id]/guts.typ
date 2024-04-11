@@ -147,7 +147,7 @@
       ..range(calc.min(3, problems.len())).map(
         index => {
           // Special hacky case for certain problem for spacing.
-          // TODO: @Tweoss remove this special case image to the right code.
+          // TODO: @Tweoss (francis) remove this special case image to the right code.
           if i * 3 + index + 1 == 4 {
             enum.item(
               i * 3 + index + 1, grid(
