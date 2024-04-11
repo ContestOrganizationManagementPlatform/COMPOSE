@@ -163,6 +163,7 @@
 					);
 				})
 			);
+			console.log(images);
 
 			await new Promise((r) => setTimeout(() => r(1), 1000));
 			const pdf_array = await Typst.pdf({ mainFilePath: "/main.typ" });

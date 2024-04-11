@@ -140,7 +140,7 @@
               i * 3 + index + 1, grid(
                 columns: (auto, 120pt), eval(
                   convert_to_typst(
-                    problems.at(index).problem_latex.replace("\n\\image{image/SMTSemicirclesFinal.png}", ""),
+                    problems.at(index).problem_latex.replace("\n\\image{/image/SMTSemicirclesFinal.png}", ""),
                   ), mode: "markup", scope: mitex-scope,
                 ), image(
                   "problem_images/image/SMTSemicirclesFinal.png", height: 120pt, fit: "contain",
