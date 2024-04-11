@@ -18,7 +18,7 @@
 	import { $typst as Typst } from "@myriaddreamin/typst.ts/dist/esm/contrib/snippet.mjs";
 	import { ImageBucket } from "$lib/ImageBucket";
 	import type { ProblemImage } from "$lib/getProblemImages";
-	import answerSheet from "./answer_sheet.typ?url";
+	import testSheet from "./test_sheet.typ?url";
 	import gutsSheet from "./guts.typ?url";
 	import * as scheme from "$lib/scheme.json";
 
@@ -90,7 +90,7 @@
 		e.target.innerText = "Processing";
 
 		try {
-			const answer_template_body = await fetch(test.test_name == "Guts" ? gutsSheet : answerSheet).then((r) =>
+			const answer_template_body = await fetch(test.test_name == "Guts" ? gutsSheet : testSheet).then((r) =>
 				r.text()
 			);
 
