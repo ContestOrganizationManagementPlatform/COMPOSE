@@ -111,7 +111,7 @@
           Guts Round Answer Sheet
         ])), align(horizon, text(size: 24pt, weight: "medium", "Set " + str(index + 1))),
       ), grid(
-        columns: (1.5fr, 1fr), full_box(
+        columns: (1fr, 3fr), full_box(
           inset: (bottom: 0pt, left: 25pt, rest: 15pt), full_box(stroke: 0.5pt, inset: 5pt, align(top + center, "Write team ID here.")),
         ), full_box(
           inset: (bottom: 0pt, right: 0pt, rest: 15pt), full_box(
