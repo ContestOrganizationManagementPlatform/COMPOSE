@@ -7,6 +7,7 @@
 	import { num_rounds } from "$lib/supabase/guts.ts";
 	import { questions_per_round } from "$lib/supabase/guts.ts";
 	import toast from "svelte-french-toast";
+	import { CenterCircle } from "carbon-icons-svelte";
 
 	let test = "SMT 2024";
 	let round = "Guts Round";
@@ -160,27 +161,41 @@
 		{/each}
 	</select>
 	<h2>Grading Team {curr_team}</h2>
+	<br>
 
 	<div id='all_info'>
 			<!-- <br><button on:click={() => submit_all(curr_team)}>Submit All</button><br> -->
-		{#each Array(num_rounds) as _, round}
-			<div class='block'>
-			<h3>Round {round + 1}</h3>
-			{#each Array(questions_per_round) as __, question}
-				<div class="set">
-				Response:
-				<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
-				Correct:
-				<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["correct"]}>
-				Incorrect:
-				<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["incorrect"]}>
-				</div>
-			{/each}
-			<button on:click={() => submit_helper(curr_team, round + 1)}>Submit</button>
-			<button on:click={() => clear_helper(curr_team, round + 1)}>Clear Data</button>
+		<style>
+			.grid-container {
+				display: grid;
+				grid-template-columns: repeat(3, 0.5fr); /* 3 columns */
+				grid-gap: 50px;
+			}
+		</style>
+		<div class="centered-container">
+			<div class="grid-container">
+				{#each Array(num_rounds) as _, round}
+					<div class='block'>
+						<h3>Round {round + 1}</h3>
+						{#each Array(questions_per_round) as __, question}
+							<div class="set">
+								{#if round === num_rounds - 1}
+									Response:
+									<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
+								{:else}
+									Correct:
+									<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["correct"]}>
+									Incorrect:
+									<input type="checkbox" bind:checked={curr_team_answer_data[round + 1][question + 1]["incorrect"]}>
+								{/if}	
+							</div>
+						{/each}
+						<button on:click={() => submit_helper(curr_team, round + 1)}>Submit</button>
+						<button on:click={() => clear_helper(curr_team, round + 1)}>Clear Data</button>
+					</div>
+				{/each}
 			</div>
-			<br>
-		{/each}
+		</div>
 	</div>
 	
 </div>
