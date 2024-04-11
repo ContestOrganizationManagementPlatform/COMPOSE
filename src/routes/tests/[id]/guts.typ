@@ -91,7 +91,7 @@
   #place(line(start: (0%, 0%), end: (line_length, 0%)))
 ]
 
-#let answer_cell(index, top_of_page) = {
+#let answer_cell(index, problems, top_of_page) = {
   rect(
     inset: 50pt, width: 100%, height: 50%, stroke: if top_of_page { (bottom: pat) } else { (top: pat) }, grid(
       rows: (1.5fr, 2fr, 2fr, 2fr), grid(
@@ -119,7 +119,7 @@
           ),
         ),
       ), grid(
-        columns: (1fr, 1fr), ..range(index * 3 + 1, index * 3 + 4).map(
+        columns: (1fr, 1fr), ..range(index * 3 + 1, index * 3 + 1 + problems.len()).map(
           i => {
             grid(
               columns: (1fr, 4fr), full_box(align(horizon + center, [#text(size: 16pt, str(i) + ".")])), full_box(align(horizon + center, box(width: 100%, height: 60%, stroke: 0.5pt))),
@@ -133,7 +133,7 @@
 #set page(margin: 0pt)
 
 #grid(
-  columns: (auto), rows: (auto, auto), ..range(problem_count).map(i => (answer_cell(i, true), answer_cell(i, false))).flatten(),
+  columns: (auto), rows: (auto, auto), ..problems.chunks(3).enumerate().map(((i, ps)) => (answer_cell(i, ps, true), answer_cell(i, ps, false))).flatten(),
 )
 
 #let problem_cell(i, problems, top_of_page) = {
