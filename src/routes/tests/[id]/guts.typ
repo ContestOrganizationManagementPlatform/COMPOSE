@@ -144,7 +144,7 @@
     *This is set #{ i + 1 }*
 
     #enum(
-      ..range(calc.min(3, problems.len())).map(
+      number-align: end + top, ..range(calc.min(3, problems.len())).map(
         index => {
           // Special hacky case for certain problem for spacing.
           // TODO: @Tweoss (francis) remove this special case image to the right code.
