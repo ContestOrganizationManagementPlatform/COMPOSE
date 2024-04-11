@@ -14,6 +14,7 @@
 		fetchNewTakerResponses,
 		submitGrade,
 		undoGrade,
+		getTestInfo,
 	} from "$lib/supabase";
 
 	export let showGrades = false;
@@ -34,6 +35,7 @@
 	});
 
 	let tournament = "";
+	let test = {test_name: ""};
 	let loaded = false;
 	let switchingProblems = false;
 
@@ -203,13 +205,14 @@
 		// Load initial card data
 		console.log(`Mounting...`);
 		getTournament();
+		test = await getTestInfo(testId) as any;
 	});
 </script>
 
 <svelte:window on:keydown={handleKey} />
 
 <div>
-	<h1>Grading {tournament}</h1>
+	<h1>Grading {tournament}: {test.test_name}</h1>
 
 	<br />
 	<Button title="Go Back" href="/grading" />

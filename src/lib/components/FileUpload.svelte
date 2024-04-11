@@ -158,8 +158,10 @@
 							ALIGNMENT_DOT_BOX
 						),
 					]);
-				} catch {
+				} catch (e) {
 					// Skip if no QR codes are found.
+					toast.error(e.message + " " + e.errors);
+					console.log("Error scanning", e.errors);
 					continue;
 				}
 
