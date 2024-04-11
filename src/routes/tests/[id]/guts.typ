@@ -96,7 +96,7 @@
     inset: 50pt, width: 100%, height: 50%, stroke: if top_of_page { (bottom: pat) } else { (top: pat) }, grid(
       rows: (1.5fr, 2fr, 2fr, 2fr), grid(
         columns: (9fr, 1.5fr), align(center, box(width: 50%, align(left, [
-          #text(size: 16pt, "Stanford Math Tournament 2023")
+          #text(size: 16pt, "Stanford Math Tournament 2024")
           Guts Round Answer Sheet
         ]))), align(horizon, text(size: 24pt, weight: "medium", "Set " + str(index + 1))),
       ), grid(
@@ -142,7 +142,9 @@
                   convert_to_typst(
                     problems.at(index).problem_latex.replace("\n\\image{image/SMTSemicirclesFinal.png}", ""),
                   ), mode: "markup", scope: mitex-scope,
-                ), image("image/SMTSemicirclesFinal.png", height: 120pt, fit: "contain"),
+                ), image(
+                  "problem_images/image/SMTSemicirclesFinal.png", height: 120pt, fit: "contain",
+                ),
               ),
             )
           } else {
