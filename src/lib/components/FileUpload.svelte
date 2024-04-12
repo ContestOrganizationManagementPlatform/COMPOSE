@@ -172,9 +172,9 @@
 				if (!test_id_page.match(/T\d+P\d+/)) {
 					throw "Expected test and page id in T\\d+P\\d+ format.";
 				}
-				// if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
-				// 	throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
-				// }
+				if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
+					throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
+				}
 				front_id = front_id.replace(" Team", "");
 				front_id = front_id.replace(" Individual", "");
 				const [start, end] = test_id_page.split("P");
