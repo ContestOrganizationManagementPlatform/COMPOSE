@@ -113,7 +113,7 @@ export async function fetchNewTakerResponses(
 				.from("grade_tracking")
 				.select("scan_id, test_id, test_problem_id")
 				.eq("test_problem_id", test_problem_id)
-				.eq("has_conflict", true)
+				.eq("needs_resolution", true)
 				.limit(batch_size - output.length);
 		}
 
@@ -209,6 +209,21 @@ export async function fetchNewTakerResponses(
 }
 
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
+	// if (data.is_override ?? false) {
+	// 	const { data: existingRow, error } = await supabase
+	// 		.from("grades")
+	// 		.select("*")
+	// 		.eq("scan_id", data.scan_id)
+	// 		.eq("test_problem_id", data.test_problem_id)
+	// 		.eq("is_override", true)
+	// 		.single();
+	// 	if (error) {
+	// 		throw error;
+	// 	}
+	// 	if (existingRow) {
+	// 		return;
+	// 	}
+	// }
 	const { error } = await supabase
 		.from("grades")
 		.upsert(
@@ -228,4 +243,92 @@ export async function undoGrade(grade_id: number): Promise<void> {
 	if (updateGradeError) {
 		throw updateGradeError;
 	}
+}
+
+export async function getGrades() {
+	const { data: gradeTrackingData, error: gradeTrackingError } = await supabase
+		.from("grade_tracking")
+		.select("scan_id,test_id,correct")
+		.eq("grade_finalized", true);
+	if (gradeTrackingError) {
+		throw gradeTrackingError;
+	}
+
+	const scores = {};
+
+	for (const row of gradeTrackingData) {
+		const { data: testData, error: testError } = await supabase
+			.from("tests")
+			.select("test_name")
+			.eq("id", row.test_id)
+			.single();
+
+		if (testError) {
+			throw testError;
+		}
+
+		const test_name = testData.test_name;
+		if (!Object.keys(scores).includes(test_name)) {
+			scores[test_name] = {};
+		}
+
+		const { data: scanData, error: scanError } = await supabase
+			.from("scans")
+			.select("taker_id")
+			.eq("id", row.scan_id)
+			.single();
+		if (scanError) {
+			throw scanError;
+		}
+		const taker_id = scanData.taker_id;
+		if (typeof taker_id === "string" && /[A-Z]$/.test(taker_id)) {
+			const { data: teamStudentData, error: teamStudentError } = await supabase
+				.from("team_students")
+				.select("student_id")
+				.eq("student_num", taker_id)
+				.single();
+			if (teamStudentError) {
+				throw teamStudentError;
+			}
+			
+			const { data: studentData, error: studentError } = await supabase
+				.from("students")
+				.select("first_name,last_name")
+				.eq("id", teamStudentData.student_id)
+				.single();
+			if (studentError) {
+				throw studentError;
+			}
+
+			if (!Object.keys(scores[test_name]).includes(taker_id)) {
+				scores[test_name][taker_id] = {
+					name: `${studentData.first_name} ${studentData.last_name}`,
+					score: 0,
+					grades: [],
+				};
+			}
+			scores[test_name][taker_id].score += row.correct ? 1 : 0;
+			scores[test_name][taker_id].grades.push(row.correct);
+		} else {
+			const { data: teamData, error: teamError } = await supabase
+				.from("teams")
+				.select("name")
+				.eq("number", taker_id)
+				.single();
+			if (teamError) {
+				throw teamError;
+			}
+
+			if (!Object.keys(scores[test_name]).includes(taker_id)) {
+				scores[test_name][taker_id] = {
+					name: teamData.name,
+					score: 0,
+					grades: [],
+				};
+			}
+			scores[test_name][taker_id].score += row.correct ? 1 : 0;
+			scores[test_name][taker_id].grades.push(row.correct);
+		}
+	}
+	return scores;
 }

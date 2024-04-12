@@ -299,6 +299,14 @@
 </div>
 
 <style>
+	@media (max-width: 600px) {
+	  .image-zoomer-mobile {
+		/* Adjust the width and height as needed */
+		width: 95%;
+		height: auto;
+	  }
+	}
+
 	h1 {
 		margin-bottom: 5px;
 	}

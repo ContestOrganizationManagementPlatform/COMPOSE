@@ -166,7 +166,7 @@
 
 			if (!front_id) {
 				unnamed_discriminators.front += 1;
-				front_id = "QR not found " + unnamed_discriminators.front;
+				front_id = "QR CODE NOT FOUND" + unnamed_discriminators.front;
 			}
 
 			return {
