@@ -23,7 +23,7 @@
 
 	let files = [];
 	let pngs_to_upload = new Map();
-	let unnamed_discriminator = 1;
+	let unnamed_discriminators = { test: 0, front: 0 };
 	let selectedRow = writable(null);
 	let showModal = writable(false);
 
@@ -106,27 +106,52 @@
 					.catch((e) => reject(e || "No QR code found"))
 			);
 		};
+		const scan_test_id = async (png, test_id_page_box) => {
+			const { data: test_id_page, cornerPoints } = await scan_box(
+				png,
+				test_id_page_box
+			);
+			// Assert that the test id matches a certain pattern.
+			if (!test_id_page.match(/T\d+P\d+/)) {
+				throw "Expected test and page id in T\\d+P\\d+ format.";
+			}
+			const [start, end] = test_id_page.split("P");
+			const test_id = start.substr(1);
+			// Convert from 1 indexed to 0 indexed.
+			const page = parseInt(end) - 1;
+			console.log(cornerPoints);
+			return { test_id, page, cornerPoints };
+		};
+		const scan_front_id = async (png, front_id_box) => {
+			let { data: front_id } = await scan_box(png, front_id_box);
+			if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
+				throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
+			}
+			front_id = front_id.replace(" Team", "");
+			front_id = front_id.replace(" Individual", "");
+			return { front_id };
+		};
 		const scan_boxes = async (
 			png,
 			test_id_page_box,
 			front_id_box,
 			alignment_dot_box
 		) => {
-			// Calls to scan box will throw if no QR code detected, so we
-			// assume if the function continues that there exist QR codes
-			// in this orientation.
-			const { data: test_id_page, cornerPoints } = await scan_box(
+			// We absolutely demand that the test and page qr code be visible.
+			// Otherwise, we consider this scan unreadable.
+			const { test_id, page, cornerPoints } = await scan_test_id(
 				png,
 				test_id_page_box
 			);
-			const { data: front_id } = await scan_box(png, front_id_box);
-
-			console.log(cornerPoints);
-			const dot_location = await detect_alignment_dot(
-				png,
-				expand_box(alignment_dot_box)
-			);
+			let front_id;
 			try {
+				let cornerPoints, dot_location;
+				dot_location = await detect_alignment_dot(
+					png,
+					expand_box(alignment_dot_box)
+				);
+				console.log(dot_location);
+				({ front_id } = await scan_front_id(png, front_id_box));
 				png = await apply_transform(
 					png,
 					test_id_page_box,
@@ -135,80 +160,63 @@
 					dot_location
 				);
 			} catch (e) {
-				toast.error(e.message);
-				console.error(e);
+				toast.error("Error scanning: " + e);
+				console.error("Error scanning", e);
 			}
-			console.log(dot_location);
-			// TODO: return also the dot's location.
-			return [test_id_page, front_id, png];
+
+			if (!front_id) {
+				unnamed_discriminators.front += 1;
+				front_id = "QR not found " + unnamed_discriminators.front;
+			}
+
+			return {
+				test_id,
+				page: page ?? "0",
+				front_id: front_id,
+				png,
+			};
 		};
 
 		for (const [file_name, pngs] of file_pngs) {
 			for (const png of pngs) {
 				// Try to get either the top right or the bottom left qr boxes.
-				let test_id_page, front_id, matched_png;
-				try {
-					[test_id_page, front_id, matched_png] = await Promise.any([
-						scan_boxes(
-							png[0],
-							TEST_ID_PAGE_BOX,
-							FRONT_ID_BOX,
-							ALIGNMENT_DOT_BOX
-						),
-						scan_boxes(
-							png[1],
-							TEST_ID_PAGE_BOX,
-							FRONT_ID_BOX,
-							ALIGNMENT_DOT_BOX
-						),
-					]);
-					// Assert that the test id matches a certain pattern.
-					if (!test_id_page.match(/T\d+P\d+/)) {
-						throw "Expected test and page id in T\\d+P\\d+ format.";
-					}
-					if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
-						throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
-					}
-					front_id = front_id.replace(" Team", "");
-					front_id = front_id.replace(" Individual", "");
-					const [start, end] = test_id_page.split("P");
-					const test_id = start.substr(1);
-					// Convert from 1 indexed to 0 indexed.
-					const page = parseInt(end) - 1;
-					const identifier = test_id + page + front_id;
-
-					// Handle already loaded conflicts.
-					if (pngs_to_upload.has(identifier)) {
-						pngs_to_upload = pngs_to_upload;
-						throw new Error(
-							`Found duplicated identifier: T${test_id}P${page} ${front_id} in ${file_name}. \
-						Conflicts with ${pngs_to_upload.get(identifier).file_name}`
-						);
-					}
-					pngs_to_upload.set(identifier, {
-						file_name,
-						matched_png,
-						blob_url: URL.createObjectURL(matched_png),
-						test_id,
-						page: page.toString(),
-						front_id,
-					});
-				} catch (e) {
-					// If any QR code is not found, then we replace with placeholders.
-					toast.error(e.message + " " + e.errors);
-					console.log("Error scanning", e.errors);
-
-					pngs_to_upload.set("QR not found " + unnamed_discriminator, {
-						file_name,
-						matched_png: png[0],
-						blob_url: URL.createObjectURL(png[0]),
-						test_id: "QR not found " + unnamed_discriminator,
+				const {
+					test_id,
+					page,
+					front_id,
+					png: matched_png,
+				} = await Promise.any([
+					scan_boxes(png[0], TEST_ID_PAGE_BOX, FRONT_ID_BOX, ALIGNMENT_DOT_BOX),
+					scan_boxes(png[1], TEST_ID_PAGE_BOX, FRONT_ID_BOX, ALIGNMENT_DOT_BOX),
+				]).catch((e) => {
+					toast.error("Error scanning: " + e);
+					console.log("Error scanning:", e);
+					unnamed_discriminators.test += 1;
+					unnamed_discriminators.front += 1;
+					return {
+						test_id: "QR not found " + unnamed_discriminators.test,
 						page: "0",
-						front_id: "QR not found",
-					});
+						front_id: "QR not found " + unnamed_discriminators.front,
+						png: png[0],
+					};
+				});
+				const identifier = test_id + page + front_id;
 
-					unnamed_discriminator += 1;
+				// Handle already loaded conflicts.
+				if (pngs_to_upload.has(identifier)) {
+					let message = `Found duplicated identifier: T${test_id}P${page} ${front_id} in ${file_name}. \
+						Conflicts with ${pngs_to_upload.get(identifier).file_name}`;
+					toast.error(message);
+					console.error(message);
 				}
+				pngs_to_upload.set(identifier, {
+					file_name,
+					matched_png,
+					blob_url: URL.createObjectURL(matched_png),
+					test_id,
+					page: page.toString(),
+					front_id,
+				});
 			}
 		}
 		// Trigger svelte to run listeners.
@@ -337,6 +345,12 @@
 		console.log($showModal);
 	}
 
+	function deleteRow(row) {
+			const identifier = row.test_id + row.page + row.front_id;
+			pngs_to_upload.delete(identifier);
+			pngs_to_upload = pngs_to_upload;
+	}
+
 	async function saveChanges() {
 		const row = $selectedRow;
 		pngs_to_upload.set(row.id, row);
@@ -425,6 +439,10 @@
 			if (dot > 0.9) {
 				best_cols.push(col);
 			}
+		}
+
+		if (best_cols.length == 0 || best_rows.length == 0) {
+			throw "Alignment dot not detected.";
 		}
 
 		const best_col = sum(best_cols) / best_cols.length;
@@ -531,6 +549,7 @@
 	expandable
 	headers={[
 		{ key: "edit", value: "" },
+		{ key: "delete", value: "" },
 		{ key: "file_name", value: "File Name" },
 		{ key: "test_id", value: "Test ID" },
 		{ key: "page", value: "Page Index" },
@@ -546,6 +565,10 @@
 		{#if cell.key === "edit"}
 			<button class="edit-icon" on:click={() => openModal(row)}>
 				<i class="fas fa-pencil-alt" />
+			</button>
+		{:else if cell.key === "delete"}
+			<button class="edit-icon" on:click={() => deleteRow(row)}>
+				<i class="fa-solid fa-trash"/>
 			</button>
 		{:else}
 			<div>
