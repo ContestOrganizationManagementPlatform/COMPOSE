@@ -14,6 +14,17 @@ export async function getImages(path: string) {
 	return data;
 }
 
+export async function getScan(testId, takerId) {
+	const { data, error } = await supabase
+		.from("scans")
+		.select("*")
+		.eq("test_id", testId)
+		.eq("taker_id", takerId)
+		.single();
+	if (error) throw error;
+	return data;
+}
+
 /**
  * Download all images
  *

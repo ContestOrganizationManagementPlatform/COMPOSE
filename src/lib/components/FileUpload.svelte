@@ -1,6 +1,7 @@
 <script>
-	import { DataTable } from "carbon-components-svelte";
+	import { DataTable, Modal, TextInput } from "carbon-components-svelte";
 	import JSZip from "jszip";
+	import { writable } from 'svelte/store';
 	import { uploadScan } from "$lib/supabase";
 	import { onMount } from "svelte";
 	import QrScanner from "qr-scanner";
@@ -22,6 +23,8 @@
 
 	let files = [];
 	let pngs_to_upload = new Map();
+    let selectedRow = writable(null);
+    let showModal = writable(false);
 
 	$: if (files) {
 		(async () => {
@@ -169,9 +172,9 @@
 				if (!test_id_page.match(/T\d+P\d+/)) {
 					throw "Expected test and page id in T\\d+P\\d+ format.";
 				}
-				if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
-					throw "Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format.";
-				}
+				// if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
+				// 	throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
+				// }
 				front_id = front_id.replace(" Team", "");
 				front_id = front_id.replace(" Individual", "");
 				const [start, end] = test_id_page.split("P");
@@ -308,6 +311,22 @@
 			toast.error(error.message);
 		}
 	}
+
+    function openModal(row) {
+        selectedRow.set(row);
+        showModal.set(true);
+		console.log(`Opening Modal`);
+		console.log(row);
+		console.log($selectedRow);
+		console.log($showModal);
+    }
+
+    async function saveChanges() {
+        const row = $selectedRow;
+        pngs_to_upload.set(row.id, row);
+		pngs_to_upload = pngs_to_upload;
+        showModal.set(false);		
+    }
 
 	const sum = (values) => values.reduce((a, b) => a + b, 0);
 
@@ -493,6 +512,7 @@
 	size="compact"
 	expandable
 	headers={[
+		{ key: "edit", value: "" },
 		{ key: "file_name", value: "File Name" },
 		{ key: "test_id", value: "Test ID" },
 		{ key: "page", value: "Page Index" },
@@ -504,12 +524,18 @@
 		}),
 	]}
 >
-	<svelte:fragment slot="cell" let:cell>
-		<div>
-			<div style="overflow: hidden;">
-				{cell.value == null || cell.value == "" ? "None" : cell.value}
+	<svelte:fragment slot="cell" let:row let:cell>
+		{#if cell.key === "edit"}
+			<button class="edit-icon" on:click={() => openModal(row)}>
+				<i class="fas fa-pencil-alt"></i>
+			</button>	
+		{:else}
+			<div>
+				<div style="overflow: hidden;">
+					{cell.value == null || cell.value == "" ? "None" : cell.value}
+				</div>
 			</div>
-		</div>
+		{/if}
 	</svelte:fragment>
 	<svelte:fragment slot="expanded-row" let:row>
 		<div class="flex">
@@ -521,6 +547,29 @@
 		</div>
 	</svelte:fragment>
 </DataTable>
+
+<Modal bind:open={$showModal}
+	modalHeading="Edit Scan Information"
+	primaryButtonText="Confirm"
+	secondaryButtonText="Cancel"
+	on:click:button--secondary={(e) => {
+		e.preventDefault();
+	}}
+	on:open
+	on:close={() => {
+		selectedRow.set(null);
+		showModal.set(false);
+	}}
+	on:submit={() => {
+		saveChanges();
+		selectedRow.set(null);
+	}}
+>
+	{#if $selectedRow}
+		<TextInput label="Test ID" labelText="Test ID #" bind:value={$selectedRow.test_id} />
+		<TextInput label="Taker ID" labelText="Student/Team ID" bind:value={$selectedRow.front_id} />
+	{/if}
+</Modal>
 
 <div id="canvas" />
 
