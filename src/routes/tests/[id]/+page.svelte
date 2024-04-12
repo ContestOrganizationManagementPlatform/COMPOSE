@@ -20,6 +20,7 @@
 	import type { ProblemImage } from "$lib/getProblemImages";
 	import testSheet from "./test_sheet.typ?url";
 	import gutsSheet from "./guts.typ?url";
+	import tiebreakerSheet from "./tiebreaker.typ?url";
 	import * as scheme from "$lib/scheme.json";
 
 	try {
@@ -90,7 +91,7 @@
 		e.target.innerText = "Processing";
 
 		try {
-			const answer_template_body = await fetch(test.test_name == "Guts" ? gutsSheet : testSheet).then((r) =>
+			const answer_template_body = await fetch(test.test_name == "Guts" ? gutsSheet : test.test_name.indexOf("Tiebreaker") != -1 ? tiebreakerSheet : testSheet).then((r) =>
 				r.text()
 			);
 
