@@ -1,7 +1,7 @@
 <script>
 	import { DataTable, Modal, TextInput } from "carbon-components-svelte";
 	import JSZip from "jszip";
-	import { writable } from 'svelte/store';
+	import { writable } from "svelte/store";
 	import { uploadScan } from "$lib/supabase";
 	import { onMount } from "svelte";
 	import QrScanner from "qr-scanner";
@@ -23,8 +23,9 @@
 
 	let files = [];
 	let pngs_to_upload = new Map();
-    let selectedRow = writable(null);
-    let showModal = writable(false);
+	let unnamed_discriminator = 1;
+	let selectedRow = writable(null);
+	let showModal = writable(false);
 
 	$: if (files) {
 		(async () => {
@@ -161,44 +162,53 @@
 							ALIGNMENT_DOT_BOX
 						),
 					]);
+					// Assert that the test id matches a certain pattern.
+					if (!test_id_page.match(/T\d+P\d+/)) {
+						throw "Expected test and page id in T\\d+P\\d+ format.";
+					}
+					if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
+						throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
+					}
+					front_id = front_id.replace(" Team", "");
+					front_id = front_id.replace(" Individual", "");
+					const [start, end] = test_id_page.split("P");
+					const test_id = start.substr(1);
+					// Convert from 1 indexed to 0 indexed.
+					const page = parseInt(end) - 1;
+					const identifier = test_id + page + front_id;
+
+					// Handle already loaded conflicts.
+					if (pngs_to_upload.has(identifier)) {
+						pngs_to_upload = pngs_to_upload;
+						throw new Error(
+							`Found duplicated identifier: T${test_id}P${page} ${front_id} in ${file_name}. \
+						Conflicts with ${pngs_to_upload.get(identifier).file_name}`
+						);
+					}
+					pngs_to_upload.set(identifier, {
+						file_name,
+						matched_png,
+						blob_url: URL.createObjectURL(matched_png),
+						test_id,
+						page: page.toString(),
+						front_id,
+					});
 				} catch (e) {
-					// Skip if no QR codes are found.
+					// If any QR code is not found, then we replace with placeholders.
 					toast.error(e.message + " " + e.errors);
 					console.log("Error scanning", e.errors);
-					continue;
-				}
 
-				// Assert that the test id matches a certain pattern.
-				if (!test_id_page.match(/T\d+P\d+/)) {
-					throw "Expected test and page id in T\\d+P\\d+ format.";
-				}
-				if (!front_id.match(/\d{3}(([ABCDEF] Individual)|( Team))/)) {
-					throw `Expected front id in \\d{3}(([ABCDEF] Individual)|( Team)) format. Instead got ${front_id}`;
-				}
-				front_id = front_id.replace(" Team", "");
-				front_id = front_id.replace(" Individual", "");
-				const [start, end] = test_id_page.split("P");
-				const test_id = start.substr(1);
-				// Convert from 1 indexed to 0 indexed.
-				const page = parseInt(end) - 1;
-				const identifier = test_id + page + front_id;
+					pngs_to_upload.set("QR not found " + unnamed_discriminator, {
+						file_name,
+						matched_png: png[0],
+						blob_url: URL.createObjectURL(png[0]),
+						test_id: "QR not found " + unnamed_discriminator,
+						page: "0",
+						front_id: "QR not found",
+					});
 
-				// Handle already loaded conflicts.
-				if (pngs_to_upload.has(identifier)) {
-					pngs_to_upload = pngs_to_upload;
-					throw new Error(
-						`Found duplicated identifier: T${test_id}P${page} ${front_id} in ${file_name}. \
-						Conflicts with ${pngs_to_upload.get(identifier).file_name}`
-					);
+					unnamed_discriminator += 1;
 				}
-				pngs_to_upload.set(identifier, {
-					file_name,
-					matched_png,
-					blob_url: URL.createObjectURL(matched_png),
-					test_id,
-					page: page.toString(),
-					front_id,
-				});
 			}
 		}
 		// Trigger svelte to run listeners.
@@ -303,7 +313,13 @@
 
 	async function upload_scans() {
 		try {
-			await Promise.all(pngs_to_upload.entries().map(([_, png]) => uploadScan(png.matched_png, png.test_id, png.page, png.front_id)));
+			await Promise.all(
+				pngs_to_upload
+					.entries()
+					.map(([_, png]) =>
+						uploadScan(png.matched_png, png.test_id, png.page, png.front_id)
+					)
+			);
 			pngs_to_upload.clear();
 			pngs_to_upload = pngs_to_upload;
 		} catch (error) {
@@ -312,21 +328,21 @@
 		}
 	}
 
-    function openModal(row) {
-        selectedRow.set(row);
-        showModal.set(true);
+	function openModal(row) {
+		selectedRow.set(row);
+		showModal.set(true);
 		console.log(`Opening Modal`);
 		console.log(row);
 		console.log($selectedRow);
 		console.log($showModal);
-    }
+	}
 
-    async function saveChanges() {
-        const row = $selectedRow;
-        pngs_to_upload.set(row.id, row);
+	async function saveChanges() {
+		const row = $selectedRow;
+		pngs_to_upload.set(row.id, row);
 		pngs_to_upload = pngs_to_upload;
-        showModal.set(false);		
-    }
+		showModal.set(false);
+	}
 
 	const sum = (values) => values.reduce((a, b) => a + b, 0);
 
@@ -467,8 +483,10 @@
 		const t = new DOMMatrix()
 			.translate(expected.dot_x, expected.dot_y)
 			.rotate(
-					(Math.atan2(expected_vec.y, expected_vec.x) -
-					Math.atan2(scanned_vec.y, scanned_vec.x)) * 180 / Math.PI
+				((Math.atan2(expected_vec.y, expected_vec.x) -
+					Math.atan2(scanned_vec.y, scanned_vec.x)) *
+					180) /
+					Math.PI
 			)
 			.scale(scale, scale)
 			.translate(-scanned.dot_x, -scanned.dot_y);
@@ -476,7 +494,7 @@
 		context.setTransform(t);
 
 		context.drawImage(image_bitmap, 0, 0);
-		const output =  await new Promise((resolve) => {
+		const output = await new Promise((resolve) => {
 			canvas.toBlob(resolve);
 		});
 		canvas.remove();
@@ -527,8 +545,8 @@
 	<svelte:fragment slot="cell" let:row let:cell>
 		{#if cell.key === "edit"}
 			<button class="edit-icon" on:click={() => openModal(row)}>
-				<i class="fas fa-pencil-alt"></i>
-			</button>	
+				<i class="fas fa-pencil-alt" />
+			</button>
 		{:else}
 			<div>
 				<div style="overflow: hidden;">
@@ -548,7 +566,8 @@
 	</svelte:fragment>
 </DataTable>
 
-<Modal bind:open={$showModal}
+<Modal
+	bind:open={$showModal}
 	modalHeading="Edit Scan Information"
 	primaryButtonText="Confirm"
 	secondaryButtonText="Cancel"
@@ -566,8 +585,16 @@
 	}}
 >
 	{#if $selectedRow}
-		<TextInput label="Test ID" labelText="Test ID #" bind:value={$selectedRow.test_id} />
-		<TextInput label="Taker ID" labelText="Student/Team ID" bind:value={$selectedRow.front_id} />
+		<TextInput
+			label="Test ID"
+			labelText="Test ID #"
+			bind:value={$selectedRow.test_id}
+		/>
+		<TextInput
+			label="Taker ID"
+			labelText="Student/Team ID"
+			bind:value={$selectedRow.front_id}
+		/>
 	{/if}
 </Modal>
 
