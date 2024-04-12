@@ -22,3 +22,13 @@ normalizeIndividualScores - PLACEHOLDER does not exist in normalizedScores, but 
 
 normalizeIndividualScores - 002 does not exist in normalizedScores, but will now add
 
+readCsvString - Invalid Data: {"﻿Rank":"","id":"","score":"","name":"","Team":"","Organzation":"","HM":""}
+
+readCsvString - Invalid Data: {"﻿Rank":"","id":"","score":"","name":"","Team":"","Organzation":"","HM":""}
+
+readCsvString - Invalid Data: {"﻿Rank":"","id":"","score":"","name":"","Team":"","Organzation":"","HM":""}
+
+readCsvString - Invalid Data: {"﻿Rank":"","id":"","score":"","name":"","Team":"","Organzation":"","HM":""}
+
+readCsvString - Invalid Data: {"﻿Rank":"","id":"","score":"","name":"","Team":"","Organzation":"","HM":""}
+

@@ -374,6 +374,74 @@ function calculateOverallScores(logFile, teams, roster, team, power, guts, gener
     });
     return rankedCsv;
 }
+
+/*
+* Create csvs ranking individual by their csv scores
+*/
+function rankIndividuals(directoryName, logFile) {
+    if (directoryName === '') {
+        directoryName = path.join(__dirname, '.', 'grading');
+    }
+    var data = directoryName;
+
+    // Read in all csvs as strings
+    var general = fs.readFileSync("".concat(data, "/general.csv"), 'utf8');
+    var discrete = fs.readFileSync("".concat(data, "/discrete.csv"), 'utf8');
+    var algebra = fs.readFileSync("".concat(data, "/algebra.csv"), 'utf8');
+    var geometry = fs.readFileSync("".concat(data, "/geometry.csv"), 'utf8');
+    var calculus = fs.readFileSync("".concat(data, "/calculus.csv"), 'utf8');
+    
+    // Read all the csvs into JSON objects
+    general = readCsvString(general, logFile, "");
+    discrete = readCsvString(discrete, logFile, "");
+    algebra = readCsvString(algebra, logFile, "");
+    geometry = readCsvString(geometry, logFile, "");
+    calculus = readCsvString(calculus, logFile, "");
+
+    general.sort((a, b) => b.score - a.score); 
+    algebra.sort((a, b) => b.score - a.score); 
+    calculus.sort((a, b) => b.score - a.score); 
+    discrete.sort((a, b) => b.score - a.score); 
+    geometry.sort((a, b) => b.score - a.score);
+
+    fs.writeFileSync('generalRanked.csv', convertJsonToCsv(general), { flag: 'w' }, function (err) {
+        if (err) { /* handle error */ }
+    });
+
+    fs.writeFileSync('discreteRanked.csv', convertJsonToCsv(discrete), { flag: 'w' }, function (err) {
+        if (err) { /* handle error */ }
+    });
+
+    fs.writeFileSync('algebraRanked.csv', convertJsonToCsv(algebra), { flag: 'w' }, function (err) {
+        if (err) { /* handle error */ }
+    });
+
+    fs.writeFileSync('geometryRanked.csv', convertJsonToCsv(geometry), { flag: 'w' }, function (err) {
+        if (err) { /* handle error */ }
+    });
+
+    fs.writeFileSync('calculusRanked.csv', convertJsonToCsv(calculus), { flag: 'w' }, function (err) {
+        if (err) { /* handle error */ }
+    });
+
+    function convertJsonToCsv(jsonArray) {
+        if (jsonArray.length === 0) {
+            return '';
+        }
+        var headers = Object.keys(jsonArray[0]);
+        var csv = headers.join(',') + '\n';
+        for (var i = 0; i < jsonArray.length; i++) {
+            var row = [];
+            for (var j = 0; j < headers.length; j++) {
+                var value = jsonArray[i][headers[j]];
+                row.push(value);
+            }
+            csv += row.join(',') + '\n';
+        }
+        return csv;
+    }
+}
+
 function main(directoryName) {
     if (directoryName === '') {
         directoryName = path.join(__dirname, '.', 'grading');
@@ -393,6 +461,9 @@ function main(directoryName) {
     var geometry = fs.readFileSync("".concat(data, "/geometry.csv"), 'utf8');
     var calculus = fs.readFileSync("".concat(data, "/calculus.csv"), 'utf8');
     calculateOverallScores(logFile, teams, roster, team, power, guts, general, discrete, algebra, geometry, calculus);
+
+    rankIndividuals(directoryName, logFile);
+
     fs.closeSync(logFile);
 }
 main(path.join(__dirname, '.', 'grading'));

@@ -1,0 +1,81 @@
+﻿Rank,id,score,name,Team,Organzation,HM
+1,013E,9.0,Advaith Avadhanam,Random Math,Random Math,HM
+2,020A,8.0,Angela Liu,AlphaStar AIR,AlphaStar Academy,HM
+3,006E,8.0,Qiao Zhang,YEA Spice,Youth Euclid Association,HM
+4,039D,8.0,Michelle Liang,Canyon Crest Conspiracy,Canyon Crest Academy,HM
+5,020B,8.0,Linus Tang,AlphaStar AIR,AlphaStar Academy,HM
+6,036C,8.0,Alex Chen,AlphaStar EARTH,AlphaStar Academy,HM
+7,008A,7.0,Jacopo  Rizzo,San Diego Math Circle,San Diego Math Circle,HM
+7,013D,7.0,Skyler Mao,Random Math,Random Math,HM
+7,014E,7.0,Steve Zhang,Gunn High: Roger Fan Club,Henry M. Gunn High School,HM
+7,031E,7.0,Robert Feng,BISV Bobcats,Basis Independent Silicon Valley,HM
+7,036A,7.0,Taiga Nishida,AlphaStar EARTH,AlphaStar Academy,HM
+12,006F,6.0,Vivian Loh,YEA Spice,Youth Euclid Association,HM
+12,010A,6.0,Daniel Kim,Lynbrook Vikings,Lynbrook High School,HM
+12,010B,6.0,Steven Pan,Lynbrook Vikings,Lynbrook High School,HM
+12,020E,6.0,Aarush Khare,AlphaStar AIR,AlphaStar Academy,HM
+12,025D,6.0,Ishir Garg,Leland High: Almaden Platyπ,Leland High School,HM
+12,038E,6.0,Evan Yang,Mission San Jose,MSJ Math Club,HM
+18,006D,5.0,Neal Yan,YEA Spice,Youth Euclid Association,
+18,008E,5.0,Justin  Zhang,San Diego Math Circle,San Diego Math Circle,
+18,028A,5.0,Ishani Agarwal,Saratoga,Saratoga High School,
+18,031C,5.0,Felix Liu,BISV Bobcats,Basis Independent Silicon Valley,
+18,032A,5.0,Sahil Mehta,Amador Valley High School,Amador Valley High School,
+18,038C,5.0,Emma  Li,Mission San Jose,MSJ Math Club,
+18,040A,5.0,Garrett  Cai,Homestead High Mustangs,Homestead High School,
+25,008D,4.0,Elliott Liu,San Diego Math Circle,San Diego Math Circle,
+25,009D,4.0,Zhao Li,Saint Francis High School,Saint Francis High School,
+27,005D,3.0,Uma  Shukla,LCHS-P,La Canada High School,
+27,009C,3.0,Tej Nadkarni,Saint Francis High School,Saint Francis High School,
+27,018E,3.0,Yourui Shao,Athemath,Athemath,
+27,020F,3.0,David Zhang,AlphaStar AIR,AlphaStar Academy,
+27,027B,3.0,Mark Rhee,San Mateo Bearcats,San Mateo High School,
+27,028E,3.0,Alan Lu,Saratoga,Saratoga High School,
+27,032B,3.0,Ethan Han,Amador Valley High School,Amador Valley High School,
+27,032D,3.0,Dennis  Chen,Amador Valley High School,Amador Valley High School,
+27,033C,3.0,Arnav Ashok,SCHSMathletes,Santa Clara High School,
+27,036E,3.0,Akilan Paramasivam,AlphaStar EARTH,AlphaStar Academy,
+27,038A,3.0,Brian Li,Mission San Jose,MSJ Math Club,
+38,003A,2.0,Michael Liu,SCMC Limit Breakers,Santa Clara Math Circle,
+38,003D,2.0,Dhruv  Bharadwaj,SCMC Limit Breakers,Santa Clara Math Circle,
+38,005C,2.0,Chowon Kim,LCHS-P,La Canada High School,
+38,007D,2.0,Crystal Xie,Quarry Lane Cougars,Quarry Lane School,
+38,007E,2.0,Jack Guo,Quarry Lane Cougars,Quarry Lane School,
+38,017B,2.0,Woong Choi,LAHS,Los Altos High School,
+38,019D,2.0,Dingzhen Yao,LCHS-Q,La Canada High School,
+38,022A,2.0,Kaiwen Chen,EDUBUS,EDUBUS,
+38,025B,2.0,Caitlynn Sue,Leland High: Almaden Platyπ,Leland High School,
+38,029E,2.0,Harshil Nukala,DVHS,Dougherty Valley High School,
+38,031A,2.0,Lorraine Wang,BISV Bobcats,Basis Independent Silicon Valley,
+38,038D,2.0,Qinxuan (Rachel) Li,Mission San Jose,MSJ Math Club,
+38,039A,2.0,Stephen Zhu,Canyon Crest Conspiracy,Canyon Crest Academy,
+51,005E,1.0,Blake Chang,LCHS-P,La Canada High School,
+51,009E,1.0,Medha Mahanta,Saint Francis High School,Saint Francis High School,
+51,018A,1.0,Diya Vatsavai,Athemath,Athemath,
+51,018C,1.0,Suhani Pahuja,Athemath,Athemath,
+51,025A,1.0,Nadia Karpenko,Leland High: Almaden Platyπ,Leland High School,
+51,025F,1.0,Maggie Shen,Leland High: Almaden Platyπ,Leland High School,
+51,030E,1.0,Shingki Mo,Lowell,Lowell High School,
+51,030F,1.0,Jimmy Liu,Lowell,Lowell High School,
+51,031B,1.0,Pranav Bodapati,BISV Bobcats,Basis Independent Silicon Valley,
+51,034D,1.0,Ethan Hang,Milpitas High: AP® Sleep Deprivation >:),Milpitas High School Math Club,
+51,039C,1.0,Ethan K Song,Canyon Crest Conspiracy,Canyon Crest Academy,
+51,040C,1.0,Daniel Matsui Smola,Homestead High Mustangs,Homestead High School,
+63,003B,0.0,Kosei Tsukamoto,SCMC Limit Breakers,Santa Clara Math Circle,
+63,003E,0.0,Rei Yamamoto,SCMC Limit Breakers,Santa Clara Math Circle,
+63,005F,0.0,Dash Lam,LCHS-P,La Canada High School,
+63,008B,0.0,Anthony  Wang,San Diego Math Circle,San Diego Math Circle,
+63,015E,0.0,Zengyao Li,West Ranch High School,West Ranch High School,
+63,017C,0.0,Yeonji Lee,LAHS,Los Altos High School,
+63,017E,0.0,Edwin Mu,LAHS,Los Altos High School,
+63,019B,0.0,Cayden Chang,LCHS-Q,La Canada High School,
+63,019E,0.0,Joanne Kim,LCHS-Q,La Canada High School,
+63,022C,0.0,Erle Chen,EDUBUS,EDUBUS,
+63,023B,0.0,Neil Krishnan,Harker Eagles,The Harker School,
+63,027E,0.0,Arush Bisht,San Mateo Bearcats,San Mateo High School,
+63,027F,0.0,Topias Rajamaki,San Mateo Bearcats,San Mateo High School,
+63,029C,0.0,Shreyas Swaminathan,DVHS,Dougherty Valley High School,
+63,030A,0.0,Jonathan Leung,Lowell,Lowell High School,
+63,030D,0.0,Xinuo Wang,Lowell,Lowell High School,
+63,033D,0.0,Jun Ahn,SCHSMathletes,Santa Clara High School,
+63,035C,0.0,Dhruv Jena,Mountain House Mustangs,Mountain House High School,
