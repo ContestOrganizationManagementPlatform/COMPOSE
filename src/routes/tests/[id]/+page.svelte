@@ -98,6 +98,7 @@
 			if (test.test_name == "Integration Bee") {
 				// Sort by ascending difficulty. 
 				problems = problems.sort((a, b) => a.difficulty - b.difficulty);
+				console.log("sorting by difficulty", problems);
 			}
 
 			let utf8Encode = new TextEncoder();
