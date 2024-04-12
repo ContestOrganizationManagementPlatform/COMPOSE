@@ -94,6 +94,12 @@
 				r.text()
 			);
 
+			// TODO: @tweoss (francis) get rid of this hack of using test name directly
+			if (test.test_name == "Integration Bee") {
+				// Sort by ascending difficulty. 
+				problems = problems.sort((a, b) => a.difficulty - b.difficulty);
+			}
+
 			let utf8Encode = new TextEncoder();
 			let [year, month, day] = test.tournaments.tournament_date
 				.split("-")
