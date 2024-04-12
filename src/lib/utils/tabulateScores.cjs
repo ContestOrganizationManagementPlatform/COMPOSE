@@ -207,6 +207,9 @@ function normalizeIndividualScores(logFile, roster, normalizedScores, general, d
                     // If the student has a score for this test, include it
                     var test_1 = otherTests[i].find(function (test) { return test.id === studentID; });
                     if (test_1) {
+                        // if (teamID === '006') {
+                        //     console.log(test_1);
+                        // }
                         // If the student has not been added to teamTests, add them
                         if (!teamTests[teamID][studentID]) {
                             teamTests[teamID][studentID] = {};
@@ -248,10 +251,21 @@ function normalizeIndividualScores(logFile, roster, normalizedScores, general, d
                 for (var testID in student) {
                     totalScore += Number(student[testID].score);
                 }
+                // console.log(teamID);
+                // console.log(teamID === '014');
+                // if (teamID === '014') {
+                //     console.log(totalScore);
+                // }
             }
             numPeople++;
         }
-        var averageScore = (IN_PERSON) ? (totalScore / Math.max(numPeople, 5)) : (totalScore / Math.max(numPeople, 6));
+        var minStudents = (IN_PERSON) ? 5 : 6;
+        var maxStudents = (IN_PERSON) ? 6 : 8;
+        // if (teamID === '006') {
+        //     console.log(totalScore);
+        // }
+        var averageScore = totalScore * maxStudents / Math.max(numPeople, minStudents);
+        // (IN_PERSON) ? (totalScore / Math.max(numPeople, 5)) : (totalScore / Math.max(numPeople, 6));
         var index = normalizedScores.findIndex(function (json) { return json.id === teamID; });
         if (index === -1) {
             fs.writeSync(logFile, "normalizeIndividualScores - ".concat(teamID, " does not exist in normalizedScores, but will now add\n\n"), { flag: 'a' });
@@ -297,8 +311,10 @@ function calculateOverallTeamScore(team) {
     var power = team.scores.power || 0;
     var guts = team.scores.guts || 0;
     var teamScore = team.scores.team || 0;
+    // console.log(team);
     // Calculate the team score using the formula
     var overallScore = 0.3 * individualAverage + 0.2 * power + 0.2 * guts + 0.3 * teamScore;
+    // console.log(overallScore)
     // Return the calculated score
     return overallScore;
 }
@@ -340,6 +356,9 @@ function calculateOverallScores(logFile, teams, roster, team, power, guts, gener
         var score = team_2.scores.overallScore;
         if (score !== previousScore) {
             rank += 1 + toSkip;
+            toSkip = 0;
+        } else {
+            toSkip++;
         }
         rankedCsv += "".concat(teamID, ",").concat(name_1, ",").concat(score, ",").concat(rank, "\n");
         previousScore = score;
@@ -376,5 +395,5 @@ function main(directoryName) {
     calculateOverallScores(logFile, teams, roster, team, power, guts, general, discrete, algebra, geometry, calculus);
     fs.closeSync(logFile);
 }
-main(path.join(__dirname, '.', 'testData'));
+main(path.join(__dirname, '.', 'grading'));
 module.exports = { SCALING_MAP: SCALING_MAP, readCsvString: readCsvString, calculateScalingFactor: calculateScalingFactor, normalizeTeamScore: normalizeTeamScore, sortAndScale: sortAndScale, normalizeIndividualScores: normalizeIndividualScores, normalizeScores: normalizeScores, calculateOverallTeamScore: calculateOverallTeamScore, calculateOverallScores: calculateOverallScores, main: main };

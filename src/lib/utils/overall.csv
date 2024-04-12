@@ -1,43 +1,43 @@
 id,name,score,rank
-013,Random Math,143.15,1
-020,AlphaStar AIR,140.8,2
-008,San Diego Math Circle,129.08,3
-014,Gunn High: Roger Fan Club,128.23,4
-028,Saratoga,128.23,4
-011,Proof School,126.28,5
-006,YEA Spice,119.32,6
-036,AlphaStar EARTH,114.1,7
-010,Lynbrook Vikings,108.6,8
-039,Canyon Crest Conspiracy,88.96,9
-038,Mission San Jose,83.67,10
-031,BISV Bobcats,81.84,11
-004,Menlo School,76.81,12
-032,Amador Valley High School,74.34,13
-007,Quarry Lane Cougars,74.22,14
-023,Harker Eagles,71.91,15
-012,TKA,68.34,16
-009,Saint Francis High School,67.15,17
-040,Homestead High Mustangs,65.25,18
-025,Leland High: Almaden Platyπ,63.32,19
-029,DVHS,59.12,20
-017,LAHS,59.11,21
-018,Athemath,57.57,22
-041,Paly Trolls,55.49,23
-027,San Mateo Bearcats,54.42,24
-016,Irvington High Blue,50.09,25
-005,LCHS-P,44.94,26
-034,Milpitas High: AP® Sleep Deprivation >:),39.28,27
-022,EDUBUS,35.95,28
-003,SCMC Limit Breakers,35.59,29
-033,SCHSMathletes,33.24,30
-030,Lowell,33.14,31
-019,LCHS-Q,30.13,32
-015,West Ranch High School,29.6,33
-021,Stratford Math Circles,29.05,34
-024,Monte Vista: Allen's Apostles,25.18,35
-001,CAMS,24.22,36
-035,Mountain House Mustangs,22.93,37
-026,Terra Linda High: Super Secret Math Club,21.49,38
-037,Cupertino High Red,14.46,39
-002,Los Gatos High School,0,40
-PLACEHOLDER,,0,40
+013,Random Math,301.07,1
+020,AlphaStar AIR,292.84,2
+028,Saratoga,283.2,3
+014,Gunn High: Roger Fan Club,251.97,4
+006,YEA Spice,240.32,5
+008,San Diego Math Circle,239.26,6
+036,AlphaStar EARTH,227.56,7
+010,Lynbrook Vikings,216.46,8
+011,Proof School,200.88,9
+039,Canyon Crest Conspiracy,182.89,10
+031,BISV Bobcats,177.43,11
+038,Mission San Jose,177.39,12
+032,Amador Valley High School,173.24,13
+004,Menlo School,151.09,14
+007,Quarry Lane Cougars,150.06,15
+040,Homestead High Mustangs,149.36,16
+023,Harker Eagles,145.73,17
+012,TKA,138.24,18
+009,Saint Francis High School,133.48,19
+029,DVHS,133.02,20
+025,Leland High: Almaden Platyπ,128.92,21
+041,Paly Trolls,123.19,22
+017,LAHS,117.93,23
+018,Athemath,117.72,24
+016,Irvington High Blue,110.94,25
+005,LCHS-P,105.27,26
+027,San Mateo Bearcats,92.01,27
+034,Milpitas High: AP® Sleep Deprivation >:),85.54,28
+024,Monte Vista: Allen's Apostles,84.14,29
+022,EDUBUS,82.66,30
+003,SCMC Limit Breakers,73.63,31
+021,Stratford Math Circles,71.36,32
+030,Lowell,68.96,33
+015,West Ranch High School,63.46,34
+033,SCHSMathletes,59.2,35
+019,LCHS-Q,59.14,36
+001,CAMS,40.69,37
+035,Mountain House Mustangs,38.71,38
+026,Terra Linda High: Super Secret Math Club,33.96,39
+037,Cupertino High Red,19.63,40
+PLACEHOLDER,,0,41
+002,Los Gatos High School,0,41

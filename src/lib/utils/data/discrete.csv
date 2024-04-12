@@ -1,0 +1,92 @@
+﻿Rank,id,score,name,Team,Organzation,HM
+1,020B,8.0,Linus Tang,AlphaStar AIR,AlphaStar Academy,HM
+2,006E,7.0,Qiao Zhang,YEA Spice,Youth Euclid Association,HM
+3,014E,7.0,Steve Zhang,Gunn High: Roger Fan Club,Henry M. Gunn High School,HM
+4,006A,7.0,Sheldon Tan,YEA Spice,Youth Euclid Association,HM
+5,011A,7.0,Pico Gilman,Proof School,Proof School,HM
+6,028D,7.0,Victoria Hu,Saratoga,Saratoga High School,HM
+7,013F,6.0,Kavan Doctor,Random Math,Random Math,HM
+7,020C,6.0,Rohan Das,AlphaStar AIR,AlphaStar Academy,HM
+7,020F,6.0,David Zhang,AlphaStar AIR,AlphaStar Academy,HM
+7,028B,6.0,Bryan Li,Saratoga,Saratoga High School,HM
+7,028F,6.0,Lawson Wang,Saratoga,Saratoga High School,HM
+7,036C,6.0,Alex Chen,AlphaStar EARTH,AlphaStar Academy,HM
+7,038E,6.0,Evan Yang,Mission San Jose,MSJ Math Club,HM
+14,005A,5.0,Neal Frankenberg,LCHS-P,La Canada High School,HM
+14,006B,5.0,Larry Xing,YEA Spice,Youth Euclid Association,HM
+14,006F,5.0,Vivian Loh,YEA Spice,Youth Euclid Association,HM
+14,008F,5.0,Aman Jain,San Diego Math Circle,San Diego Math Circle,HM
+14,013A,5.0,Amol Rama,Random Math,Random Math,HM
+14,014A,5.0,Alan Lee,Gunn High: Roger Fan Club,Henry M. Gunn High School,HM
+14,014F,5.0,Josh Shin,Gunn High: Roger Fan Club,Henry M. Gunn High School,HM
+14,020D,5.0,Rohan Bodke,AlphaStar AIR,AlphaStar Academy,HM
+14,020E,5.0,Aarush Khare,AlphaStar AIR,AlphaStar Academy,HM
+14,032F,5.0,Jerry Liu,Amador Valley High School,Amador Valley High School,HM
+14,039D,5.0,Michelle Liang,Canyon Crest Conspiracy,Canyon Crest Academy,HM
+25,004E,4.0,Andrew Tung,Menlo School,Menlo School,
+25,005E,4.0,Blake Chang,LCHS-P,La Canada High School,
+25,007A,4.0,Ricky Hu,Quarry Lane Cougars,Quarry Lane School,
+25,007D,4.0,Crystal Xie,Quarry Lane Cougars,Quarry Lane School,
+25,008C,4.0,Robin Sharif,San Diego Math Circle,San Diego Math Circle,
+25,009C,4.0,Tej Nadkarni,Saint Francis High School,Saint Francis High School,
+25,010D,4.0,Neel Kolhe,Lynbrook Vikings,Lynbrook High School,
+25,010E,4.0,Brian Xue,Lynbrook Vikings,Lynbrook High School,
+25,012C,4.0,Kyle Lei,TKA,The King's Academy,
+25,013B,4.0,Nikash Gupta,Random Math,Random Math,
+25,014C,4.0,Andrew Peng,Gunn High: Roger Fan Club,Henry M. Gunn High School,
+25,014D,4.0,Roger Fan,Gunn High: Roger Fan Club,Henry M. Gunn High School,
+25,016C,4.0,Jerry Sun,Irvington High Blue,Irvington High School,
+25,022F,4.0,Hanyuan Qu,EDUBUS,EDUBUS,
+25,029D,4.0,Ankit Muppala,DVHS,Dougherty Valley High School,
+25,029F,4.0,Julia Xiang,DVHS,Dougherty Valley High School,
+25,032B,4.0,Ethan Han,Amador Valley High School,Amador Valley High School,
+25,036B,4.0,William Chen,AlphaStar EARTH,AlphaStar Academy,
+25,039B,4.0,Alex Backues,Canyon Crest Conspiracy,Canyon Crest Academy,
+25,039C,4.0,Ethan K Song,Canyon Crest Conspiracy,Canyon Crest Academy,
+25,040B,4.0,Peter Ferolito,Homestead High Mustangs,Homestead High School,
+46,003F,3.0,Rayan Das,SCMC Limit Breakers,Santa Clara Math Circle,
+46,006D,3.0,Neal Yan,YEA Spice,Youth Euclid Association,
+46,008D,3.0,Elliott Liu,San Diego Math Circle,San Diego Math Circle,
+46,010C,3.0,Brian Bi,Lynbrook Vikings,Lynbrook High School,
+46,011C,3.0,Alex Zitzewitz,Proof School,Proof School,
+46,018C,3.0,Suhani Pahuja,Athemath,Athemath,
+46,019A,3.0,Yiwei Wang,LCHS-Q,La Canada High School,
+46,023D,3.0,Kallie Wang,Harker Eagles,The Harker School,
+46,025C,3.0,Brian Zhou,Leland High: Almaden Platyπ,Leland High School,
+46,027D,3.0,Zaee Shah,San Mateo Bearcats,San Mateo High School,
+46,029C,3.0,Shreyas Swaminathan,DVHS,Dougherty Valley High School,
+46,031D,3.0,Brianna Zheng,BISV Bobcats,Basis Independent Silicon Valley,
+46,031E,3.0,Robert Feng,BISV Bobcats,Basis Independent Silicon Valley,
+46,036A,3.0,Taiga Nishida,AlphaStar EARTH,AlphaStar Academy,
+46,036D,3.0,Ritwin Narra,AlphaStar EARTH,AlphaStar Academy,
+46,036F,3.0,Henry Yao,AlphaStar EARTH,AlphaStar Academy,
+46,038B,3.0,Troy Yang,Mission San Jose,MSJ Math Club,
+46,040C,3.0,Daniel Matsui Smola,Homestead High Mustangs,Homestead High School,
+46,040F,3.0,Matthew Leung,Homestead High Mustangs,Homestead High School,
+65,005B,2.0,Marius Rutkowski,LCHS-P,La Canada High School,
+65,015A,2.0,Brandon Chang,West Ranch High School,West Ranch High School,
+65,016A,2.0,Kaiwen Xiao,Irvington High Blue,Irvington High School,
+65,018D,2.0,Yueqian Zhang,Athemath,Athemath,
+65,021D,2.0,Edward Feng,Stratford Math Circles,Stratford Preparatory Blackford,
+65,023B,2.0,Neil Krishnan,Harker Eagles,The Harker School,
+65,035B,2.0,Arpit Uppal,Mountain House Mustangs,Mountain House High School,
+65,035D,2.0,Amogh Janganure,Mountain House Mustangs,Mountain House High School,
+65,039E,2.0,Larry Wu,Canyon Crest Conspiracy,Canyon Crest Academy,
+65,040D,2.0,Ishwar Suriyaprakash,Homestead High Mustangs,Homestead High School,
+65,040E,2.0,Nathan Li,Homestead High Mustangs,Homestead High School,
+65,041E,2.0,Forrest Chou,Paly Trolls,Palo Alto High School,
+77,003C,1.0,Arnav Ahuja,SCMC Limit Breakers,Santa Clara Math Circle,
+77,007B,1.0,Yao Chen,Quarry Lane Cougars,Quarry Lane School,
+77,007E,1.0,Jack Guo,Quarry Lane Cougars,Quarry Lane School,
+77,009B,1.0,Sean O,Saint Francis High School,Saint Francis High School,
+77,011F,1.0,Dhruv Raghavan,Proof School,Proof School,
+77,024A,1.0,Jessica Wu,Monte Vista: Allen's Apostles,Monte Vista High School,
+77,030B,1.0,Katie Wang,Lowell,Lowell High School,
+77,033F,1.0,Soham Kulkarni,SCHSMathletes,Santa Clara High School,
+77,041B,1.0,Lucas  Yuan,Paly Trolls,Palo Alto High School,
+86,005D,0.0,Uma  Shukla,LCHS-P,La Canada High School,
+86,009A,0.0,Arav Bansal,Saint Francis High School,Saint Francis High School,
+86,019F,0.0,Kaan Altinok,LCHS-Q,La Canada High School,
+86,022E,0.0,Andrew Zhou,EDUBUS,EDUBUS,
+86,033B,0.0,Rehaan Karnik,SCHSMathletes,Santa Clara High School,
+86,041F,0.0,Aiden  Yuan,Paly Trolls,Palo Alto High School,

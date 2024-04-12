@@ -400,6 +400,6 @@ function main(directoryName) {
   fs.closeSync(logFile);
 }
 
-main(path.join(__dirname, '.', 'testData'));
+main(path.join(__dirname, '.', 'data'));
 
 module.exports = { SCALING_MAP, readCsvString, calculateScalingFactor, normalizeTeamScore, sortAndScale, normalizeIndividualScores, normalizeScores, calculateOverallTeamScore, calculateOverallScores, main };
