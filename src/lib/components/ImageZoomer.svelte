@@ -7,7 +7,6 @@
 
 	let canvas;
 	let focusRect;
-	let img;
 	let group;
 	let rectCoordinates;
 	let ogPosition;
@@ -28,7 +27,11 @@
 			height: canvasContainer.offsetHeight,
 			selectable: false,
 		});
+	}
 
+	onMount(initializeCanvas); // Initialize canvas on mount
+
+	afterUpdate(() => {
 		// Load image onto canvas
 		fabric.Image.fromURL(imageUrl, function (image) {
 			rectCoordinates = {
@@ -37,8 +40,7 @@
 				width: (inputCoordinates.width / 612) * image.width,
 				height: (inputCoordinates.height / 792) * image.height,
 			};
-			img = image;
-			img.set({ selectable: false });
+			image.set({ selectable: false });
 
 			// Set initial crop rectangle
 			focusRect = new fabric.Rect({
@@ -52,7 +54,11 @@
 				selectable: true, // Prevent selection of the rectangle
 			});
 
-			group = new fabric.Group([img, focusRect], {
+			if (group) {
+				canvas.remove(group);
+			}
+
+			group = new fabric.Group([image, focusRect], {
 				selectable: true, // Allow selection
 				hasControls: false, // Hide controls
 				lockMovementX: false, // Allow horizontal movement
@@ -62,12 +68,6 @@
 			ogPosition = { left: group.left, top: group.top };
 			reZoom();
 		});
-	}
-
-	onMount(initializeCanvas); // Initialize canvas on mount
-
-	afterUpdate(() => {
-		initializeCanvas(); // Re-initialize canvas on input changes
 	});
 
 	function reset() {
