@@ -94,6 +94,14 @@
 				r.text()
 			);
 
+			// TODO: @tweoss (francis) get rid of this hack of using test name directly
+			if (test.test_name == "Integration Bee") {
+				// Sort by ascending difficulty. 
+				// TODO: why is this using average_difficulty not difficulty?
+				problems = problems.sort((a, b) => a.average_difficulty - b.average_difficulty);
+				console.log("sorting by difficulty", problems);
+			}
+
 			let utf8Encode = new TextEncoder();
 			let [year, month, day] = test.tournaments.tournament_date
 				.split("-")
