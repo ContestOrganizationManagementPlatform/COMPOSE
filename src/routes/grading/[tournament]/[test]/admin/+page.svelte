@@ -6,7 +6,13 @@
 <Grading
 	tournamentId={parseInt($page.params.tournament)}
 	testId={parseInt($page.params.test)}
+/>
+<!--
+<Grading
+	tournamentId={parseInt($page.params.tournament)}
+	testId={parseInt($page.params.test)}
 	showGrades
 	onlyConflicted
 	disableUnsure
 />
+-->
