@@ -289,7 +289,7 @@ export async function getGrades() {
 
 	const scores = {};
 
-	for (const row of gradeTrackingData) {
+	const get_row = async (row) => {
 		const { data: testData, error: testError } = await supabase
 			.from("tests")
 			.select("test_name")
@@ -313,6 +313,7 @@ export async function getGrades() {
 		if (scanError) {
 			throw scanError;
 		}
+		console.log(scanData);
 		const taker_id = scanData.taker_id;
 		if (typeof taker_id === "string" && /[A-Z]$/.test(taker_id)) {
 			const { data: teamStudentData, error: teamStudentError } = await supabase
@@ -346,6 +347,8 @@ export async function getGrades() {
 			const { data: teamData, error: teamError } = await supabase
 				.from("teams")
 				.select("name")
+				// TODO: @tweoss. no hardcoding, make this per tournament and per test
+				.eq("tournament_id", 2)
 				.eq("number", taker_id)
 				.single();
 			if (teamError) {
@@ -362,6 +365,8 @@ export async function getGrades() {
 			scores[test_name][taker_id].score += row.correct ? 1 : 0;
 			scores[test_name][taker_id].grades.push(row.correct);
 		}
-	}
+	};
+
+	await Promise.all(gradeTrackingData.map(get_row));
 	return scores;
 }
