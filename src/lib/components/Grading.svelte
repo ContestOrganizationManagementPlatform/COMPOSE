@@ -55,21 +55,33 @@
 
 	async function fetchMoreProblems(num_problems = 10) {
 		loaded = false;
-		const new_problems = await fetchNewTakerResponses(
+		let new_problems = await fetchNewTakerResponses(
 			user.id,
 			num_problems,
 			testId,
 			gradeQueue.at(currentIndex)?.problem_id,
 			onlyConflicted,
 		);
+		if (new_problems.length == 0) {
+			new_problems = await fetchNewTakerResponses(
+				user.id,
+				num_problems,
+				testId,
+				null,
+				onlyConflicted,
+			);
+		}
 		if (new_problems.length > 0) {
 			for (let problem of new_problems) {
 				const display = await displayLatex(problem.answer_latex, []);
 				problem.answer_display = display.out;
 			}
 			gradeQueue = gradeQueue.concat(new_problems);
-			console.log(gradeQueue);
+			console.log(`Fetched ${new_problems.length} new problems!`);
+			console.log(`gradeQueue length ${gradeQueue.length}`);
+			// console.log(gradeQueue);
 		}
+		// console.log(`Leaving fetchMoreProblems with ${new_problems.length}:  `, new_problems);
 		loaded = true;
 	}
 
@@ -79,6 +91,7 @@
 			// if (gradeQueue.length - currentIndex < 1 && user != null) {
 			console.log(`Fetching more problems... because length is at ${gradeQueue.length} and currentIndex is at ${currentIndex}`);
 			await fetchMoreProblems();
+			// console.log(`Fetched more problems!`);
 		}
 	})();
 

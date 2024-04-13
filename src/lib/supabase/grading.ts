@@ -65,6 +65,7 @@ export async function fetchNewTakerResponses(
 	only_conflicted: boolean,
 ): Promise<any[]> {
 	// If test_problem_id is not specified, order all other problems by num_graders.
+	// console.log(`Inside fetchNewTakerResponses`, batch_size, test_id, test_problem_id);
 	let test_problem_id_list = [];
 	if (test_problem_id == null) {
 		const { data: testData, error: testError } = await supabase
@@ -104,6 +105,7 @@ export async function fetchNewTakerResponses(
 		// Once all fetches are run, even if we can't fill the batch size, return.
 		resolve();
 	});
+
 	return output;
 }
 
