@@ -77,7 +77,7 @@
 		// TODO: @tweoss. Check if this is valid (handleAction might assume index is just 1 less)
 		if (gradeQueue.length - currentIndex < 5 && user != null) {
 			// if (gradeQueue.length - currentIndex < 1 && user != null) {
-			console.log("Fetching more problems...");
+			console.log(`Fetching more problems... because length is at ${gradeQueue.length} and currentIndex is at ${currentIndex}`);
 			await fetchMoreProblems();
 		}
 	})();
