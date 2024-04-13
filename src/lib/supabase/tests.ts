@@ -233,18 +233,17 @@ export async function removeTestCoordinator(
 		.delete()
 		.eq("test_id", test_id)
 		.eq("coordinator_id", coordinator_id);
-		
+
 	if (error) throw error;
 }
 
 export async function getNumScanProblems(test_id) {
-	const { data, count, error } = await supabase
+	const { count, error } = await supabase
 		.from("grade_tracking")
-		.select('*', { count: 'exact', head: true })
+		.select("count", { count: "exact", head: true })
 		.eq("test_id", test_id)
 		.single();
 	if (error) throw error;
-	console.log("getNumScanProblems: ", data);
 	console.log("getNumGradeProblems: ", count);
 	return count;
 }
@@ -252,9 +251,9 @@ export async function getNumScanProblems(test_id) {
 export async function getNumGradeProblems(test_id) {
 	const { count, error } = await supabase
 		.from("grade_tracking")
-		.select('*', { count: 'exact', head: true })
+		.select("count", { count: "exact", head: true })
 		.eq("test_id", test_id)
-		.eq("needs_resolution", true)
+		.filter("graded_count", "gte", 2)
 		.single();
 	if (error) throw error;
 	console.log("getNumGradeProblems: ", count);
@@ -264,8 +263,9 @@ export async function getNumGradeProblems(test_id) {
 export async function getNumConflictProblems(test_id) {
 	const { count, error } = await supabase
 		.from("grade_tracking")
-		.select('*', { count: 'exact', head: true })
+		.select("count", { count: "exact", head: true })
 		.eq("test_id", test_id)
+		.eq("needs_resolution", true)
 		.single();
 	if (error) throw error;
 	console.log("getNumGradeProblems: ", count);
