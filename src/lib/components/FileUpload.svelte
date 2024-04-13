@@ -7,8 +7,8 @@
 	import QrScanner from "qr-scanner";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import { downloadBlob } from "$lib/utils/download";
 	import Button from "$lib/components/Button.svelte";
+	
 
 	// When rendering to canvas, the scaling we use.
 	const PDF_SCALE = 2.0;

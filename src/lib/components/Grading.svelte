@@ -53,7 +53,7 @@
 		}
 	}
 
-	async function fetchMoreProblems(num_problems = 5) {
+	async function fetchMoreProblems(num_problems = 10) {
 		loaded = false;
 		const new_problems = await fetchNewTakerResponses(
 			user.id,
@@ -75,7 +75,7 @@
 
 	$: (async () => {
 		// TODO: @tweoss. Check if this is valid (handleAction might assume index is just 1 less)
-		if (gradeQueue.length - currentIndex < 3 && user != null) {
+		if (gradeQueue.length - currentIndex < 5 && user != null) {
 			// if (gradeQueue.length - currentIndex < 1 && user != null) {
 			console.log("Fetching more problems...");
 			await fetchMoreProblems();
