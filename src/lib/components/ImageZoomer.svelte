@@ -1,6 +1,5 @@
 <script>
 	import { onMount, afterUpdate } from "svelte";
-	import { fabric } from "fabric";
 
 	export let imageUrl;
 	export let inputCoordinates; // { x, y, width, height }
@@ -10,8 +9,11 @@
 	let group;
 	let rectCoordinates;
 	let ogPosition;
+	let fabric;
 
-	function initializeCanvas() {
+	async function initializeCanvas() {
+		({ fabric } = await import("fabric"));
+		console.log(fabric);
 		if (canvas) {
 			canvas.clear(); // Clear canvas if it already exists
 		}
@@ -27,11 +29,15 @@
 			height: canvasContainer.offsetHeight,
 			selectable: false,
 		});
+		update();
 	}
 
 	onMount(initializeCanvas); // Initialize canvas on mount
 
-	afterUpdate(() => {
+	function update() {
+		if (!fabric) {
+			return;
+		}
 		// Load image onto canvas
 		fabric.Image.fromURL(imageUrl, function (image) {
 			rectCoordinates = {
@@ -68,7 +74,9 @@
 			ogPosition = { left: group.left, top: group.top };
 			reZoom();
 		});
-	});
+	}
+
+	afterUpdate(update);
 
 	function reset() {
 		reZoom();
