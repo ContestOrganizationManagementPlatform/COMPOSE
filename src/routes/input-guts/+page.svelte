@@ -211,7 +211,7 @@
 								<div><strong>Correct</strong></div>
 								<div><strong>Incorrect</strong></div>
 								{#each Array(questions_per_round) as __, question}
-								<div>
+								<div class="hidden">
 									{@html correct_answers[round][question]["answer_display"]}
 								</div>
 								<div></div>
@@ -256,5 +256,14 @@
 	  gap: 10px;
 	  margin: 0 auto; /* Centers the grid horizontally */
 	  justify-items: center; /* Centers the grid items horizontally */
+	}
+
+	.hidden {
+		background-color: black;
+	}
+
+	.hidden:hover {
+		background-color: white;
+		cursor: none;
 	}
 </style>
