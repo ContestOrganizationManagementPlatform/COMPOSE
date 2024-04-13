@@ -1,5 +1,7 @@
 import { supabase } from "../supabaseClient";
 import { styles } from "$lib/scheme.json";
+import { displayLatex } from "$lib/latexStuff";
+
 
 export let num_rounds = 9;
 export let max_round_display = 8;
@@ -108,8 +110,8 @@ export async function getAnswerData() {
             }
         }
     }
-    console.log(answer_data);
-    console.log(`data: ${data.length}`);
+    // console.log(answer_data);
+    // console.log(`data: ${data.length}`);
     
     for (const entry of data) {
         const { team_id, round_num, answers, corrects, incorrects } = entry;
@@ -146,6 +148,57 @@ export async function getAnswerData() {
     //     }
     // }
     return answer_data;
+}
+
+export async function getGutsAnswers() {
+    const { data: testData, error: testError } = await supabase
+        .from("tests")
+        .select("id")
+        .eq("test_name", "Guts")
+        .single();
+    if (testError) {
+        throw testError;
+    }
+
+    const test_id = testData.id;
+
+    const { data: gutsProblemData, error: gutsError } = await supabase
+        .from("test_problems")
+        .select("problem_id,problem_number")
+        .eq("test_id", test_id);
+    if (gutsError) {
+        throw gutsError;
+    }
+
+    const gutsAnswers: any[][] = [];
+    for (let i = 0; i < num_rounds; i++) {
+        const row: any[] = [];
+        for (let j = 0; j < questions_per_round; j++) {
+            row.push({ value: "" });
+        }
+        gutsAnswers.push(row);
+    }
+
+    for (const row of gutsProblemData) {
+        const { data: problemData, error: problemError } = await supabase
+            .from("problems")
+            .select("answer_latex")
+            .eq("id", row.problem_id)
+            .single();
+        if (problemError) {
+            throw problemError;
+        }
+
+        const display = await displayLatex(problemData.answer_latex, [])
+        const answer_display = display.out;
+
+        gutsAnswers[Math.floor(row.problem_number / questions_per_round)][row.problem_number % questions_per_round] = { 
+            value: problemData.answer_latex, 
+            answer_display: answer_display
+        };
+    }
+
+    return gutsAnswers;
 }
 
 
