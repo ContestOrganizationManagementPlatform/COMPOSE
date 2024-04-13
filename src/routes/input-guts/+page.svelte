@@ -202,6 +202,7 @@
 									Response:
 									<input type="text" placeholder={`Answer ${round + 1}.${question + 1}`} bind:value={curr_team_answer_data[round + 1][question + 1]["value"]}> &nbsp;&nbsp;&nbsp;&nbsp;
 								</div>
+								<br>
 							{/each}
 						{:else}
 							<div class="grid">
