@@ -211,7 +211,7 @@
 
 <svelte:window on:keydown={handleKey} />
 
-<div>
+<div class="grading">
 	<h1>Grading {tournament}: {test.test_name}</h1>
 
 	<br />
@@ -299,20 +299,16 @@
 </div>
 
 <style>
-	@media (max-width: 600px) {
-	  .image-zoomer-mobile {
-		/* Adjust the width and height as needed */
-		width: 95%;
-		height: auto;
-	  }
-	}
-
 	h1 {
 		margin-bottom: 5px;
 	}
 
 	.sideBySide {
 		display: flex;
+	}
+
+	.grading {
+
 	}
 
 	.card {
@@ -322,6 +318,18 @@
 		margin-left: auto;
 		margin-right: auto;
 	}
+
+	/* Add this media query
+	@media (max-width: 600px) {
+		.card {
+			width: 95%; 
+		}
+
+		.grading {
+			max-height: 200vh; 
+			overflow: auto; 
+		}
+	} */
 
 	button {
 		width: 90px;
