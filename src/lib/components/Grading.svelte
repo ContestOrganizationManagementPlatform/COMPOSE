@@ -38,6 +38,7 @@
 	let test = {test_name: ""};
 	let loaded = false;
 	let switchingProblems = false;
+	let fetching_problems = false;
 
 	let user = null;
 
@@ -54,6 +55,10 @@
 	}
 
 	async function fetchMoreProblems(num_problems = 10) {
+		if (fetching_problems) {
+			return;
+		}
+		fetching_problems = true;
 		loaded = false;
 		let new_problems = await fetchNewTakerResponses(
 			user.id,
@@ -81,7 +86,6 @@
 			console.log(`gradeQueue length ${gradeQueue.length}`);
 			// console.log(gradeQueue);
 		}
-		// console.log(`Leaving fetchMoreProblems with ${new_problems.length}:  `, new_problems);
 		loaded = true;
 	}
 
