@@ -119,6 +119,7 @@
 		if (curr_team != "...") {
 			try {
 				// answer_data[curr_team][round] = curr_team_answer_data[round];
+				console.log(`Submitting with current team: `, curr_team);
 				await submit(curr_team, round, curr_team_answer_data[round]);
 				answer_data = await getAnswerData();
 

@@ -12,17 +12,24 @@ export let questions_per_round = 3;
 let points = [10, 11, 12, 13, 14, 16, 18, 21, 25];
 let answer_data = {};
 
-export async function getTeams() {
-    const { data, error } = await supabase.from("teams").select("id");
+export async function getTeams(tournament_id = 2) { // TODO: default to 2 for now
+    const { data, error } = await supabase
+        .from("teams")
+        .select("id")
+        .eq("tournament_id", tournament_id);
     if (error) {
         throw error;
     }
+    console.log(data); 
     const teams = data.map((item) => item.id);
     return teams;
 }
 
-export async function getTeamTitles() {
-    const { data, error } = await supabase.from("teams").select("id, name");
+export async function getTeamTitles(tournament_id = 2) {
+    const { data, error } = await supabase
+        .from("teams")
+        .select("id, name")
+        .eq("tournament_id", tournament_id);
     if (error) {
         throw error;
     }
@@ -211,6 +218,7 @@ export async function getStatus() {
     // return status;
     let status = [];
     let answer_data = await getAnswerData();
+    console.log(`answer_data: `, answer_data);
     const teams = await getTeams();
     const team_titles = await getTeamTitles();
     console.log(`team_titles: `, team_titles);
@@ -218,27 +226,32 @@ export async function getStatus() {
         let score = 0;
         let showing_score = 0;
         let round_colors = [];
-        const team_in = Object.keys(answer_data).includes(team);
+
         for (let i = 1; i < num_rounds + 1; i++) {
             for (let j = 1; j < questions_per_round + 1; j++) {
-                if (team_in && answer_data[team][i][j]["correct"]) {
+                if (answer_data[team][i][j]["correct"]) {
                     score += points[i - 1];
                     if (i < max_round_display + 1) {
                         showing_score += points[i - 1];
                     }
                 }
             }
-            if (team_in && answer_data[team][i]["submitted"]) {
+            if (answer_data[team][i]["submitted"]) {
                 round_colors[i] = styles["secondary"];
             } else {
                 round_colors[i] = styles["background-dark"];
             }
         }
-        console.log(team);
-        console.log(`trying`);
-        status.push({ team_name: team_titles[team - 1].name, score: score, showing_score: showing_score, round_colors: round_colors });
+        // try {
+        //     team_titles[team-18].name;
+        // } catch {
+        //     console.log(`team_titles: `, team_titles);
+        //     console.log(`team: `, team);
+        // }
+        status.push({ team_name: team_titles[team - 18].name, score: score, showing_score: showing_score, round_colors: round_colors });
     }
     status.sort((a, b) => b.showing_score - a.showing_score);
+    console.log(`status: `, status);
     return status;
 }
 

@@ -57,6 +57,7 @@
 	{#if max_round_display > 0}
 		<p style="font-style: italic;">Please note that all scores after round {max_round_display} will not be shown.</p>
 	{/if}
+	<div class="wrapper">
 	<div id = "leftwrapper">
 		<table class="gutsDisplay" id="leftTable">
 			<thead>
@@ -85,7 +86,7 @@
 			</tbody>
 		</table>
 	</div>
-		<div id = "rightwrapper">
+	<div id = "rightwrapper">
 		<table class="gutsDisplay" id="rightTable">
 			<thead>
 				<tr class="gutsTr">
@@ -113,6 +114,7 @@
 			</tbody>
 		</table>
 	</div>
+	</div>
 </div>
 
 
@@ -125,8 +127,14 @@
 		margin: 2px;
   	}
 
+	.wrapper {
+		display: flex; /* Use Flexbox */
+		width: 100%;
+	}
+
+
     #leftwrapper {
-		width: 50%;
+		flex: 1;
         justify-content: center;
 		border-collapse: collapse;
 		padding: 10px;
@@ -138,7 +146,7 @@
     }
 
 	#rightwrapper {
-		width: 50%;
+		flex: 1;
         justify-content: center;
 		border-collapse: collapse;
 		padding: 10px;
@@ -146,7 +154,7 @@
 		height: var(--screen_height);
         float: right;
 		background-color: var(--light);
-    }
+    } 
 
 	#leftTable {
 		float: left;
