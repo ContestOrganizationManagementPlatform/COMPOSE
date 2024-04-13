@@ -1,10 +1,7 @@
 import { supabase } from "../supabaseClient";
 
-async function getImageUrl(
-	path: string,
-	bucket: string = "scans",
-): Promise<string | null> {
-	const { data } = await supabase.storage.from(bucket).getPublicUrl(path);
+function getImageUrl(path: string, bucket: string = "scans"): string | null {
+	const { data } = supabase.storage.from(bucket).getPublicUrl(path);
 	return data?.publicUrl || null;
 }
 
@@ -15,10 +12,14 @@ export async function uploadScan(
 	front_id: string,
 ) {
 	if (test_id.startsWith("ERROR")) {
-		throw new Error("Could not read Test QR code. Must manually input the Test ID before uploading.");
+		throw new Error(
+			"Could not read Test QR code. Must manually input the Test ID before uploading.",
+		);
 	}
 	if (front_id.startsWith("ERROR")) {
-		throw new Error("Could not read Team/Student QR code. Must manually input the Taker ID before uploading scans.");
+		throw new Error(
+			"Could not read Team/Student QR code. Must manually input the Taker ID before uploading scans.",
+		);
 	}
 	let { data, error: upload_error } = await supabase.storage
 		.from("scans")
@@ -80,138 +81,162 @@ export async function fetchNewTakerResponses(
 	}
 
 	let output = [];
-	for (const test_problem_id of test_problem_id_list) {
-		if (output.length >= batch_size) {
-			break;
-		}
-		// Get the scans that this grader has graded for this test_problem_id.
-		// These scans should not be given again.
-		const { data: gradesData, error: gradesError } = await supabase
-			.from("grades")
-			.select("scan_id, test_problem_id, grade")
-			.eq("grader_id", grader_id)
-			.eq("test_problem_id", test_problem_id)
-			.not("grade", "is", null);
-		if (gradesError) {
-			throw gradesError;
-		}
+	// Run every fetch in parallel, early exit once enough problems have been fetched.
+	await new Promise<void>(async (resolve) => {
+		await Promise.all(
+			test_problem_id_list.map((p_id) =>
+				fetch_single_problem(
+					p_id,
+					grader_id,
+					batch_size,
+					only_conflicted,
+					(results: any[]) => {
+						output = output.concat(results);
+						if (output.length >= batch_size) {
+							output = output.slice(0, batch_size);
+							// Early exit condition.
+							resolve();
+						}
+					},
+				),
+			),
+		);
+		// Once all fetches are run, even if we can't fill the batch size, return.
+		resolve();
+	});
+	return output;
+}
 
-		let query = supabase
+async function fetch_single_problem(
+	test_problem_id: number,
+	grader_id: number,
+	batch_size: number,
+	only_conflicted: boolean,
+	continuation: { (results: any[]): void },
+) {
+	// Get the scans that this grader has graded for this test_problem_id.
+	// These scans should not be given again.
+	const { data: gradesData, error: gradesError } = await supabase
+		.from("grades")
+		.select("scan_id, test_problem_id, grade")
+		.eq("grader_id", grader_id)
+		.eq("test_problem_id", test_problem_id)
+		.not("grade", "is", null);
+	if (gradesError) {
+		throw gradesError;
+	}
+
+	let query = supabase
+		.from("grade_tracking")
+		.select("scan_id, test_id, test_problem_id")
+		.eq("test_problem_id", test_problem_id)
+		// Absolutely do not return problems that have already been graded twice.
+		.lt("graded_count", 2)
+		.order("claimed_count")
+		// Ignore scans that this grader has graded.
+		.not("scan_id", "in", `(${gradesData.map((row) => row.scan_id).join(",")})`)
+		.limit(batch_size);
+
+	// Override the query to be just conflicted items.
+	// We thus do not care if this admin has graded a problem or not
+	// (they will override anyway).
+	if (only_conflicted) {
+		query = supabase
 			.from("grade_tracking")
 			.select("scan_id, test_id, test_problem_id")
 			.eq("test_problem_id", test_problem_id)
-			// Absolutely do not return problems that have already been graded twice.
-			.lt("graded_count", 2)
-			.order("claimed_count")
-			// Ignore scans that this grader has graded.
-			.not(
-				"scan_id",
-				"in",
-				`(${gradesData.map((row) => row.scan_id).join(",")})`,
-			)
-			.limit(batch_size - output.length);
-
-		// Override the query to be just conflicted items.
-		// We thus do not care if this admin has graded a problem or not
-		// (they will override anyway).
-		if (only_conflicted) {
-			query = supabase
-				.from("grade_tracking")
-				.select("scan_id, test_id, test_problem_id")
-				.eq("test_problem_id", test_problem_id)
-				.eq("needs_resolution", true)
-				.limit(batch_size - output.length);
-		}
-
-		const { data: gradeTrackingData, error: gradeTrackingError } = await query;
-		if (gradeTrackingError) {
-			throw gradeTrackingError;
-		}
-
-		// Mark that this grader claims these scans.
-		const { error: newGradeError } = await supabase.from("grades").upsert(
-			gradeTrackingData.map((item) => ({
-				grader_id,
-				scan_id: item.scan_id,
-				test_problem_id: item.test_problem_id,
-			})),
-			{ onConflict: "grader_id, scan_id, test_problem_id" },
-		);
-		if (newGradeError) {
-			throw newGradeError;
-		}
-
-		// Process the trTrackingData as needed
-		for (const item of gradeTrackingData) {
-			const { data: gradeData, error: gradeError } = await supabase
-				.from("grades")
-				.select("id")
-				.eq("scan_id", item.scan_id)
-				.eq("test_problem_id", item.test_problem_id)
-				.eq("grader_id", grader_id)
-				.single();
-			if (gradeError) {
-				throw gradeError;
-			}
-
-			const { data: otherGradeData, error: otherGradeError } = await supabase
-				.from("grades")
-				.select("grade")
-				.eq("scan_id", item.scan_id)
-				.eq("test_problem_id", item.test_problem_id);
-			if (otherGradeError) {
-				throw otherGradeError;
-			}
-
-			const { data: scanData, error: scanError } = await supabase
-				.from("scans")
-				.select("scan_path")
-				.eq("id", item.scan_id)
-				.single();
-			if (scanError) {
-				throw scanError;
-			}
-
-			const { data: testData, error: testError } = await supabase
-				.from("tests")
-				.select("test_name, bounding_boxes")
-				.eq("id", item.test_id)
-				.single();
-			if (testError) {
-				throw testError;
-			}
-
-			const { data: testProblemData, error: testProblemError } = await supabase
-				.from("test_problems")
-				.select("problem_id, problem_number")
-				.eq("relation_id", item.test_problem_id)
-				.single();
-			if (testProblemError) {
-				throw testProblemError;
-			}
-
-			const { data: problemData, error: problemError } = await supabase
-				.from("problems")
-				.select("problem_latex, answer_latex, solution_latex")
-				.eq("id", testProblemData.problem_id)
-				.single();
-			if (problemError) {
-				throw problemError;
-			}
-
-			output.push({
-				...item,
-				...testData,
-				...problemData,
-				...testProblemData,
-				grades: otherGradeData,
-				grade_id: gradeData.id,
-				image: await getImageUrl(scanData.scan_path),
-			});
-		}
+			.eq("needs_resolution", true)
+			.limit(batch_size);
 	}
 
-	return output;
+	const { data: gradeTrackingData, error: gradeTrackingError } = await query;
+	if (gradeTrackingError) {
+		throw gradeTrackingError;
+	}
+
+	// Mark that this grader claims these scans.
+	const { error: newGradeError } = await supabase.from("grades").upsert(
+		gradeTrackingData.map((item) => ({
+			grader_id,
+			scan_id: item.scan_id,
+			test_problem_id: item.test_problem_id,
+		})),
+		{ onConflict: "grader_id, scan_id, test_problem_id" },
+	);
+	if (newGradeError) {
+		throw newGradeError;
+	}
+
+	let problem_id_output = [];
+	// Process the trTrackingData as needed
+	for (const item of gradeTrackingData) {
+		const { data: gradeData, error: gradeError } = await supabase
+			.from("grades")
+			.select("id")
+			.eq("scan_id", item.scan_id)
+			.eq("test_problem_id", item.test_problem_id)
+			.eq("grader_id", grader_id)
+			.single();
+		if (gradeError) {
+			throw gradeError;
+		}
+
+		const { data: otherGradeData, error: otherGradeError } = await supabase
+			.from("grades")
+			.select("grade")
+			.eq("scan_id", item.scan_id)
+			.eq("test_problem_id", item.test_problem_id);
+		if (otherGradeError) {
+			throw otherGradeError;
+		}
+
+		const { data: scanData, error: scanError } = await supabase
+			.from("scans")
+			.select("scan_path")
+			.eq("id", item.scan_id)
+			.single();
+		if (scanError) {
+			throw scanError;
+		}
+
+		const { data: testData, error: testError } = await supabase
+			.from("tests")
+			.select("test_name, bounding_boxes")
+			.eq("id", item.test_id)
+			.single();
+		if (testError) {
+			throw testError;
+		}
+
+		const { data: testProblemData, error: testProblemError } = await supabase
+			.from("test_problems")
+			.select("problem_id, problem_number")
+			.eq("relation_id", item.test_problem_id)
+			.single();
+		if (testProblemError) {
+			throw testProblemError;
+		}
+
+		const { data: problemData, error: problemError } = await supabase
+			.from("problems")
+			.select("problem_latex, answer_latex, solution_latex")
+			.eq("id", testProblemData.problem_id)
+			.single();
+		if (problemError) {
+			throw problemError;
+		}
+
+		problem_id_output.push({
+			...item,
+			...testData,
+			...problemData,
+			...testProblemData,
+			grades: otherGradeData,
+			grade_id: gradeData.id,
+			image: getImageUrl(scanData.scan_path),
+		});
+	}
+	continuation(problem_id_output);
 }
 
 export async function submitGrade(grader_id: number, data: any): Promise<void> {
@@ -296,7 +321,7 @@ export async function getGrades() {
 			if (teamStudentError) {
 				throw teamStudentError;
 			}
-			
+
 			const { data: studentData, error: studentError } = await supabase
 				.from("students")
 				.select("first_name,last_name")
