@@ -120,16 +120,23 @@
 					>
 						<p class="linkPara">Guts Live Scoreboard</p>
 					</Link>
+				{/if}
+				{#if isAdmin}
+					<div class="fixedHr" />
 					<Link
 						href="/admin/grading/upload"
 						class={path == "/admin/grading/upload" ? "active link" : "link"}
 					>
 						<p class="linkPara">Admin: Scans Upload</p>
 					</Link>
-				{/if}
-				{#if isAdmin}
 					<br />
-					<div class="fixedHr" />
+					<Link
+						href="/admin/grading/resolve"
+						class={path == "/admin/grading/resolve" ? "active link" : "link"}
+					>
+						<p class="linkPara">Admin: Resolve Conflicts</p>
+					</Link>
+					<br />
 					<Link href="/admin" class={path == "admin" ? "active link" : "link"}>
 						<p class="linkPara">Admin: Home</p>
 					</Link>
