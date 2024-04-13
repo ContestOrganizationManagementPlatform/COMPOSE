@@ -263,16 +263,16 @@
 						style="background-color: #999999; color: #282828;"
 						on:click={async () => handleAction(Grade.UNDO)}>↩ (Z)</button
 					>
+					<button
+						style="background-color: #ff9999; color: #AD2828;"
+						on:click={async () => handleAction(Grade.INCORRECT)}>X (X)</button
+					>
 					{#if !disableUnsure}
 						<button
 							style="background-color: #FFFB99; color: #7C7215;"
 							on:click={async () => handleAction(Grade.UNSURE)}>? (C)</button
 						>
 					{/if}
-					<button
-						style="background-color: #ff9999; color: #AD2828;"
-						on:click={async () => handleAction(Grade.INCORRECT)}>X (X)</button
-					>
 					<button
 						style="background-color: #9BFF99; color: #157C20;"
 						on:click={async () => handleAction(Grade.CORRECT)}>✔ (V)</button
