@@ -82,7 +82,7 @@
 
 	<br />
 
-	<p style="font-style: italic;">Pick a tournament to grade</p>
+	<p style="font-style: italic;">Pick a test to grade</p>
 	<div class="buttonContainer">
 		{#each tests as test, index (test.id)}
 			<div>
