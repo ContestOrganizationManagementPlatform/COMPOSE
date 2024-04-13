@@ -216,6 +216,8 @@
 
 	<br />
 	<Button title="Go Back" href="/grading" />
+	<br /> <br />
+	<Button title="Go To Conflict Resolution" href={"/grading/" + tournamentId + "/" + testId + "?override"} />
 	<br /><br />
 	{#if !gradeQueue[currentIndex] && !loaded}
 		<Loading />
