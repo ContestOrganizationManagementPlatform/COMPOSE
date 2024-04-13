@@ -195,6 +195,7 @@
 				{#each Array(num_rounds) as _, round}
 					<div class='block'>
 						<h3>Round {round + 1}</h3>
+						<br>
 						{#if round === num_rounds - 1}
 							{#each Array(questions_per_round) as __, question}
 								<div class="set">
