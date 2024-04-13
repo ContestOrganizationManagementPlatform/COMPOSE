@@ -31,7 +31,7 @@
 
 	{#each tournaments as tournament, index (tournament.id)}
 		<div>
-			<a class="problemContainer" href="/grading/{tournament.id}">
+			<a class="problemContainer" href="/admin/grading/resolve/{tournament.id}">
 				{tournament.tournament_name}
 			</a>
 		</div>
