@@ -525,12 +525,12 @@
 	}
 </script>
 
-<head>
+<div>
 	<script
 		type="module"
 		src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs"
 	></script>
-</head>
+</div>
 
 <h2>Upload Scans</h2>
 
