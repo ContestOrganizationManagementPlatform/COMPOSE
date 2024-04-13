@@ -313,7 +313,7 @@ export async function getGrades() {
 		if (scanError) {
 			throw scanError;
 		}
-		console.log(scanData);
+		// console.log(scanData);
 		const taker_id = scanData.taker_id;
 		if (typeof taker_id === "string" && /[A-Z]$/.test(taker_id)) {
 			const { data: teamStudentData, error: teamStudentError } = await supabase

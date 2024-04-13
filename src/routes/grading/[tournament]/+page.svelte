@@ -1,32 +1,41 @@
 <script lang="ts">
 	let loaded = false;
 	import { page } from "$app/stores";
-	import { getTournamentTests } from "$lib/supabase";
+	import { getTournamentTests, getNumScanProblems, getNumGradeProblems, getNumConflictProblems } from "$lib/supabase";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
 	const tournament_id = Number($page.params.tournament);
 	console.log(tournament_id);
 	let tests = [];
+	let total_scans = {};
 
 	(async () => {
 		try {
 			tests = (await getTournamentTests(
 				tournament_id,
-				"*,grade_tracking(test_id, *)"
-			)).map((t) => {
-				return {
-					// total number of individual answers to be graded
-					num_scan_problems: t.grade_tracking.length,
-					// number of individual answers already fully graded
-					graded_scan_problems: t.grade_tracking.filter(
-						(s) => s.graded_count >= 2
-					).length,
-					// number of individual answers with conflicting grades
-					conflict_scan_problems: t.grade_tracking.filter((s) => s.has_conflict)
-						.length,
-					...t,
-				};
-			});
+				// "*,grade_tracking(test_id, *)"
+				"*,grade_tracking(count)"
+			));
+			// .map((t) => {
+			// 	return {
+			// 		// total number of individual answers to be graded
+			// 		// num_scan_problems: t.grade_tracking.length,
+			// 		// number of individual answers already fully graded
+			// 		graded_scan_problems: t.grade_tracking.filter(
+			// 			(s) => s.graded_count >= 2
+			// 		).length,
+			// 		// number of individual answers with conflicting grades
+			// 		conflict_scan_problems: t.grade_tracking.filter((s) => s.has_conflict)
+			// 			.length,
+			// 		...t,
+			// 	};
+			// });
+			// for (let test of tests) {
+			// 	test.num_scan_problems = await getNumScanProblems(test.id);
+			// 	test.graded_scan_problems = await getNumGradeProblems(test.id);	
+			// 	test.conflict_scan_problems = await getNumConflictProblems(test.id);
+			// }
+			console.log(tests);
 			tests.sort((a, b) => {
 				if (a.num_scans === 0 && b.num_scans === 0) {
 					return 0;
@@ -48,6 +57,8 @@
 					return progressA - progressB;
 				}
 			});
+
+
 			loaded = true;
 			console.log(tests);
 		} catch (error) {
