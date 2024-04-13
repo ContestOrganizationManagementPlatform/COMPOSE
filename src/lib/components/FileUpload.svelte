@@ -525,12 +525,12 @@
 	}
 </script>
 
-<head>
+<svelte:head>
 	<script
 		type="module"
 		src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.mjs"
 	></script>
-</head>
+</svelte:head>
 
 <h2>Upload Scans</h2>
 
