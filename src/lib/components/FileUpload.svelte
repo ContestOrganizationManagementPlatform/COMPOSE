@@ -160,13 +160,11 @@
 					dot_location
 				);
 			} catch (e) {
-				toast.error("Error scanning: " + e);
-				console.error("Error scanning", e);
+				console.log("Warning: error scanning" +  e.message);
 			}
 
 			if (!front_id) {
 				unnamed_discriminators.front += 1;
-				// front_id = "QR CODE NOT FOUND" + unnamed_discriminators.front;
 				front_id = "ERROR: QR not found (" + unnamed_discriminators.front + ")";
 			}
 
