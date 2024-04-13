@@ -14,6 +14,12 @@ export async function uploadScan(
 	page_number: string,
 	front_id: string,
 ) {
+	if (test_id.startsWith("ERROR")) {
+		throw new Error("Could not read Test QR code. Must manually input the Test ID before uploading.");
+	}
+	if (front_id.startsWith("ERROR")) {
+		throw new Error("Could not read Team/Student QR code. Must manually input the Taker ID before uploading scans.");
+	}
 	let { data, error: upload_error } = await supabase.storage
 		.from("scans")
 		.upload(`test_${test_id}/${front_id}/page_${page_number}.png`, file, {

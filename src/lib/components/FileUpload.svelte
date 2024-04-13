@@ -103,7 +103,7 @@
 					returnDetailedScanResult: true,
 				})
 					.then(resolve)
-					.catch((e) => reject(e || "No QR code found"))
+					.catch((e) => reject(e || "ERROR: QR not found"))
 			);
 		};
 		const scan_test_id = async (png, test_id_page_box) => {
@@ -166,7 +166,8 @@
 
 			if (!front_id) {
 				unnamed_discriminators.front += 1;
-				front_id = "QR CODE NOT FOUND" + unnamed_discriminators.front;
+				// front_id = "QR CODE NOT FOUND" + unnamed_discriminators.front;
+				front_id = "ERROR: QR not found (" + unnamed_discriminators.front + ")";
 			}
 
 			return {
@@ -194,9 +195,9 @@
 					unnamed_discriminators.test += 1;
 					unnamed_discriminators.front += 1;
 					return {
-						test_id: "QR not found " + unnamed_discriminators.test,
+						test_id: "ERROR: QR not found (" + unnamed_discriminators.test + ")",
 						page: "0",
-						front_id: "QR not found " + unnamed_discriminators.front,
+						front_id: "ERROR: QR not found (" + unnamed_discriminators.front + ")",
 						png: png[0],
 					};
 				});
@@ -321,6 +322,7 @@
 
 	async function upload_scans() {
 		try {
+
 			await Promise.all(
 				pngs_to_upload
 					.entries()
@@ -328,8 +330,11 @@
 						uploadScan(png.matched_png, png.test_id, png.page, png.front_id)
 					)
 			);
+			const message = `Successfully uploaded ${pngs_to_upload.size} scan(s)`;
+			toast.success(message);
 			pngs_to_upload.clear();
 			pngs_to_upload = pngs_to_upload;
+			
 		} catch (error) {
 			handleError(error);
 			toast.error(error.message);
