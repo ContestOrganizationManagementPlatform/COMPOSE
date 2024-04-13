@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from "svelte";
-	import { displayLatex } from "$lib/latexStuff";
 	import { getTeams } from "$lib/supabase/guts.ts";
 	import { clear } from "$lib/supabase/guts.ts";
 	import { submit } from "$lib/supabase/guts.ts";
@@ -205,10 +204,10 @@
 							{/each}
 						{:else}
 							<div class="grid">
-								<div>Answer</div>
+								<div><strong>Answer</strong></div>
 								<div></div>
-								<div>Correct</div>
-								<div>Incorrect</div>
+								<div><strong>Correct</strong></div>
+								<div><strong>Incorrect</strong></div>
 								{#each Array(questions_per_round) as __, question}
 								<div>
 									{@html correct_answers[round][question]["answer_display"]}
