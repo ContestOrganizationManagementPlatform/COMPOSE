@@ -86,6 +86,7 @@
 			console.log(`gradeQueue length ${gradeQueue.length}`);
 			// console.log(gradeQueue);
 		}
+		fetching_problems = false;
 		loaded = true;
 	}
 
@@ -138,7 +139,8 @@
 
 	// Handle swipe actions
 	async function handleAction(action) {
-		if (switchingProblems || gradeQueue.length <= currentIndex - 1) {
+		if (switchingProblems || gradeQueue.length <= currentIndex) {
+		// if (switchingProblems || gradeQueue.length <= currentIndex - 1) {
 			return;
 		}
 
