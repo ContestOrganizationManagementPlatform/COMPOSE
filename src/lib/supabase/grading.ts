@@ -1,5 +1,6 @@
 import { supabase } from "../supabaseClient";
 
+// These two constants control the number of scans that are fetched at a time.
 const MIN_SCAN_INDEX = 0;
 const MAX_SCAN_INDEX = 100;
 // NOTE: const jsonData (a list of JSON dictionaries {scan_id: int, test_id: int}) is hard coded at the bottom of this file. Please update if necessary!
