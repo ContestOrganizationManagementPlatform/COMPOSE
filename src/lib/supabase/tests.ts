@@ -233,7 +233,43 @@ export async function removeTestCoordinator(
 		.delete()
 		.eq("test_id", test_id)
 		.eq("coordinator_id", coordinator_id);
+
 	if (error) throw error;
+}
+
+export async function getNumScanProblems(test_id) {
+	const { count, error } = await supabase
+		.from("grade_tracking")
+		.select("count", { count: "exact", head: true })
+		.eq("test_id", test_id)
+		.single();
+	if (error) throw error;
+	console.log("getNumGradeProblems: ", count);
+	return count;
+}
+
+export async function getNumGradeProblems(test_id) {
+	const { count, error } = await supabase
+		.from("grade_tracking")
+		.select("count", { count: "exact", head: true })
+		.eq("test_id", test_id)
+		.filter("graded_count", "gte", 2)
+		.single();
+	if (error) throw error;
+	console.log("getNumGradeProblems: ", count);
+	return count;
+}
+
+export async function getNumConflictProblems(test_id) {
+	const { count, error } = await supabase
+		.from("grade_tracking")
+		.select("count", { count: "exact", head: true })
+		.eq("test_id", test_id)
+		.eq("needs_resolution", true)
+		.single();
+	if (error) throw error;
+	console.log("getNumGradeProblems: ", count);
+	return count;
 }
 
 /**
