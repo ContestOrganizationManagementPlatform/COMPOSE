@@ -91,15 +91,27 @@
 		e.target.innerText = "Processing";
 
 		try {
-			const answer_template_body = await fetch(test.test_name == "Guts" ? gutsSheet : test.test_name.indexOf("Tiebreaker") != -1 ? tiebreakerSheet : testSheet).then((r) =>
-				r.text()
-			);
+			const is_selected = (option) =>
+				selected_values.find((o) => o == option) != undefined;
+			const answer_template_body = await fetch(
+				test.test_name == "Guts" &&
+					!is_selected("Answers") &&
+					!is_selected("Solutions")
+					? gutsSheet
+					: test.test_name.indexOf("Tiebreaker") != -1 &&
+					!is_selected("Answers") &&
+					!is_selected("Solutions")
+					? tiebreakerSheet
+					: testSheet
+			).then((r) => r.text());
 
 			// TODO: @tweoss (francis) get rid of this hack of using test name directly
 			if (test.test_name == "Integration Bee") {
-				// Sort by ascending difficulty. 
+				// Sort by ascending difficulty.
 				// TODO: why is this using average_difficulty not difficulty?
-				problems = problems.sort((a, b) => a.average_difficulty - b.average_difficulty);
+				problems = problems.sort(
+					(a, b) => a.average_difficulty - b.average_difficulty
+				);
 				console.log("sorting by difficulty", problems);
 			}
 
@@ -107,8 +119,6 @@
 			let [year, month, day] = test.tournaments.tournament_date
 				.split("-")
 				.map((n) => parseInt(n));
-			const is_selected = (option) =>
-				selected_values.find((o) => o == option) != undefined;
 			const test_metadata = JSON.stringify({
 				name: test.test_name,
 				id: "T" + test.id,
