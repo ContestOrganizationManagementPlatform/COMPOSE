@@ -1,5 +1,5 @@
 <script lang="js">
-	import Latex from "$lib/components/Latex.svelte";
+	import TestProblems from "$lib/components/TestProblems.svelte";
 	import {
 		Checkbox,
 		TextArea,
@@ -7,7 +7,6 @@
 		Dropdown,
 	} from "carbon-components-svelte";
 	import { page } from "$app/stores";
-	import { TestsolveAnswer } from "$lib/TestsolveAnswer";
 	import { supabase } from "$lib/supabaseClient";
 	import { createEventDispatcher } from "svelte";
 	import { formatTime } from "$lib/formatDate";
@@ -24,6 +23,7 @@
 		getTestsolveFeedbackAnswers,
 		getFeedbackQuestions,
 	} from "$lib/supabase";
+	import { ProblemImage } from "$lib/getProblemImages";
 
 	const dispatch = createEventDispatcher();
 
@@ -251,26 +251,6 @@
 		return input.trim();
 	}
 
-	function changeAnswer(e, id) {
-		(async () => {
-			updateTestsolve(testsolve.id, { time_elapsed: timeElapsed });
-		})();
-		const nowTime = new Date().getTime();
-		const problemTime =
-			nowTime - lastTime + problemFeedbackMap[id].time_elapsed;
-		lastTime = nowTime;
-		const feedback = [
-			{
-				problem_id: id,
-				testsolve_id: testsolve.id,
-				solver_id: testsolve.solver_id,
-				answer: problemFeedbackMap[id].answer,
-				time_elapsed: problemTime,
-			},
-		];
-		upsertProblemFeedback(feedback);
-	}
-
 	function changeFeedbackAnswer(e, id) {
 		console.log(id);
 		const feedback = [
@@ -281,80 +261,6 @@
 			},
 		];
 		upsertTestsolveFeedbackAnswers(feedback);
-	}
-
-	function changeChecked(id) {
-		const feedback = [
-			{
-				problem_id: id,
-				testsolve_id: testsolve.id,
-				solver_id: testsolve.solver_id,
-				correct: problemFeedbackMap[id].correct,
-			},
-		];
-		upsertProblemFeedback(feedback);
-	}
-
-	function changeFeedback(id) {
-		const feedback = [
-			{
-				problem_id: id,
-				testsolve_id: testsolve.id,
-				solver_id: testsolve.solver_id,
-				feedback: problemFeedbackMap[id].feedback,
-			},
-		];
-		upsertProblemFeedback(feedback);
-	}
-
-	let diffWarn = null;
-	function changeDifficulty(id) {
-		console.log(problemFeedbackMap[id]);
-		const num = parseInt(problemFeedbackMap[id].difficulty);
-		console.log(num, "NUM");
-		if (
-			problemFeedbackMap[id].difficulty == "" ||
-			(!isNaN(num) && num >= 1 && num <= 10)
-		) {
-			const feedback = [
-				{
-					problem_id: id,
-					testsolve_id: testsolve.id,
-					solver_id: testsolve.solver_id,
-					difficulty: num,
-				},
-			];
-			upsertProblemFeedback(feedback);
-		} else {
-			toast.error("You must enter an integer from 1-10, or leave it blank");
-			problemFeedbackMap[id].difficulty = "";
-		}
-		// Check if the value is within the range of 1 to 10 (inclusive)
-	}
-
-	let qualWarn = null;
-	function changeQuality(id) {
-		console.log(problemFeedbackMap[id]);
-		const num = parseInt(problemFeedbackMap[id].quality);
-		console.log(num, "NUM");
-		if (
-			problemFeedbackMap[id].quality == "" ||
-			(!isNaN(num) && num >= 1 && num <= 10)
-		) {
-			const feedback = [
-				{
-					problem_id: id,
-					testsolve_id: testsolve.id,
-					solver_id: testsolve.solver_id,
-					quality: num,
-				},
-			];
-			upsertProblemFeedback(feedback);
-		} else {
-			toast.error("You must enter an integer from 1-10, or leave it blank");
-			problemFeedbackMap[id].quality = "";
-		}
-		// Check if the value is within the range of 1 to 10 (inclusive)
 	}
 
 	async function completeTest() {
@@ -404,96 +310,8 @@
 			{/if}
 			<br />
 			{#each problems as problem}
-				<div class="problem-container">
-					<div class="problem-div">
-						<p>
-							<span style="font-size: 30px;">
-								{problem.problem_number + 1}.
-							</span>
-							{#if reviewing}
-								({problem.full_problems.front_id})
-							{/if}
-						</p>
-						<Latex
-							style="font-size: 16px"
-							value={problem.full_problems.problem_latex}
-						/>
-						{#if reviewing}
-							<div style="margin-top: 10px;">
-								Answer:
-								<Latex
-									style="font-size: 16px"
-									value={problem.full_problems.answer_latex}
-								/>
-							</div>
-							<div style="margin-top: 10px;">
-								Solution:
-								<Latex
-									style="font-size: 16px"
-									value={problem.full_problems.solution_latex}
-								/>
-							</div>
-						{/if}
-					</div>
-					<div class="feedback-div">
-						<div>
-							Time: {formatTime(
-								problemFeedbackMap[problem.problem_id].time_elapsed
-							)}
-						</div>
-						<div style="margin-top: 10px;">
-							<TextInput
-								labelText={reviewing ? "Your answer" : "Answer"}
-								disabled={reviewing}
-								bind:value={problemFeedbackMap[problem.problem_id].answer}
-								on:blur={(e) => changeAnswer(e, problem.problem_id)}
-							/>
-						</div>
-						{#if reviewing}
-							<div style="margin-top: 3px;">
-								<Checkbox
-									labelText="Correct?"
-									bind:checked={problemFeedbackMap[problem.problem_id].correct}
-									on:change={() => changeChecked(problem.problem_id)}
-								/>
-							</div>
-						{/if}
-						<div>
-							<TextArea
-								labelText="Feedback"
-								bind:value={problemFeedbackMap[problem.problem_id].feedback}
-								on:blur={(e) => changeFeedback(problem.problem_id)}
-							/>
-						</div>
-						{#if reviewing}
-							<br />
-							<div class="flex">
-								<div style="margin: 3px">
-									<TextInput
-										labelText={"Difficulty"}
-										placeholder={"1-10"}
-										bind:value={problemFeedbackMap[problem.problem_id]
-											.difficulty}
-										on:change={(e) => {
-											console.log("CHANGED DIFF", e);
-											changeDifficulty(problem.problem_id);
-										}}
-									/>
-								</div>
-								<div style="margin: 3px">
-									<TextInput
-										labelText={"Quality"}
-										placeholder={"1-10"}
-										bind:value={problemFeedbackMap[problem.problem_id].quality}
-										on:change={(e) => {
-											changeQuality(problem.problem_id);
-										}}
-									/>
-								</div>
-							</div>
-						{/if}
-					</div>
-				</div>
+				{console.log("PROBLEM", problem)}
+				<TestProblems problemFeedback={problemFeedbackMap[problem.problem_id]} {problem} {reviewing}></TestProblems>
 			{/each}
 		{/if}
 
@@ -516,23 +334,6 @@
 	</div>{/if}
 
 <style>
-	.problem-container {
-		display: flex;
-	}
-
-	.problem-div,
-	.feedback-div {
-		background-color: var(--text-color-light);
-		border: 2px solid black;
-		margin: 10px;
-		padding: 20px;
-		text-align: left;
-		flex-grow: 1;
-	}
-
-	.problem-div {
-		width: 60%;
-	}
 
 	.test-div {
 		display: flex;
