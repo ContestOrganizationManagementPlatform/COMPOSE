@@ -8,14 +8,19 @@
 		Dropdown,
 	} from "carbon-components-svelte";
 	import { formatTime } from "$lib/formatDate";
+	import { handleError } from "$lib/handleError";
 	import Latex from "$lib/components/Latex.svelte";
 	import toast from "svelte-french-toast";
 	export let problemFeedback;
 	export let problem;
+	export let testsolve_id = null;
+	export let user_id = null;
 	export let reviewing = false;
+	export let lastTime = new Date();
 	console.log("PROBLEM", problem)
 	import {
 		getTestProblems,
+		getThisUser,
 		getTestsolveProblemFeedback,
 		upsertProblemFeedback,
 		updateTestsolve,
@@ -23,13 +28,25 @@
 		getTestsolveFeedbackAnswers,
 		getFeedbackQuestions,
 	} from "$lib/supabase";
+
+	(async () => {
+		try {
+			if (!user_id) {
+				user_id = (await getThisUser()).id;
+				console.log(user_id);
+			}	
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+	})();
 	
 	function changeChecked(id) {
 		const feedback = [
 			{
 				problem_id: id,
-				testsolve_id: testsolve.id,
-				solver_id: testsolve.solver_id,
+				testsolve_id: testsolve_id,
+				solver_id: user_id,
 				correct: problemFeedback.correct,
 			},
 		];
@@ -40,8 +57,8 @@
 		const feedback = [
 			{
 				problem_id: id,
-				testsolve_id: testsolve.id,
-				solver_id: testsolve.solver_id,
+				testsolve_id: testsolve_id,
+				solver_id: user_id,
 				feedback: problemFeedback.feedback,
 			},
 		];
@@ -60,8 +77,8 @@
 			const feedback = [
 				{
 					problem_id: id,
-					testsolve_id: testsolve.id,
-					solver_id: testsolve.solver_id,
+					testsolve_id: testsolve_id,
+					solver_id: user_id,
 					difficulty: num,
 				},
 			];
@@ -85,8 +102,8 @@
 			const feedback = [
 				{
 					problem_id: id,
-					testsolve_id: testsolve.id,
-					solver_id: testsolve.solver_id,
+					testsolve_id: testsolve_id,
+					solver_id: user_id,
 					quality: num,
 				},
 			];
@@ -99,9 +116,6 @@
 	}
 
 	function changeAnswer(e, id) {
-		(async () => {
-			updateTestsolve(testsolve.id, { time_elapsed: timeElapsed });
-		})();
 		const nowTime = new Date().getTime();
 		const problemTime =
 			nowTime - lastTime + problemFeedback.time_elapsed;
@@ -109,8 +123,8 @@
 		const feedback = [
 			{
 				problem_id: id,
-				testsolve_id: testsolve.id,
-				solver_id: testsolve.solver_id,
+				testsolve_id: testsolve_id,
+				solver_id: user_id,
 				answer: problemFeedback.answer,
 				time_elapsed: problemTime,
 			},
