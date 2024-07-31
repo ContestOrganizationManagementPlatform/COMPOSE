@@ -16,7 +16,7 @@
 	import { handleError } from "$lib/handleError";
 	import {
 		getTestProblems,
-		getThisUser,
+		
 		getTestsolveProblemFeedback,
 		upsertProblemFeedback,
 		updateTestsolve,
@@ -311,7 +311,6 @@
 			{/if}
 			<br />
 			{#each problems as problem}
-				{console.log("PROBLEM", problem)}
 				<TestProblems problemFeedback={problemFeedbackMap[problem.problem_id]} {problem} {reviewing} testsolve_id={testsolve.id} bind:lastTime={lastTime}></TestProblems>
 			{/each}
 		{/if}
