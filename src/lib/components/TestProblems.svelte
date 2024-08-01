@@ -11,8 +11,9 @@
 	import { handleError } from "$lib/handleError";
 	import Latex from "$lib/components/Latex.svelte";
 	import toast from "svelte-french-toast";
-	export let problemFeedback;
+	export let problemFeedback = {};
 	export let problem;
+	export let problemNumber = null;
 	export let testsolve_id = null;
 	export let user_id = null;
 	export let reviewing = false;
@@ -137,30 +138,32 @@
 <div class="problem-container">
 					<div class="problem-div">
 						<p>
-							<span style="font-size: 30px;">
-								{problem.problem_number + 1}.
-							</span>
+							{#if problemNumber}
+								<span style="font-size: 30px;">
+									{problemNumber + 1}.
+								</span>
+							{/if}
 							{#if reviewing}
-								({problem.full_problems.front_id})
+								({problem.front_id})
 							{/if}
 						</p>
 						<Latex
 							style="font-size: 16px"
-							value={problem.full_problems.problem_latex}
+							value={problem.problem_latex}
 						/>
 						{#if reviewing}
 							<div style="margin-top: 10px;">
 								Answer:
 								<Latex
 									style="font-size: 16px"
-									value={problem.full_problems.answer_latex}
+									value={problem.answer_latex}
 								/>
 							</div>
 							<div style="margin-top: 10px;">
 								Solution:
 								<Latex
 									style="font-size: 16px"
-									value={problem.full_problems.solution_latex}
+									value={problem.solution_latex}
 								/>
 							</div>
 						{/if}

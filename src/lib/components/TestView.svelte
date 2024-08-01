@@ -143,7 +143,7 @@
 		)
 		.subscribe();
 
-	let problems = [];
+	let testProblems = [];
 	let questions = [];
 	let loading = true;
 	let startTime = new Date();
@@ -197,7 +197,7 @@
 
 	async function fetchProblems() {
 		try {
-			problems = await getTestProblems(testsolve.test_id);
+			testProblems = await getTestProblems(testsolve.test_id);
 			problemFeedback.forEach((obj) => {
 				const filteredObj = Object.keys(obj)
 					.filter((key) => key in problemFeedbackObject)
@@ -207,10 +207,10 @@
 					}, {});
 				problemFeedbackMap[obj.problem_id] = { ...filteredObj };
 			});
-			for (const problem of problems) {
-				console.log("PROB", problem);
-				if (!(problem.problem_id in problemFeedbackMap)) {
-					problemFeedbackMap[problem.problem_id] = { ...problemFeedbackObject };
+			for (const testProblem of testProblems) {
+				console.log("PROB", testProblem);
+				if (!(testProblem.problem_id in problemFeedbackMap)) {
+					problemFeedbackMap[testProblem.problem_id] = { ...problemFeedbackObject };
 				}
 			}
 			console.log("MAP", problemFeedbackMap);
@@ -310,8 +310,8 @@
 				</div>
 			{/if}
 			<br />
-			{#each problems as problem}
-				<TestProblems problemFeedback={problemFeedbackMap[problem.problem_id]} {problem} {reviewing} testsolve_id={testsolve.id} bind:lastTime={lastTime}></TestProblems>
+			{#each testProblems as testProblem}
+				<TestProblems problemFeedback={problemFeedbackMap[testProblem.problem_id]} problem={testProblem.full_problems} problemNumber={testProblem.problem_number} {reviewing} testsolve_id={testsolve.id} bind:lastTime={lastTime}></TestProblems>
 			{/each}
 		{/if}
 
