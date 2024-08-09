@@ -18,6 +18,7 @@
 	export let user_id = null;
 	export let reviewing = false;
 	export let lastTime = new Date();
+	let screen_width = screen.width;
 	console.log("PROBLEM", problem)
 	import {
 		getTestProblems,
@@ -147,10 +148,14 @@
 								({problem.front_id})
 							{/if}
 						</p>
-						<Latex
+						<!--How problem is initially displayed-->
+						<div class="problem-latex">
+						<Latex 
 							style="font-size: 16px"
 							value={problem.problem_latex}
 						/>
+						</div>
+						<!--Change problem when reviewing/submitted-->
 						{#if reviewing}
 							<div style="margin-top: 10px;">
 								Answer:
@@ -241,6 +246,11 @@
 		padding: 20px;
 		text-align: left;
 		flex-grow: 1;
+	}
+
+	.problem-latex
+	{
+		margin: 10px;
 	}
 
 	.problem-div {

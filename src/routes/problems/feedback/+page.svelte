@@ -3,23 +3,50 @@
     import Button from "$lib/components/Button.svelte";
     import Loading from "$lib/components/Loading.svelte";
     import {
-        getProblem
+        getProblem,
+        getThisUser,
+        getRandomProblem,
 	} from "$lib/supabase";
+    import { handleError } from "$lib/handleError";
+	import toast from "svelte-french-toast";
 	let startTime = new Date();
 	let lastTime = startTime;
 	let reviewing = false;
-	let problemFeedback = [];
+	let problemFeedback = {};
     let problem;
 	let loaded = false;
+    export let user_id = null;
     (async () => {
-        problem = await getProblem(113);
+        try {
+			if (!user_id) {
+				user_id = (await getThisUser()).id;
+			}	
+		} catch (error) {
+			handleError(error);
+			toast.error(error.message);
+		}
+
+        problem = await getRandomProblem(user_id);
         console.log("WHY", problem);
         loaded = true;
+
     })();
-    let problems = [];
+    
 
     const changeReviewing = () => {
         reviewing = !reviewing;
+    }
+
+    const newProblem = () => {
+        (async () => {
+            loaded = false;
+            problem = await getRandomProblem(user_id);
+            console.log("WHY", problem);
+            reviewing = !reviewing;
+            //problemFeedback = {};
+            loaded = true;
+        })();
+        
     }
 
 </script>
@@ -30,39 +57,31 @@
                 {#if !loaded}
                     <Loading/>
                     {:else} 
-                    <TestProblems {problemFeedback} {problem} {reviewing}></TestProblems>
-                    <Button action={changeReviewing} title="submit"></Button>
+                    <div class="problems">
+                        <TestProblems bind:problemFeedback={problemFeedback} {problem} {reviewing}></TestProblems>
+                    </div>
+                    <div class = "submit-button">
+                    {#if !reviewing}
+                        <Button action={changeReviewing} title="Submit" ></Button>
+                    {:else}
+                        <Button action={newProblem} title="Submit" ></Button>
+                    {/if}
+                    </div>
                 {/if}
 </div>
 
 <style>
 
-	.test-div {
+	.problems {
 		display: flex;
 		justify-content: center;
 		padding-bottom: 20px;
 	}
-
-	.inner-div {
-		width: 80%;
-		min-width: 400px;
-	}
-
-	.questionsDiv {
-		background-color: var(--text-color-light);
-		border: 2px solid black;
-		padding: 20px;
-		text-align: left;
-		width: 70%;
-	}
-
-	.panel {
-		position: fixed;
-		right: 0;
-		top: 0;
-		margin: 10px;
-		padding: 10px;
-		background-color: var(--text-color-light);
-		border: 1px solid black;
-	}
+    .submit-button {
+        display:flex;
+        justify-content: center;
+        align-items: center;
+        flex-grow: 1;
+        padding-bottom: 20px;
+    }
 </style>
