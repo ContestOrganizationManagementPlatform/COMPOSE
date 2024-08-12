@@ -16,6 +16,24 @@
     let problem;
 	let loaded = false;
     export let user_id = null;
+    
+    const changeReviewing = () => {
+        reviewing = !reviewing;
+    }
+
+    const newProblem = () => {
+        (async () => {
+            loaded = false;
+            problem = await getRandomProblem(user_id);
+            console.log("WHY", problem);
+            reviewing = !reviewing;
+            problemFeedback = {};
+            console.log("PLS", problemFeedback);
+            loaded = true;
+        })();
+        
+    }
+    
     (async () => {
         try {
 			if (!user_id) {
@@ -27,28 +45,12 @@
 		}
 
         problem = await getRandomProblem(user_id);
-        console.log("WHY", problem);
+        console.log("KYU", problem);
         loaded = true;
 
     })();
     
-
-    const changeReviewing = () => {
-        reviewing = !reviewing;
-    }
-
-    const newProblem = () => {
-        (async () => {
-            loaded = false;
-            problem = await getRandomProblem(user_id);
-            console.log("WHY", problem);
-            reviewing = !reviewing;
-            //problemFeedback = {};
-            loaded = true;
-        })();
-        
-    }
-
+    
 </script>
 
 

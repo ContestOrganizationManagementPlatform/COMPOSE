@@ -482,6 +482,7 @@ export async function upsertProblemFeedback(problem_feedback: any[]) {
 	const { error: error } = await supabase
 		.from("problem_feedback")
 		.upsert(problem_feedback, { onConflict: "testsolve_id, problem_id" });
+		console.log("added", problem_feedback);
 	if (error) throw error;
 }
 
