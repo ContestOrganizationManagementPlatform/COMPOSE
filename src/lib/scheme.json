@@ -12,9 +12,9 @@
     		"notifs_forum": "1191689032749555762"
 	},
 	"progress": {
-		"after": "2023-11-20T13:00:00Z",
-		"before": "2024-03-01T00:00:00Z",
-		"goal": 120
+		"after": "2024-07-01T13:00:00Z",
+		"before": "2024-09-21T00:00:00Z",
+		"goal": 200
 	},
 	"styles": {
 		"text-color-light": "#fff",
