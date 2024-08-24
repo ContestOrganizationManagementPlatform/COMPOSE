@@ -25,7 +25,7 @@
 		getTestCoordinators,
 		getUser,
 	} from "$lib/supabase";
-	import scheme from "$lib/scheme.json";
+	/*import scheme from "$lib/scheme.json";*/
 
 	let loading = true;
 	let disallowed = true;
@@ -130,7 +130,7 @@
 		await getTestsolve();
 	}
 
-	async function submitTestsolve() {
+	/*async function submitTestsolve() {
 		try {
 			console.log("Submit");
 			await updateTestsolve(testsolve.id, { status: "Complete" });
@@ -193,14 +193,14 @@
 			handleError(error);
 			toast.error(error.message);
 		}
-	}
+	}*/
 </script>
-
+<!--
 {#if loading}
 	<p>Loading...</p>
 {:else if disallowed}
 	<p>You are not authorized!</p>
-{:else}
+{:else}-->
 	<br />
 	{#if isAdmin}
 		<Button action={deleteThisTestsolve} title="Delete Testsolve" />
