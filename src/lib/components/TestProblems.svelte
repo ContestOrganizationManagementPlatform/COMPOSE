@@ -12,12 +12,15 @@
 	import Latex from "$lib/components/Latex.svelte";
 	import toast from "svelte-french-toast";
 	export let problemFeedback = {};
+	console.log("FEDBACK", problemFeedback);
 	export let problem;
+	console.log("PROB", problem.id);
 	export let problemNumber = null;
 	export let testsolve_id = null;
 	export let user_id = null;
 	export let reviewing = false;
 	export let lastTime = new Date();
+	export let givingFeedback = false;
 	let screen_width = screen.width;
 	console.log("PROBLEM", problem)
 	import {
@@ -121,17 +124,24 @@
 		const nowTime = new Date().getTime();
 		const problemTime =
 			nowTime - lastTime + problemFeedback.time_elapsed;
+			console.log("T", problemTime);
+			console.log("I", nowTime);
+			console.log("M", lastTime);
+			console.log("E", problemFeedback.time_elapsed);
 		lastTime = nowTime;
+
 		const feedback = [
 			{
 				problem_id: id,
 				testsolve_id: testsolve_id,
 				solver_id: user_id,
 				answer: problemFeedback.answer,
-				time_elapsed: problemTime,
+				time_elapsed: problemTime, //time elapsed becomes undefined
 			},
 		];
+		problemFeedback.time_elapsed = problemTime;
 		upsertProblemFeedback(feedback);
+		console.log("f", problemFeedback.time_elapsed);
 	}
 
 </script>
@@ -144,7 +154,7 @@
 									{problemNumber + 1}.
 								</span>
 							{/if}
-							{#if reviewing}
+							{#if reviewing || givingFeedback}
 								({problem.front_id})
 							{/if}
 						</p>
@@ -184,7 +194,7 @@
 								labelText={reviewing ? "Your answer" : "Answer"}
 								disabled={reviewing}
 								bind:value={problemFeedback.answer}
-								on:blur={(e) => changeAnswer(e, problem.problem_id)}
+								on:blur={(e) => changeAnswer(e, problem.id)}
 							/>
 						</div>
 						{#if reviewing}
@@ -192,7 +202,7 @@
 								<Checkbox
 									labelText="Correct?"
 									bind:checked={problemFeedback.correct}
-									on:change={() => changeChecked(problem.problem_id)}
+									on:change={() => changeChecked(problem.id)}
 								/>
 							</div>
 						{/if}
@@ -200,7 +210,7 @@
 							<TextArea
 								labelText="Feedback"
 								bind:value={problemFeedback.feedback}
-								on:blur={(e) => changeFeedback(problem.problem_id)}
+								on:blur={(e) => changeFeedback(problem.id)}
 							/>
 						</div>
 						{#if reviewing}
@@ -214,7 +224,7 @@
 											.difficulty}
 										on:change={(e) => {
 											console.log("CHANGED DIFF", e);
-											changeDifficulty(problem.problem_id);
+											changeDifficulty(problem.id);
 										}}
 									/>
 								</div>
@@ -224,7 +234,7 @@
 										placeholder={"1-10"}
 										bind:value={problemFeedback.quality}
 										on:change={(e) => {
-											changeQuality(problem.problem_id);
+											changeQuality(problem.id);
 										}}
 									/>
 								</div>
