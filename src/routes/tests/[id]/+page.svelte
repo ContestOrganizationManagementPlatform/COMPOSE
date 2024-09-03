@@ -95,6 +95,7 @@
 			const is_selected = (option) =>
 				selected_values.find((o) => o == option) != undefined;
 			let template_source = testSheet;
+			// TODO: consolidate guts, tiebreakers, and standard typst document layouts.
 			if (
 				test.test_name == "Guts"
 				&& !is_selected("Answers")
