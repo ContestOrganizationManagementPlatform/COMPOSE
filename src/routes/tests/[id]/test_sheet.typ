@@ -182,8 +182,7 @@
     )
     #grid(
       columns: (1fr, 1fr),
-      align(center + horizon, written_identification_box),
-      align(center + horizon, identification_sticker_box),
+      align(center + horizon, written_identification_box), align(center + horizon, identification_sticker_box),
     )
     // Add dividing line (and measure it for querying)
     #layout(size => {
@@ -358,10 +357,10 @@
   latex.replace(
     boxed_regex,
     (m, ..) => {
-      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, baseline: 6pt, [" + mitex-convert(
+      "\\iftypst#pad(y: 4pt, move(dy: -1pt, box(stroke: 0.5pt, inset: (x: 2pt, y: 6pt), [" + mitex-convert(
         mode: "text",
         "$" + m.captures.at(1) + "$",
-      ) + "])\\fi"
+      ) + "])))\\fi"
     },
   )
 }
