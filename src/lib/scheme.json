@@ -6,11 +6,11 @@
 	"url": "https://compose.stanfordmathtournament.com",
 	"test_logo": "https://i.postimg.cc/PxkgYTY8/smt-logo.png",
 	"discord": {
-		"guild_id": "968089252107792444",
+		"guild_id": "1167182213004136488",
 		"embed_color": "0xdc7291",
 		"thread_channel": "1167741704175099955",
 		"notifs_channel": "1167741704175099955",
-		"notifs_forum": "1191688676833493033"
+		"notifs_forum": "1282422555311083530"
 	},
 	"progress": {
 		"after": "2023-10-29T20:00:00Z",
