@@ -94,6 +94,12 @@
 					>
 						<p class="linkPara">View Testsolves</p>
 					</Link>
+					<Link
+						href="/problems/feedback"
+						class={path == "problems/feedback" ? "active link" : "link"}
+					>
+						<p class="linkPara">Give Feedback</p>
+					</Link>
 				{/if}
 				{#if userRole >= 30}
 					<Link href="/tests" class={path == "tests" ? "active link" : "link"}>

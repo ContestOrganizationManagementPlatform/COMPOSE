@@ -482,6 +482,7 @@ export async function upsertProblemFeedback(problem_feedback: any[]) {
 	const { error: error } = await supabase
 		.from("problem_feedback")
 		.upsert(problem_feedback, { onConflict: "testsolve_id, problem_id" });
+		console.log("added", problem_feedback);
 	if (error) throw error;
 }
 
@@ -624,6 +625,77 @@ export async function sendFeedbackMessage(problem_feedback: any[]) {
 		}
 	});
 }
+
+/**
+ * Gets a random problem
+ */
+export async function getRandomProblem(activeUserId) {
+	try{
+		//Gets problems that weren't written by the user
+		let { data: problems, error } = await supabase
+			.from('full_problems')
+			.select('id')
+			.neq('author_id', activeUserId)
+		
+		if(error) throw error
+
+		//get all problems that user has already written feedback for
+		let { data: feedback, error: feedbackError } = await supabase
+			.from('problem_feedback')
+			.select('problem_id')
+			.eq('solver_id', activeUserId)
+		
+		if (feedbackError) throw feedbackError
+
+		//take problem IDs from feedback
+		const feedbackProblemIds = feedback.map(item => item.problem_id)
+
+		//filter out problems with active user feedback
+		const eligibleProblems = problems.filter(problem => !feedbackProblemIds.includes(problem.id))
+
+		if (eligibleProblems.length === 0) {
+			console.log('No eligible problems found.');
+			return null //nothing found
+		}
+
+		//Count feedbacks for each remaining problem
+		const feedbackCounts = await Promise.all(
+			eligibleProblems.map(async (problem) => {
+				let { count, error: countError } = await supabase
+					.from('problem_feedback')
+					.select('id', { count: 'exact' })
+					.eq('problem_id', problem.id);
+		
+				if (countError) throw countError;
+		
+				return { problem, count };
+			})
+		);
+	  
+		  //Find problem with the least feedback count
+		feedbackCounts.sort((a, b) => a.count - b.count);
+		  
+		//If there are multiple problems with the least feedback, select one randomly
+		const leastFeedbackProblems = feedbackCounts.filter(fc => fc.count === feedbackCounts[0].count);
+		const randomProblem = leastFeedbackProblems[Math.floor(Math.random() * leastFeedbackProblems.length)].problem;
+		  
+		//fetch full problem details
+		let { data: fullProblem, error: fullProblemError } = await supabase
+			.from('full_problems')
+			.select('*')
+			.eq('id', randomProblem.id)
+			.single()
+		
+			if (fullProblemError) throw fullProblemError
+
+			return fullProblem
+	} catch (error) {
+		console.error('Error fetching random problem:', error.message)
+		return null
+	}
+}
+
+
 
 /**
  * Insert testsolve answers to a problem
