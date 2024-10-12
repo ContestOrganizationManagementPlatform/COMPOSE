@@ -165,3 +165,27 @@ export async function archiveTournament(tournament_id: number) {
 		archiveTest(i.id);
 	}
 }
+
+/**
+ * Archives the tournament, all tests, and all problems associated with the tournament id. Returns nothing.
+ *
+ * @param tournament_id number
+ */
+export async function unarchiveTournament(tournament_id: number) {
+	const { error: error1 } = await supabase
+		.from("tournaments")
+		.update({ archived: false })
+		.eq("id", tournament_id);
+	if (error1) throw error1;
+
+	const { error: error2 } = await supabase
+		.from("tests")
+		.update({ archived: false })
+		.eq("tournament_id", tournament_id);
+	if (error2) throw error2;
+
+	let tests = await getTournamentTests(tournament_id);
+	for (let i of tests) {
+		archiveTest(i.id);
+	}
+}
