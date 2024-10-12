@@ -1,5 +1,5 @@
 import { supabase } from "../supabaseClient";
-import { archiveTest } from "./tests";
+import { unarchiveTest, archiveTest } from "./tests";
 
 export interface TournamentRequest {
 	tournament_name: string;
@@ -186,6 +186,6 @@ export async function unarchiveTournament(tournament_id: number) {
 
 	let tests = await getTournamentTests(tournament_id);
 	for (let i of tests) {
-		archiveTest(i.id);
+		unarchiveTest(i.id);
 	}
 }

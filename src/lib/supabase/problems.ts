@@ -290,7 +290,7 @@ export async function archiveProblem(problem_id: number) {
 		.update({ archived: true })
 		.eq("id", problem_id);
 	if (error) throw error;
-
+}
 /**
  * Archives a problem. Returns nothing.
  *
