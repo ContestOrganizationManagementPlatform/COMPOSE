@@ -290,11 +290,18 @@ export async function archiveProblem(problem_id: number) {
 		.update({ archived: true })
 		.eq("id", problem_id);
 	if (error) throw error;
-	const { data, error2 } = await supabase
-		.from("test_problems")
-		.delete()
-		.eq("problem_id", problem_id);
-	if (error2) throw error2;
+}
+/**
+ * Archives a problem. Returns nothing.
+ *
+ * @param problem_id number
+ */
+export async function unarchiveProblem(problem_id: number) {
+	const { error } = await supabase
+		.from("problems")
+		.update({ archived: false })
+		.eq("id", problem_id);
+	if (error) throw error;
 }
 
 /**

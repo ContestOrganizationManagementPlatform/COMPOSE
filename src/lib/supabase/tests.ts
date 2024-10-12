@@ -1,5 +1,5 @@
 import { supabase } from "../supabaseClient";
-import { archiveProblem } from "./problems";
+import { unarchiveProblem, archiveProblem } from "./problems";
 
 export interface TestRequest {
 	test_name: string;
@@ -291,6 +291,28 @@ export async function archiveTest(test_id: number) {
 	if (error2) throw error2;
 	for (let i of data) {
 		archiveProblem(i.problem_id);
+	}
+}
+
+/**
+ * Archives a test. Returns nothing.
+ *
+ * @param test_id number
+ */
+export async function unarchiveTest(test_id: number) {
+	const { error: error1 } = await supabase
+		.from("tests")
+		.update({ archived: false })
+		.eq("id", test_id);
+	if (error1) throw error1;
+
+	let { data, error: error2 } = await supabase
+		.from("test_problems")
+		.select("problem_id")
+		.eq("test_id", test_id);
+	if (error2) throw error2;
+	for (let i of data) {
+		unarchiveProblem(i.problem_id);
 	}
 }
 
