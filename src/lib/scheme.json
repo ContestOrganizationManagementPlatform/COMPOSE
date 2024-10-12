@@ -1,21 +1,20 @@
 {
-	"title": "Stanford Math Tournament",
-	"abbreviation": "SMT",
-	"logo": "https://www.stanfordmathtournament.com/SMT%20White.png",
-	"description": "The Stanford Math Tournament [SMT] is a high school math tournament run by students at Stanford University. We are passionate about providing a high quality and challenging event to students interested in mathematics globally.",
-	"url": "https://compose.stanfordmathtournament.com",
-	"test_logo": "https://i.postimg.cc/PxkgYTY8/smt-logo.png",
+	"title": "Mustang Math",
+	"abbreviation": "MM",
+	"logo": "https://mustangmath.com/favicon.png",
+	"description": "The Mustang Math Tournament (MMT) is an online middle school contest hosted by experienced high school and college students, designed to get participants excited about working together on math problems.",
+	"url": "https://compose.mustangmath.com",
 	"discord": {
-		"guild_id": "968089252107792444",
-		"embed_color": "0xdc7291",
-		"thread_channel": "1167741704175099955",
-		"notifs_channel": "1167741704175099955",
-		"notifs_forum": "1191688676833493033"
+		"guild_id": "826629811257606155",
+		"embed_color": "0x65c083",
+		"thread_channel": "1167667268994478101",
+		"notifs_channel": "1011843767508156496",
+    		"notifs_forum": "1191689032749555762"
 	},
 	"progress": {
-		"after": "2023-10-29T20:00:00Z",
-		"before": "2024-04-13T00:00:00Z",
-		"goal": 120
+		"after": "2024-07-01T13:00:00Z",
+		"before": "2024-09-21T00:00:00Z",
+		"goal": 200
 	},
 	"styles": {
 		"text-color-light": "#fff",
