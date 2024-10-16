@@ -281,19 +281,8 @@
 		color: white !important;
 	}
 	:global(.profileButtons .button:hover) {
-		background-color: var(--secondary-tint) !important;
+		background-color: var(--primary-light) !important;
 		border: 2px solid var(--primary) !important;
-	}
-	:global(.buttonPrimaryLight:hover) {
-		background-color: var(--secondary-tint) !important;
-		border: 2px solid var(--primary-light) !important;
-	}
-	:global(.profileButtons .button:hover p) {
-		color: var(--primary) !important;
-	}
-
-	:global(.buttonPrimaryLight:hover p) {
-		color: var(--primary-light) !important;
 	}
 	:global(.profileButtons .button:focus),
 	:global(.profileButtons .bx--text-input:focus),
@@ -302,6 +291,16 @@
 		box-shadow: 2px solid var(--primary) !important;
 		outline-color: var(--primary) !important;
 	}
+	:global(.buttonPrimaryLight:hover) {
+		background-color: var(--secondary-tint) !important;
+		border: 2px solid var(--primary-light) !important;
+	}
+	
+
+	:global(.buttonPrimaryLight:hover p) {
+		color: var(--primary-light) !important;
+	}
+	
 	:global(.link) {
 		text-decoration: none !important;
 		color: var(--primary-light) !important;
@@ -353,7 +352,8 @@
 	:global(.button p) {
 		color: var(--primary-light) !important;
 	}
-	:global(.button:hover) {
+	:global(.button:hover), 
+	:global(.button:focus) {
 		background-color: var(--primary-light) !important;
 	}
 	:global(.button:hover p) {
