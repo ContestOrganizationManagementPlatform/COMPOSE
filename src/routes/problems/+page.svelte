@@ -9,7 +9,7 @@
 	import { Checkbox, TextArea } from "carbon-components-svelte";
 	import toast from "svelte-french-toast";
 	import { handleError } from "$lib/handleError";
-	import scheme from "$lib/scheme.json";
+	import { fetchSettings } from "$lib/supabase/settings";
 	import {
 		getImages,
 		getProblemCounts,
@@ -79,6 +79,13 @@
 	let openModal = false;
 	let values = ["Problems", "Answers", "Solutions", "Comments"];
 	let group = values.slice(0, 1);
+
+	let scheme = {};
+
+	onMount(async () => {
+		// Fetch settings from the database
+		scheme = await fetchSettings();
+	});
 
 	(async () => {
 		try {

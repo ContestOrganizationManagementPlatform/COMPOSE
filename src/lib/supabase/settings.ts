@@ -1,6 +1,5 @@
 import { supabase } from '$lib/supabaseClient'; // Your Supabase client initialization
 
-
 let cachedSettings = null;
 export async function fetchSettings() {
     if (cachedSettings) {
