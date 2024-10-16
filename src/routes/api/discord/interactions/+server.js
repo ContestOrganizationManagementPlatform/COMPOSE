@@ -1,5 +1,5 @@
 import nacl from "tweetnacl";
-import scheme from "$lib/scheme.json";
+import {fetchSettings} from "$lib/supabase";
 import {
 	InteractionResponseType,
 	InteractionType,
@@ -8,6 +8,13 @@ import {
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
 const PUBLIC_KEY = import.meta.env.VITE_BOT_PUBLIC_KEY;
+
+let scheme = {};
+
+// Function to fetch settings
+async function loadSettings() {
+    scheme = await fetchSettings(); // Fetch settings from the database
+}
 //Change
 async function verifyRequest(req, body) {
 	const signature = req.headers.get("X-Signature-Ed25519");
@@ -37,6 +44,7 @@ export async function GET({ request }) {
 	return new Response("👋");
 }
 export async function POST({ request }) {
+	await loadSettings();
 	// Verify the authenticity of the request using Discord's public key and signature
 	let text = await request.text();
 	const isValidRequest = await verifyRequest(request, text);
