@@ -62,9 +62,9 @@
 			<Link href="/" class={path == "" ? "active link" : "link"}>
 				<p class="linkPara">Home</p>
 			</Link>
-			<div class="fixedHr" />
 			{#if userRole}
 				{#if userRole >= 20}
+					<div class="fixedHr" />
 					<Link
 						href="/problems/new"
 						class={path == "problems/new" ? "active link" : "link"}
