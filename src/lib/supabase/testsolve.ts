@@ -653,6 +653,7 @@ export async function getRandomProblem(activeUserId) {
 			.from('full_problems')
 			.select('*')
 			.neq('author_id', activeUserId)
+			.eq('archived', false)
 			.not('id', 'in', feedback);
 		
 		if (error2) throw error2;
