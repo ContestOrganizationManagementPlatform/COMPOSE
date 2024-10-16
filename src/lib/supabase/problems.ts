@@ -1,7 +1,13 @@
 import { supabase } from "../supabaseClient";
 import { getAuthorName } from "./users";
-import { getUser } from "$lib/supabase";
-import scheme from "$lib/scheme.json";
+import { getUser, fetchSettings } from "$lib/supabase";
+
+let scheme = {};
+
+// Function to fetch settings
+async function loadSettings() {
+    scheme = await fetchSettings(); // Fetch settings from the database
+}
 
 export interface ProblemRequest {
 	problem_latex: string;
@@ -144,6 +150,7 @@ export async function getProblems(options: ProblemSelectRequest = {}) {
  * @returns problem data in database (including id)
  */
 export async function createProblem(problem: ProblemRequest) {
+	await loadSettings();
 	console.log(problem);
 	let { data, error } = await supabase
 		.from("problems")
