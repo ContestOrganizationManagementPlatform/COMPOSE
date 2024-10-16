@@ -1,14 +1,8 @@
 import { supabase } from "../supabaseClient";
 import { getProblem } from "$lib/supabase/problems";
-import { getUser, fetchSettings } from "$lib/supabase";
+import { getUser } from "$lib/supabase";
 import { formatDate } from "$lib/formatDate";
-
-let scheme = {};
-
-// Function to fetch settings
-async function loadSettings() {
-    scheme = await fetchSettings(); // Fetch settings from the database
-}
+import scheme from "$lib/scheme.json";
 
 export interface TestsolverRequest {
 	test_id: number;
@@ -246,7 +240,6 @@ export async function insertTestsolvers(test_id, solvers) {
  * @returns object in database, including id
  */
 export async function addTestsolvers(test, solvers) {
-	await loadSettings();
 	const testsolve = await insertTestsolvers(test.id, solvers);
 	console.log("TESTSOLVE", testsolve);
 
@@ -494,7 +487,6 @@ export async function upsertProblemFeedback(problem_feedback: any[]) {
 }
 
 export async function sendFeedbackMessage(problem_feedback: any[]) {
-	await loadSettings();
 	problem_feedback.forEach(async (feedback) => {
 		console.log("feedback", feedback);
 		const problem = await getProblem(feedback.problem_id);
