@@ -86,8 +86,6 @@
 						<p class="linkPara">Import Problems</p>
 					</Link>
 					<br />
-				{/if}
-				{#if userRole >= 10}
 					<Link
 						href="/testsolve"
 						class={path == "testsolve" ? "active link" : "link"}
