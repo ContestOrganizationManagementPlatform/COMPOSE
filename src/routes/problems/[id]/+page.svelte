@@ -14,15 +14,19 @@
 		getProblemTopics,
 		getProblem,
 		getThisUserRole,
+		fetchSettings,
+		makeProblemThread,
 	} from "$lib/supabase";
 
 	let problem;
 	let loaded = false;
 	let isAdmin = false;
 	let user;
+	let scheme = {};
 
 	(async () => {
 		user = await getThisUser();
+		scheme = await fetchSettings();
 	})();
 
 	async function fetchTopic(problem_id) {
@@ -51,6 +55,7 @@
 				loaded = true;
 				return;
 			}
+			console.log("PROBLEM", problem)
 
 			await fetchTopic(problem.id);
 			loaded = true;
@@ -114,6 +119,29 @@
 			<br />
 			<br />
 		{/if}
+		{#if problem.discord_id}
+			<Button
+				href={"https://discord.com/channels/" + scheme.discord.guild_id + "/" + problem.discord_id}
+				title="Discord Thread"
+				classs="discordbutton"
+				newTab
+				fontSize="1em"
+				icon="fa-brands fa-discord"
+			/>
+		{:else}
+			<Button
+				action={async () => {
+					const newId = await makeProblemThread(problem);
+					if (newId) problem.discord_id = newId;
+				}}
+				title="Create Discord Thread"
+				classs="discordbutton"
+				fontSize="1em"
+				icon="fa-brands fa-discord"
+			/>
+		{/if}
+		<br />
+		<br />
 		<Problem {problem} showMetadata={true} />
 		<br />
 		<br />

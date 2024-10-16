@@ -143,26 +143,8 @@ export async function getProblems(options: ProblemSelectRequest = {}) {
 	}
 }
 
-/**
- * Creates a single problem. No topic support yet
- *
- * @param problem object
- * @returns problem data in database (including id)
- */
-export async function createProblem(problem: ProblemRequest) {
+export async function makeProblemThread(problem: ProblemRequest) {
 	await loadSettings();
-	console.log(problem);
-	let { data, error } = await supabase
-		.from("problems")
-		.insert([problem])
-		.select();
-	if (error) {
-		console.log("ERROR", error);
-		throw error;
-	}
-	problem = data[0];
-	console.log("PROBLEM", problem);
-	console.log("DATA", data);
 	const user = await getUser(problem.author_id);
 	const embed = {
 		title: "Problem " + user.initials + problem.id,
@@ -176,22 +158,22 @@ export async function createProblem(problem: ProblemRequest) {
 		fields: [
 			{
 				name: "Problem",
-				value: problem.problem_latex,
+				value: problem.problem_latex.length > 1023 ? problem.problem_latex.substring(0, 1020) + "..." : problem.problem_latex,
 				inline: false, // You can set whether the field is inline
 			},
 			{
 				name: "Answer",
-				value: problem.answer_latex,
+				value: problem.answer_latex.length > 1023 ? problem.answer_latex.substring(0, 1020) + "..." : problem.answer_latex,
 				inline: false, // You can set whether the field is inline
 			},
 			{
 				name: "Solution",
-				value: problem.solution_latex,
+				value: problem.solution_latex.length > 1023 ? problem.solution_latex.substring(0, 1020) + "..." : problem.solution_latex,
 				inline: false, // You can set whether the field is inline
 			},
 			{
 				name: "Comments",
-				value: problem.comment_latex,
+				value: problem.comment_latex.length > 1023 ? problem.comment_latex.substring(0, 1020) + "..." : problem.comment_latex,
 				inline: false, // You can set whether the field is inline
 			},
 		],
@@ -227,14 +209,42 @@ export async function createProblem(problem: ProblemRequest) {
 	console.log("THREAD RESPONSE", threadResponse);
 	const threadData = await threadResponse.json();
 	console.log("THREAD DATA 2", threadData);
+	let success = false;
 	if (threadData.id) {
 		await editProblem({ discord_id: threadData.id }, problem.id);
+		problem.discord_id = threadData.id;
+		success = true
 	}
 	console.log("AUTHORID", problem.author_id);
+	/**
 	const response = await fetch("/api/update-metadata", {
 		method: "POST",
 		body: JSON.stringify({ userId: user.discord_id }),
 	});
+	*/
+	return threadData.id;
+}
+
+/**
+ * Creates a single problem. No topic support yet
+ *
+ * @param problem object
+ * @returns problem data in database (including id)
+ */
+export async function createProblem(problem: ProblemRequest) {
+	console.log(problem);
+	let { data, error } = await supabase
+		.from("problems")
+		.insert([problem])
+		.select();
+	if (error) {
+		console.log("ERROR", error);
+		throw error;
+	}
+	problem = data[0];
+	console.log("PROBLEM", problem);
+	console.log("DATA", data);
+	await makeProblemThread(problem);
 
 	return problem;
 }
