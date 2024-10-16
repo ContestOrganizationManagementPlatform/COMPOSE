@@ -216,10 +216,12 @@ export async function makeProblemThread(problem: ProblemRequest) {
 		success = true
 	}
 	console.log("AUTHORID", problem.author_id);
+	/**
 	const response = await fetch("/api/update-metadata", {
 		method: "POST",
 		body: JSON.stringify({ userId: user.discord_id }),
 	});
+	*/
 	return threadData.id;
 }
 
