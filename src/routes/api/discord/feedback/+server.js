@@ -1,5 +1,3 @@
-import scheme from "$lib/scheme.json";
-
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
 export async function POST({ request }) {

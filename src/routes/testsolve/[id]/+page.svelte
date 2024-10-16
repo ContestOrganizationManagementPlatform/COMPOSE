@@ -24,8 +24,8 @@
 		sendFeedbackMessage,
 		getTestCoordinators,
 		getUser,
+		fetchSettings,
 	} from "$lib/supabase";
-	import scheme from "$lib/scheme.json";
 
 	let loading = true;
 	let disallowed = true;
@@ -50,14 +50,12 @@
 			new Date(testsolve?.start_time).getTime();
 
 	let user;
+	let scheme = {};
 	(async () => {
+		scheme = await fetchSettings();
 		user = await getThisUser();
-		console.log("USER_ID", user.id);
 		await getTestsolve();
 		await permissionCheck();
-		console.log("Loaded isAdmin", isAdmin);
-		console.log("Completed Perms Check 2");
-		console.log(isAdmin, testsolve.status);
 	})();
 
 	async function deleteThisTestsolve() {
