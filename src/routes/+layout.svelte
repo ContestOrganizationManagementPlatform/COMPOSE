@@ -10,12 +10,11 @@
 	import { page } from "$app/stores";
 	import { Toaster } from "svelte-french-toast";
 	import { getThisUser } from "$lib/supabase";
-	import scheme from "$lib/scheme.json";
-
+	import { fetchSettings } from "$lib/supabase/settings"; // Import fetchSettings
 	let loaded = false;
-
 	let hasAccount = true;
-	// user.set(browser ? localStorage.getItem("user") : null);
+	let scheme = {}; // Initialize scheme variable
+
 	(async () => {
 		user.set(await getThisUser());
 	})();
@@ -25,18 +24,20 @@
 	});
 
 	onMount(async () => {
-		loaded = true;
+		// Fetch settings from the database
+		scheme = await fetchSettings();
+
+		// Set CSS variables dynamically
+		Object.entries(scheme.styles || {}).forEach(([key, value]) => {
+			document.documentElement.style.setProperty(`--${key}`, value);
+		});
+		Object.entries(scheme.constants || {}).forEach(([key, value]) => {
+			document.documentElement.style.setProperty(`--${key}`, value);
+		});
+		loaded = true; // Set loaded to true after fetching
 	});
 
-	$: cssVarStyles = Object.entries(scheme.styles)
-		.map(([key, value]) => `--${key}:${value}`)
-		.join(";");
-	
-	$: cssVarStyles2 = Object.entries(scheme.constants)
-		.map(([key, value]) => `--${key}:${value}`)
-		.join(";");
-
-	// user.subscribe(val => browser ? localStorage.setItem("user", val) : null);
+	// The rest of your component logic remains unchanged
 </script>
 
 <svelte:head>
@@ -50,7 +51,7 @@
 </svelte:head>
 
 <Toaster />
-<main style={[cssVarStyles, cssVarStyles2]}>
+<main>
 	{#if !loaded}
 		<Banner />
 		<div class="loadingPage flex">
@@ -487,3 +488,6 @@
 		}
 	}
 </style>
+
+
+
