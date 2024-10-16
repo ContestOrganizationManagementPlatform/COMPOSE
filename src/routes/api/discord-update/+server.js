@@ -1,15 +1,7 @@
 import { WebhookClient } from "discord.js";
-import {fetchSettings} from "$lib/supabase";
-
-let scheme = {};
-
-// Function to fetch settings
-async function loadSettings() {
-    scheme = await fetchSettings(); // Fetch settings from the database
-}
+import scheme from "$lib/scheme.json";
 
 export async function POST({ request }) {
-	await loadSettings();
 	let token = import.meta.env.VITE_CLIENT_TOKEN;
 	let id = import.meta.env.VITE_CLIENT_ID;
 	const body = await request.json();
