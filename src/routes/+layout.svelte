@@ -268,6 +268,10 @@
 		background-color: #5865f2 !important;
 		color: white !important;
 	}
+	:global(.discordbutton:hover) {
+		background-color: #7984f5 !important;
+		color: white !important;
+	}
 	:global(.disabled) {
 		pointer-events: none;
 		cursor: not-allowed;
