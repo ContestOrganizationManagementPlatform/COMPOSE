@@ -33,6 +33,7 @@
     const newProblem = () => {
         (async () => {
             loaded = false;
+            console.log("GETTING PROBLEM")
             problem = await getRandomProblem(user_id);
             console.log("WHY", problem);
             reviewing = !reviewing;
