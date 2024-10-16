@@ -639,64 +639,40 @@ export async function sendFeedbackMessage(problem_feedback: any[]) {
  */
 export async function getRandomProblem(activeUserId) {
 	try{
-		//Gets problems that weren't written by the user
-		let { data: problems, error } = await supabase
-			.from('full_problems')
-			.select('id')
-			.neq('author_id', activeUserId)
-		
-		if(error) throw error
 
-		//get all problems that user has already written feedback for
-		let { data: feedback, error: feedbackError } = await supabase
+		let { data: feedback, error } = await supabase
 			.from('problem_feedback')
 			.select('problem_id')
-			.eq('solver_id', activeUserId)
-		
-		if (feedbackError) throw feedbackError
-
-		//take problem IDs from feedback
-		const feedbackProblemIds = feedback.map(item => item.problem_id)
-
-		//filter out problems with active user feedback
-		const eligibleProblems = problems.filter(problem => !feedbackProblemIds.includes(problem.id))
-
-		if (eligibleProblems.length === 0) {
-			console.log('No eligible problems found.');
-			return null //nothing found
-		}
-
-		//Count feedbacks for each remaining problem
-		const feedbackCounts = await Promise.all(
-			eligibleProblems.map(async (problem) => {
-				let { count, error: countError } = await supabase
-					.from('problem_feedback')
-					.select('id', { count: 'exact' })
-					.eq('problem_id', problem.id);
-		
-				if (countError) throw countError;
-		
-				return { problem, count };
-			})
-		);
-	  
-		  //Find problem with the least feedback count
-		feedbackCounts.sort((a, b) => a.count - b.count);
-		  
-		//If there are multiple problems with the least feedback, select one randomly
-		const leastFeedbackProblems = feedbackCounts.filter(fc => fc.count === feedbackCounts[0].count);
-		const randomProblem = leastFeedbackProblems[Math.floor(Math.random() * leastFeedbackProblems.length)].problem;
-		  
-		//fetch full problem details
-		let { data: fullProblem, error: fullProblemError } = await supabase
+			.eq('solver_id', activeUserId);
+		if (error) throw error;
+		feedback = feedback ? `(${feedback.map(f => f.problem_id).join(", ")})` : "()" // Format as (id1, id2, id3)
+		console.log("FEEDBACK", feedback);
+		console.log("STARTING SEARCH")
+		// Get problems that weren't written by the user and that the user hasn't given feedback for
+		let { data: problems, error2 } = await supabase
 			.from('full_problems')
 			.select('*')
-			.eq('id', randomProblem.id)
-			.single()
+			.neq('author_id', activeUserId)
+			.eq('archived', false)
+			.not('id', 'in', feedback);
 		
-			if (fullProblemError) throw fullProblemError
+		if (error2) throw error2;
+		console.log("FULL PROBLEMS", problems);
+		
+		if (problems.length === 0) {
+			console.log('No eligible problems found.');
+			return null; // nothing found
+		}
+		  //Find problem with the least feedback count
+		problems.sort((a, b) => a.feedback_count - b.feedback_count);
+		  
+		//If there are multiple problems with the least feedback, select one randomly
+		const leastFeedbackProblems = problems.filter(problem => problem.feedback_count === problems[0].feedback_count);
+		const randomProblem = leastFeedbackProblems[Math.floor(Math.random() * leastFeedbackProblems.length)];
+		console.log("RANDOM PROBLEM", randomProblem)
+		return randomProblem
 
-			return fullProblem
+		
 	} catch (error) {
 		console.error('Error fetching random problem:', error.message)
 		return null
