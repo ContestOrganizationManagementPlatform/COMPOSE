@@ -1,8 +1,16 @@
-import scheme from "$lib/scheme.json";
+import {fetchSettings} from "$lib/supabase";
 
 const discordToken = import.meta.env.VITE_BOT_TOKEN;
 
+let scheme = {};
+
+// Function to fetch settings
+async function loadSettings() {
+    scheme = await fetchSettings(); // Fetch settings from the database
+}
+
 export async function POST({ request }) {
+	await loadSettings();
 	console.log(request);
 	const body = await request.json();
 	console.log("BODY", JSON.stringify(body));

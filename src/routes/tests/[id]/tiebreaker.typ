@@ -5,20 +5,33 @@
   (
     (
       (
-        problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$", answer_latex: "$\\frac{3}{4}$", solution_latex: "Think deeply, then guess the answer.",
-      ), (
-        problem_latex: "Count how many toes you have. What is that number divided by $2$?", answer_latex: "5", solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5\\frac{\\frac{10}{3}2}{1}}.$",
-      ), ..range(20).map(
-        i => (
-          problem_latex: "Problem # " + str(i), answer_latex: "Generic answer", solution_latex: "Generic solution",
-        ),
+        problem_latex: "What is $\\frac{1}{2} + \\frac{1}4?$",
+        answer_latex: "$\\frac{3}{4}$",
+        solution_latex: "Think deeply, then guess the answer.",
       ),
-    ), (
-      name: "Test Name", id: "T16", day: 13, month: 4, year: 2024, team_test: false, display: (answers: true, solutions: true),
+      (
+        problem_latex: "Count how many toes you have. What is that number divided by $2$?",
+        answer_latex: "5",
+        solution_latex: "Hopefully, you find that the left foot has 5, the right foot has 5, and the sum is $10.$ Then, we have $\\frac{10}2 = \\boxed{5\\frac{\\frac{10}{3}2}{1}}.$",
+      ),
+      ..range(20).map(i => (
+        problem_latex: "Problem # " + str(i),
+        answer_latex: "Generic answer",
+        solution_latex: "Generic solution",
+      )),
+    ),
+    (
+      name: "Test Name",
+      id: "T16",
+      day: 13,
+      month: 4,
+      year: 2024,
+      team_test: false,
+      display: (answers: true, solutions: true),
     ),
   )
 } else {
-  (json("/assets/problems.json"), json("/assets/test_metadata.json"),)
+  (json("/assets/problems.json"), json("/assets/test_metadata.json"))
 }
 
 // Set page size and set page header for answer sheet boxes.
@@ -56,22 +69,31 @@
 
 #let replace_image(latex, convert) = {
   let no_end_brace = `[^\}]`.text
-  let image_regex = regex(
-    `\\(image|includegraphics)(\[[^\]]*\])*\{(`.text + no_end_brace + `+)\}`.text,
-  );
-  latex = latex.replace(image_regex, (m, ..) => {
-    let path = "/problem_images" + m.captures.last()
-    "\\iftypst\n #figure(image(\"" + path + "\", height: 110pt))\n\\fi"
-  })
+  let image_regex = regex(`\\(image|includegraphics)(\[[^\]]*\])*\{(`.text + no_end_brace + `+)\}`.text)
+  latex = latex.replace(
+    image_regex,
+    (m, ..) => {
+      let path = "/problem_images" + m.captures.last()
+      "\\iftypst\n #figure(image(\"" + path + "\", height: 110pt))\n\\fi"
+    },
+  )
   // Super lazy for now, until https://github.com/mitex-rs/mitex/pull/152 is resolved.
   // Regex finitely many nested brace pairs.
   let no_brace = `[^\{\}]`.text
   let brace_pair_list(center_regex) = no_brace + `*(\{`.text + center_regex + `\}`.text + no_brace + `*)*`.text
-  let nested_brace_pairs(count) = if count == 1 { brace_pair_list(no_brace + "*") } else { brace_pair_list(nested_brace_pairs(count - 1)) }
+  let nested_brace_pairs(count) = if count == 1 {
+    brace_pair_list(no_brace + "*")
+  } else {
+    brace_pair_list(nested_brace_pairs(count - 1))
+  }
   let boxed_regex = regex(`\\(boxed|ans)\{(`.text + nested_brace_pairs(4) + `)\}`.text)
   latex.replace(
-    boxed_regex, (m, ..) => {
-      "\\iftypst#box(stroke: 0.5pt, inset: 6pt, baseline: 6pt, [" + mitex-convert(mode: "text", "$" + m.captures.at(1) + "$") + "])\\fi"
+    boxed_regex,
+    (m, ..) => {
+      "\\iftypst#pad(y: 4pt, move(dy: -1pt, box(stroke: 0.5pt, inset: (x: 2pt, y: 6pt), [" + mitex-convert(
+        mode: "text",
+        "$" + m.captures.at(1) + "$",
+      ) + "])))\\fi"
     },
   )
 }
@@ -95,25 +117,36 @@
 
 #let problem_cell(i, problems, top_of_page) = {
   rect(
-    inset: (x: 0.5in, y: 0.5in), width: 100%, height: 50%, stroke: if top_of_page { (bottom: pat) } else { (top: pat) },
+    inset: (x: 0.5in, y: 0.5in),
+    width: 100%,
+    height: 50%,
+    stroke: if top_of_page {
+      (bottom: pat)
+    } else {
+      (top: pat)
+    },
   )[
     #set text(size: 11pt, font: "New Computer Modern")
     *#{ test_metadata.name }*
 
     #enum(
-      ..range(calc.min(3, problems.len())).map(
-        index => {
-          enum.item(
-            i * 3 + index + 1, eval(
-              convert_to_typst(problems.at(index).problem_latex), mode: "markup", scope: mitex-scope,
-            ),
-          )
-        },
-      ),
+      ..range(calc.min(3, problems.len())).map(index => {
+        enum.item(
+          i * 3 + index + 1,
+          eval(
+            convert_to_typst(problems.at(index).problem_latex),
+            mode: "markup",
+            scope: mitex-scope,
+          ),
+        )
+      }),
     )
   ]
 }
 
 #grid(
-  columns: (auto), rows: (auto, auto), ..problems.chunks(3).enumerate().map(((i, ps)) => (problem_cell(i, ps, true), problem_cell(i, ps, false))).flatten(),
+  columns: (auto), rows: (auto, auto), ..problems.chunks(3).enumerate().map(((i, ps)) => (
+    problem_cell(i, ps, true),
+    problem_cell(i, ps, false),
+  )).flatten(),
 )

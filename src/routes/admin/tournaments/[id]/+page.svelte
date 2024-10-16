@@ -7,6 +7,7 @@
 	import JSZip from "jszip";
 	import {
 		archiveTournament,
+		unarchiveTournament,
 		getTournamentInfo,
 		getTournamentTests,
 		getTestProblems,
@@ -229,6 +230,12 @@
 		runHeader="Archive Tournament"
 		onSubmit={async () => {
 			await archiveTournament(tournamentId);
+		}}
+	/>
+	<br /><ModalButton
+		runHeader="Unarchive Tournament"
+		onSubmit={async () => {
+			await unarchiveTournament(tournamentId);
 		}}
 	/>
 {/if}

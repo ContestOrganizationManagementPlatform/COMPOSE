@@ -48,6 +48,7 @@
 		"Solutions",
 		"Comments",
 		"Feedback",
+		"Standard Layout",
 	];
 	let selected_values = values.slice(0, 1);
 
@@ -93,17 +94,24 @@
 		try {
 			const is_selected = (option) =>
 				selected_values.find((o) => o == option) != undefined;
-			const answer_template_body = await fetch(
-				test.test_name == "Guts" &&
-					!is_selected("Answers") &&
-					!is_selected("Solutions")
-					? gutsSheet
-					: test.test_name.indexOf("Tiebreaker") != -1 &&
-					!is_selected("Answers") &&
-					!is_selected("Solutions")
-					? tiebreakerSheet
-					: testSheet
-			).then((r) => r.text());
+			let template_source = testSheet;
+			// TODO: consolidate guts, tiebreakers, and standard typst document layouts.
+			if (
+				test.test_name == "Guts"
+				&& !is_selected("Answers")
+				&& !is_selected("Solutions")
+				&& !is_selected("Standard Layout")
+			) {
+				template_source = gutsSheet;
+			} else if (
+				test.test_name.indexOf("Tiebreaker") != -1 
+			  && !is_selected("Answers") 
+			  && !is_selected("Solutions")
+				&& !is_selected("Standard Layout")
+			) {
+				template_source = tiebreakerSheet;
+			}
+			const answer_template_body = await fetch(template_source ).then((r) => r.text());
 
 			// TODO: @tweoss (francis) get rid of this hack of using test name directly
 			if (test.test_name == "Integration Bee") {
