@@ -146,11 +146,11 @@
 	}
 	getTopics();
 
-	async function submitPayload() {
+	async function submitPayload(isDraft = false) {
 		try {
 			if (
 				fields.problem &&
-				fields.comment &&
+				//fields.comment &&
 				fields.answer &&
 				fields.solution &&
 				topics
@@ -160,6 +160,10 @@
 				} else if (problemFiles.some((f) => f.size > fileSizeLimit)) {
 					throw new Error("File too large");
 				} else {
+					console.log("OGSTATUS", originalProblem?.status)
+					console.log(isDraft)
+					const status = (isDraft ? "Draft" : (originalProblem?.status == "Draft" ? "Idea" : originalProblem?.status))
+					console.log("STATUS", status)
 					const payload = {
 						problem_latex: fields.problem,
 						comment_latex: fields.comment,
@@ -170,13 +174,14 @@
 						difficulty: difficulty ? parseInt(difficulty) : 0,
 						edited_at: new Date().toISOString(),
 						problem_files: problemFiles,
+						status: status,
 					};
 					submittedText = "Submitting problem...";
 					await onSubmit(payload);
-					submittedText = "Problem submitted.";
+					submittedText = isDraft ? "Draft Saved" : "Problem Submitted";
 				}
 			} else {
-				throw new Error("Not all the fields have been filled out");
+				throw new Error("Not all the required fields have been filled out");
 			}
 		} catch (error) {
 			handleError(error);
@@ -366,10 +371,21 @@
 					type="submit"
 					size="small"
 					disabled={isDisabled || problemFailed}
-					on:click={submitPayload}
+					on:click={() => {submitPayload()}}
 					style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
 				>
 					<p>Submit Problem</p>
+				</Button><br><br>
+				<Button
+					kind="tertiary"
+					class="button"
+					type="submit"
+					size="small"
+					disabled={isDisabled || problemFailed}
+					on:click={() => {submitPayload(true)}}	
+					style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+				>
+					<p>Save Draft</p>
 				</Button>
 
 				<p>{submittedText}</p>

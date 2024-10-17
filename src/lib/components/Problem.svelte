@@ -106,6 +106,9 @@
 				{#if "sub_topics" in problem}
 					<p><span class="header">Sub-Topic: </span>{problem.sub_topics}</p>
 				{/if}
+				{#if "status" in problem}
+					<p><span class="header">Status: </span>{problem.status}</p>
+				{/if}
 				{#if "difficulty" in problem}
 					<p><span class="header">Difficulty: </span>{problem.difficulty}</p>
 				{/if}
