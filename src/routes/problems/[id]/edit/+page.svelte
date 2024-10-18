@@ -87,7 +87,7 @@
 			handleError(error);
 			toast.error(error.message);
 		}
-
+		/** ENDPOINT NEEDS TO BE FIXED
 		try {
 			// Update discord webhook.
 			const authorName = await getAuthorName(await getThisUser().id);
@@ -103,6 +103,7 @@
 			handleError(error);
 			toast.error("Error updating discord webhook: " + error.message);
 		}
+		*/
 	}
 </script>
 

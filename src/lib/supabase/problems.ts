@@ -284,6 +284,7 @@ export async function editProblem(
 	console.log(data);
 	const authorName = await getAuthorName(data[0].author_id);
 	console.log(problem);
+	/** ENDPOINT NEEDS TO BE FIXED
 	await fetch("/api/discord-update", {
 		method: "POST",
 		body: JSON.stringify({
@@ -292,7 +293,7 @@ export async function editProblem(
 			updater: authorName,
 		}),
 	});
-
+	*/
 	return data[0];
 }
 

@@ -148,6 +148,7 @@
 
 	async function submitPayload(isDraft = false) {
 		try {
+			isDisabled = true
 			if (
 				fields.problem &&
 				//fields.comment &&
@@ -376,18 +377,19 @@
 				>
 					<p>Submit Problem</p>
 				</Button><br><br>
-				<Button
-					kind="tertiary"
-					class="button"
-					type="submit"
-					size="small"
-					disabled={isDisabled || problemFailed}
-					on:click={() => {submitPayload(true)}}	
-					style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
-				>
-					<p>Save Draft</p>
-				</Button>
-
+				{#if !originalProblem || originalProblem?.status == "Draft"}
+					<Button
+						kind="tertiary"
+						class="button"
+						type="submit"
+						size="small"
+						disabled={isDisabled || problemFailed}
+						on:click={() => {submitPayload(true)}}	
+						style="width: 30em; border-radius: 2.5em; margin: 0; padding: 0;"
+					>
+						<p>Save Draft</p>
+					</Button>
+				{/if}
 				<p>{submittedText}</p>
 				<br />
 			{/if}
